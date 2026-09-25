@@ -1,0 +1,3321 @@
+<!doctype html>
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Meadow Lane Realty & Development CRM</title>
+		<!-- Tailwind CSS CDN -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<!-- FontAwesome Icons -->
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<!-- Chart.js for Dashboard Visualizations -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<!-- Google Fonts Inter -->
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<script>
+			tailwind.config = {
+				theme: {
+					extend: {
+						fontFamily: {
+							sans: ["Inter", "sans-serif"],
+						},
+						colors: {
+							brand: {
+								50: "#f0fdf4",
+								100: "#dcfce7",
+								500: "#22c55e",
+								600: "#16a34a",
+								700: "#15803d",
+								800: "#166534",
+								900: "#14532d",
+							},
+							slate: {
+								850: "#1e293b",
+								900: "#0f172a",
+							},
+						},
+					},
+				},
+			};
+		</script>
+		<style>
+			body {
+				font-family: "Inter", sans-serif;
+			}
+			/* Custom scrollbars */
+			::-webkit-scrollbar {
+				width: 6px;
+				height: 6px;
+			}
+			::-webkit-scrollbar-track {
+				background: #f1f5f9;
+			}
+			::-webkit-scrollbar-thumb {
+				background: #cbd5e1;
+				border-radius: 3px;
+			}
+			::-webkit-scrollbar-thumb:hover {
+				background: #94a3b8;
+			}
+		</style>
+	</head>
+	<body
+		class="bg-slate-50 text-slate-800 h-full flex flex-col overflow-hidden"
+	>
+		<!-- Top Header Bar -->
+		<header
+			class="bg-slate-900 text-white shadow-md z-30 flex items-center justify-between px-6 py-3.5 flex-shrink-0"
+		>
+			<div class="flex items-center space-x-3">
+				<div
+					class="bg-brand-600 p-2 rounded-xl text-white shadow-lg flex items-center justify-center"
+				>
+					<i class="fa-solid fa-house-chimney text-xl"></i>
+				</div>
+				<div>
+					<h1 class="font-bold text-lg tracking-tight">
+						Meadow Lane Realty & Development
+					</h1>
+					<p class="text-xs text-slate-400">
+						Enterprise Real Estate CRM & Operations Suite
+					</p>
+				</div>
+			</div>
+			<div class="flex items-center space-x-4">
+				<button
+					onclick="openGlobalSearch()"
+					class="hidden md:flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-sm transition border border-slate-700"
+				>
+					<i class="fa-solid fa-magnifying-glass text-xs"></i>
+					<span>Quick Search (Ctrl+K)</span>
+				</button>
+				<div class="relative">
+					<button
+						onclick="toggleNotifications()"
+						class="relative p-2 text-slate-300 hover:text-white transition rounded-lg hover:bg-slate-800"
+					>
+						<i class="fa-regular fa-bell text-lg"></i>
+						<span
+							id="notif-badge"
+							class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"
+							>3</span
+						>
+					</button>
+					<!-- Notification Dropdown -->
+					<div
+						id="notif-dropdown"
+						class="hidden absolute right-0 mt-2 w-80 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 z-50 p-3"
+					>
+						<div
+							class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2"
+						>
+							<span class="font-bold text-sm">Notifications</span>
+							<span
+								class="text-xs text-brand-600 cursor-pointer font-medium hover:underline"
+								onclick="clearNotifications()"
+								>Mark all read</span
+							>
+						</div>
+						<div
+							class="space-y-2 text-xs max-h-64 overflow-y-auto"
+							id="notif-list"
+						>
+							<div
+								class="p-2 bg-slate-50 rounded-lg border-l-4 border-brand-500"
+							>
+								<p class="font-semibold text-slate-900">
+									Zillow Premier Lead Ingested
+								</p>
+								<p class="text-slate-600">
+									New inquiry for 742 Evergreen Terrace
+									($650k)
+								</p>
+								<span
+									class="text-[10px] text-slate-400 mt-1 block"
+									>2 mins ago</span
+								>
+							</div>
+							<div
+								class="p-2 bg-slate-50 rounded-lg border-l-4 border-blue-500"
+							>
+								<p class="font-semibold text-slate-900">
+									Google Business Review
+								</p>
+								<p class="text-slate-600">
+									Sarah Jenkins left a 5-star review!
+								</p>
+								<span
+									class="text-[10px] text-slate-400 mt-1 block"
+									>15 mins ago</span
+								>
+							</div>
+							<div
+								class="p-2 bg-slate-50 rounded-lg border-l-4 border-amber-500"
+							>
+								<p class="font-semibold text-slate-900">
+									Inspection Reminder
+								</p>
+								<p class="text-slate-600">
+									Client Marcus Vance @ 10:00 AM
+								</p>
+								<span
+									class="text-[10px] text-slate-400 mt-1 block"
+									>1 hour ago</span
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div
+					class="flex items-center space-x-3 border-l border-slate-700 pl-4"
+				>
+					<img
+						src="https://placehold.co/40x40/16a34a/ffffff?text=ML"
+						alt="User"
+						class="w-9 h-9 rounded-full border-2 border-brand-500 object-cover"
+					/>
+					<div class="hidden lg:block text-left">
+						<span
+							class="block text-sm font-semibold leading-none text-white"
+							>Managing Broker</span
+						>
+						<span class="block text-[11px] text-brand-400 mt-0.5"
+							>Meadow Lane HQ</span
+						>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Tab Navigation Bar -->
+		<nav
+			class="bg-white border-b border-slate-200 overflow-x-auto flex-shrink-0 flex items-center px-4 space-x-1 shadow-sm"
+		>
+			<button
+				onclick="switchTab('dashboard')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition active-tab border-brand-600 text-brand-700"
+				data-tab="dashboard"
+			>
+				<i class="fa-solid fa-chart-pie text-sm"></i>
+				<span>1. Dashboard</span>
+			</button>
+			<button
+				onclick="switchTab('pipeline')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="pipeline"
+			>
+				<i class="fa-solid fa-kanban text-sm"></i>
+				<span>2. Pipeline Kanban</span>
+			</button>
+			<button
+				onclick="switchTab('active-clients')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="active-clients"
+			>
+				<i class="fa-solid fa-user-check text-sm"></i>
+				<span
+					>3. Active Clients
+					<span
+						id="active-badge-count"
+						class="bg-brand-100 text-brand-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1"
+						>4</span
+					></span
+				>
+			</button>
+			<button
+				onclick="switchTab('registry')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="registry"
+			>
+				<i class="fa-solid fa-address-book text-sm"></i>
+				<span>4. Client Registry</span>
+			</button>
+			<button
+				onclick="switchTab('calendar')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="calendar"
+			>
+				<i class="fa-solid fa-calendar-days text-sm"></i>
+				<span>5. Calendar</span>
+			</button>
+			<button
+				onclick="switchTab('communications')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="communications"
+			>
+				<i class="fa-solid fa-comments text-sm"></i>
+				<span>6. Communications Hub</span>
+			</button>
+			<button
+				onclick="switchTab('social')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="social"
+			>
+				<i class="fa-solid fa-share-nodes text-sm"></i>
+				<span>7. Social Media Hub</span>
+			</button>
+			<button
+				onclick="switchTab('google-business')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="google-business"
+			>
+				<i class="fa-brands fa-google text-sm"></i>
+				<span>8. Google Business</span>
+			</button>
+			<button
+				onclick="switchTab('zillow')"
+				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+				data-tab="zillow"
+			>
+				<i class="fa-solid fa-building text-sm"></i>
+				<span>9. Zillow Premier Agent</span>
+			</button>
+		</nav>
+
+		<!-- Main Content Area -->
+		<main
+			class="flex-1 overflow-hidden relative bg-slate-100 flex flex-col"
+		>
+			<!-- ================= TAB 1: DASHBOARD ================= -->
+			<div
+				id="tab-dashboard"
+				class="tab-content flex-1 overflow-y-auto p-6 space-y-6"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Executive Dashboard
+						</h2>
+						<p class="text-sm text-slate-500">
+							Real-time metrics, lead conversions, and brokerage
+							performance for Meadow Lane Realty.
+						</p>
+					</div>
+					<div class="mt-3 md:mt-0 flex items-center space-x-3">
+						<span
+							class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-3 py-1 rounded-full"
+							><i
+								class="fa-solid fa-circle text-[8px] text-emerald-600 mr-1.5 animate-pulse"
+							></i>
+							Live Data Feed Active</span
+						>
+						<button
+							onclick="refreshDashboardData()"
+							class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1.5"
+						>
+							<i class="fa-solid fa-rotate"></i>
+							<span>Refresh Metrics</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Summary Cards Grid -->
+				<div
+					class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+				>
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+							>
+								Total Active Clients
+							</p>
+							<h3
+								class="text-3xl font-extrabold text-slate-900 mt-1"
+								id="dash-active-count"
+							>
+								28
+							</h3>
+							<p
+								class="text-xs text-brand-600 font-semibold mt-1 flex items-center"
+							>
+								<i class="fa-solid fa-arrow-trend-up mr-1"></i>
+								+12% this month
+							</p>
+						</div>
+						<div
+							class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
+						>
+							<i class="fa-solid fa-users"></i>
+						</div>
+					</div>
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+							>
+								Under Contract Count
+							</p>
+							<h3
+								class="text-3xl font-extrabold text-slate-900 mt-1"
+								id="dash-contract-count"
+							>
+								7
+							</h3>
+							<p
+								class="text-xs text-emerald-600 font-semibold mt-1 flex items-center"
+							>
+								<i class="fa-solid fa-file-contract mr-1"></i>
+								$4.8M Volume
+							</p>
+						</div>
+						<div
+							class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
+						>
+							<i class="fa-solid fa-handshake"></i>
+						</div>
+					</div>
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+							>
+								Monthly Revenue
+							</p>
+							<h3
+								class="text-3xl font-extrabold text-slate-900 mt-1"
+							>
+								$94,500
+							</h3>
+							<p
+								class="text-xs text-brand-600 font-semibold mt-1 flex items-center"
+							>
+								<i class="fa-solid fa-arrow-trend-up mr-1"></i>
+								98% of Q3 Target
+							</p>
+						</div>
+						<div
+							class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
+						>
+							<i class="fa-solid fa-wallet"></i>
+						</div>
+					</div>
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+							>
+								Lead Conversion Rate
+							</p>
+							<h3
+								class="text-3xl font-extrabold text-slate-900 mt-1"
+							>
+								34.8%
+							</h3>
+							<p
+								class="text-xs text-brand-600 font-semibold mt-1 flex items-center"
+							>
+								<i class="fa-solid fa-bullseye mr-1"></i> Zillow
+								Premier avg: 22%
+							</p>
+						</div>
+						<div
+							class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
+						>
+							<i class="fa-solid fa-chart-line"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Secondary Metrics Bar -->
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase"
+							>
+								Google Business Rating
+							</p>
+							<div class="flex items-center space-x-2 mt-1">
+								<span class="text-2xl font-bold text-slate-900"
+									>4.9</span
+								>
+								<div class="text-amber-400 text-sm">
+									<i class="fa-solid fa-star"></i
+									><i class="fa-solid fa-star"></i
+									><i class="fa-solid fa-star"></i
+									><i class="fa-solid fa-star"></i
+									><i class="fa-solid fa-star"></i>
+								</div>
+							</div>
+							<p class="text-xs text-slate-500 mt-0.5">
+								Based on 142 verified reviews
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center"
+						>
+							<i class="fa-brands fa-google"></i>
+						</div>
+					</div>
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase"
+							>
+								Zillow Lead Speed-To-Lead
+							</p>
+							<h3 class="text-2xl font-bold text-slate-900 mt-1">
+								1m 42s
+							</h3>
+							<p
+								class="text-xs text-emerald-600 font-semibold mt-0.5"
+							>
+								<i class="fa-solid fa-bolt"></i> Webhook
+								automatic routing active
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"
+						>
+							<i class="fa-solid fa-gauge-high"></i>
+						</div>
+					</div>
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
+					>
+						<div>
+							<p
+								class="text-xs font-semibold text-slate-500 uppercase"
+							>
+								Active Developments
+							</p>
+							<h3 class="text-2xl font-bold text-slate-900 mt-1">
+								4 Projects
+							</h3>
+							<p class="text-xs text-slate-500 mt-0.5">
+								Meadow Lane Estates Phase II
+							</p>
+						</div>
+						<div
+							class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"
+						>
+							<i class="fa-solid fa-hard-hat"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Charts Section -->
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Revenue Trend Chart -->
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col"
+					>
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="font-bold text-slate-900 text-sm">
+								Monthly Revenue & Commission (2026)
+							</h3>
+							<span class="text-xs text-slate-400 font-medium"
+								>Updated Real-Time</span
+							>
+						</div>
+						<div class="flex-1 relative h-64">
+							<canvas id="revenueChart"></canvas>
+						</div>
+					</div>
+					<!-- Lead Sources Breakdown -->
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col"
+					>
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="font-bold text-slate-900 text-sm">
+								Lead Source Distribution
+							</h3>
+							<span class="text-xs text-slate-400 font-medium"
+								>Total: 128 Leads</span
+							>
+						</div>
+						<div
+							class="flex-1 relative h-64 flex items-center justify-center"
+						>
+							<canvas id="leadsChart"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- Upcoming Events & Recent Activity Bottom Grid -->
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Upcoming Events Widget -->
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200"
+					>
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="font-bold text-slate-900 text-sm">
+								Upcoming Brokerage Events
+							</h3>
+							<button
+								onclick="switchTab('calendar')"
+								class="text-xs text-brand-600 font-semibold hover:underline"
+							>
+								View Calendar
+							</button>
+						</div>
+						<div class="space-y-3" id="dash-events-list">
+							<div
+								class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
+							>
+								<div class="flex items-center space-x-3">
+									<div
+										class="bg-brand-100 text-brand-700 w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold text-xs"
+									>
+										<span>SEP</span>
+										<span class="text-sm">26</span>
+									</div>
+									<div>
+										<h4
+											class="text-sm font-semibold text-slate-900"
+										>
+											Closing Walkthrough - 428 Meadow
+											Lane
+										</h4>
+										<p class="text-xs text-slate-500">
+											10:00 AM - With Marcus Vance &
+											Inspector
+										</p>
+									</div>
+								</div>
+								<span
+									class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium"
+									>Pending</span
+								>
+							</div>
+							<div
+								class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
+							>
+								<div class="flex items-center space-x-3">
+									<div
+										class="bg-brand-100 text-brand-700 w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold text-xs"
+									>
+										<span>SEP</span>
+										<span class="text-sm">28</span>
+									</div>
+									<div>
+										<h4
+											class="text-sm font-semibold text-slate-900"
+										>
+											VIP Open House - Oakridge Estates
+										</h4>
+										<p class="text-xs text-slate-500">
+											01:00 PM - 12 Agents Attending
+										</p>
+									</div>
+								</div>
+								<span
+									class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-medium"
+									>Scheduled</span
+								>
+							</div>
+						</div>
+					</div>
+
+					<!-- Recent Activities Feed -->
+					<div
+						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200"
+					>
+						<div class="flex justify-between items-center mb-4">
+							<h3 class="font-bold text-slate-900 text-sm">
+								Recent Activity Stream
+							</h3>
+							<span class="text-xs text-slate-400"
+								>Live Sync</span
+							>
+						</div>
+						<div
+							class="space-y-3 text-xs"
+							id="dash-activity-stream"
+						>
+							<div
+								class="flex items-start space-x-3 pb-3 border-b border-slate-100"
+							>
+								<div
+									class="w-7 h-7 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+								>
+									<i class="fa-solid fa-phone text-xs"></i>
+								</div>
+								<div>
+									<p class="text-slate-800 font-medium">
+										<span class="font-bold"
+											>Sarah Jenkins</span
+										>
+										called client
+										<span class="font-bold"
+											>Eleanor Vance</span
+										>
+										regarding closing docs.
+									</p>
+									<span class="text-[10px] text-slate-400"
+										>12 minutes ago</span
+									>
+								</div>
+							</div>
+							<div
+								class="flex items-start space-x-3 pb-3 border-b border-slate-100"
+							>
+								<div
+									class="w-7 h-7 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+								>
+									<i class="fa-solid fa-envelope text-xs"></i>
+								</div>
+								<div>
+									<p class="text-slate-800 font-medium">
+										Bulk Email Campaign
+										<span class="font-bold"
+											>"Fall Luxury Homes"</span
+										>
+										sent to 450 contacts.
+									</p>
+									<span class="text-[10px] text-slate-400"
+										>45 minutes ago</span
+									>
+								</div>
+							</div>
+							<div class="flex items-start space-x-3">
+								<div
+									class="w-7 h-7 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+								>
+									<i
+										class="fa-solid fa-user-plus text-xs"
+									></i>
+								</div>
+								<div>
+									<p class="text-slate-800 font-medium">
+										New lead ingested from
+										<span class="font-bold"
+											>Zillow Premier Agent</span
+										>
+										API.
+									</p>
+									<span class="text-[10px] text-slate-400"
+										>1 hour ago</span
+									>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ================= TAB 2: PIPELINE KANBAN ================= -->
+			<div
+				id="tab-pipeline"
+				class="tab-content hidden flex-1 overflow-x-auto p-6 flex flex-col"
+			>
+				<div
+					class="flex justify-between items-center pb-4 mb-4 border-b border-slate-200 flex-shrink-0"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Pipeline Kanban Board
+						</h2>
+						<p class="text-sm text-slate-500">
+							Manage deal stages, Zillow lead ingestions, and
+							closing milestones.
+						</p>
+					</div>
+					<div class="flex items-center space-x-3">
+						<button
+							onclick="openAddClientModal()"
+							class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2"
+						>
+							<i class="fa-solid fa-plus"></i>
+							<span>Add Deal / Client</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Kanban Columns Container -->
+				<div
+					class="flex-1 flex space-x-5 overflow-x-auto pb-4 items-start h-full"
+					id="kanban-board"
+				>
+					<!-- Column: New Lead -->
+					<div
+						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
+					>
+						<div
+							class="flex justify-between items-center mb-3 px-1"
+						>
+							<div class="flex items-center space-x-2">
+								<span
+									class="w-3 h-3 rounded-full bg-blue-500"
+								></span>
+								<h3 class="font-bold text-slate-800 text-sm">
+									New Lead
+								</h3>
+								<span
+									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
+									id="count-new"
+									>2</span
+								>
+							</div>
+							<button class="text-slate-500 hover:text-slate-800">
+								<i class="fa-solid fa-ellipsis"></i>
+							</button>
+						</div>
+						<div
+							class="space-y-3 overflow-y-auto flex-1 pr-1"
+							id="col-new"
+							ondragover="allowDrop(event)"
+							ondrop="dropCard(event, 'New Lead')"
+						>
+							<!-- Cards will render here -->
+						</div>
+					</div>
+
+					<!-- Column: Contacted -->
+					<div
+						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
+					>
+						<div
+							class="flex justify-between items-center mb-3 px-1"
+						>
+							<div class="flex items-center space-x-2">
+								<span
+									class="w-3 h-3 rounded-full bg-amber-500"
+								></span>
+								<h3 class="font-bold text-slate-800 text-sm">
+									Contacted
+								</h3>
+								<span
+									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
+									id="count-contacted"
+									>1</span
+								>
+							</div>
+							<button class="text-slate-500 hover:text-slate-800">
+								<i class="fa-solid fa-ellipsis"></i>
+							</button>
+						</div>
+						<div
+							class="space-y-3 overflow-y-auto flex-1 pr-1"
+							id="col-contacted"
+							ondragover="allowDrop(event)"
+							ondrop="dropCard(event, 'Contacted')"
+						>
+							<!-- Cards -->
+						</div>
+					</div>
+
+					<!-- Column: Showing / Tour -->
+					<div
+						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
+					>
+						<div
+							class="flex justify-between items-center mb-3 px-1"
+						>
+							<div class="flex items-center space-x-2">
+								<span
+									class="w-3 h-3 rounded-full bg-purple-500"
+								></span>
+								<h3 class="font-bold text-slate-800 text-sm">
+									Showing / Tour
+								</h3>
+								<span
+									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
+									id="count-showing"
+									>1</span
+								>
+							</div>
+							<button class="text-slate-500 hover:text-slate-800">
+								<i class="fa-solid fa-ellipsis"></i>
+							</button>
+						</div>
+						<div
+							class="space-y-3 overflow-y-auto flex-1 pr-1"
+							id="col-showing"
+							ondragover="allowDrop(event)"
+							ondrop="dropCard(event, 'Showing / Tour')"
+						>
+							<!-- Cards -->
+						</div>
+					</div>
+
+					<!-- Column: Under Contract -->
+					<div
+						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
+					>
+						<div
+							class="flex justify-between items-center mb-3 px-1"
+						>
+							<div class="flex items-center space-x-2">
+								<span
+									class="w-3 h-3 rounded-full bg-brand-500"
+								></span>
+								<h3 class="font-bold text-slate-800 text-sm">
+									Under Contract
+								</h3>
+								<span
+									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
+									id="count-contract"
+									>2</span
+								>
+							</div>
+							<button class="text-slate-500 hover:text-slate-800">
+								<i class="fa-solid fa-ellipsis"></i>
+							</button>
+						</div>
+						<div
+							class="space-y-3 overflow-y-auto flex-1 pr-1"
+							id="col-contract"
+							ondragover="allowDrop(event)"
+							ondrop="dropCard(event, 'Under Contract')"
+						>
+							<!-- Cards -->
+						</div>
+					</div>
+
+					<!-- Column: Closed -->
+					<div
+						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
+					>
+						<div
+							class="flex justify-between items-center mb-3 px-1"
+						>
+							<div class="flex items-center space-x-2">
+								<span
+									class="w-3 h-3 rounded-full bg-emerald-600"
+								></span>
+								<h3 class="font-bold text-slate-800 text-sm">
+									Closed
+								</h3>
+								<span
+									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
+									id="count-closed"
+									>1</span
+								>
+							</div>
+							<button class="text-slate-500 hover:text-slate-800">
+								<i class="fa-solid fa-ellipsis"></i>
+							</button>
+						</div>
+						<div
+							class="space-y-3 overflow-y-auto flex-1 pr-1"
+							id="col-closed"
+							ondragover="allowDrop(event)"
+							ondrop="dropCard(event, 'Closed')"
+						>
+							<!-- Cards -->
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ================= TAB 3: ACTIVE CLIENTS DASHBOARD ================= -->
+			<div
+				id="tab-active-clients"
+				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Active Clients Dashboard
+						</h2>
+						<p class="text-sm text-slate-500">
+							Track active client categories, property addresses,
+							and critical transaction timelines.
+						</p>
+					</div>
+					<div class="mt-3 md:mt-0 flex items-center space-x-3">
+						<span
+							class="bg-brand-100 text-brand-800 font-bold text-xs px-3 py-1.5 rounded-xl"
+							><span id="active-count-label">4</span> Active
+							Clients Enrolled</span
+						>
+					</div>
+				</div>
+
+				<!-- Filter Pills -->
+				<div class="flex flex-wrap gap-2 items-center">
+					<button
+						onclick="filterActiveClients('all')"
+						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm transition"
+					>
+						All Active
+					</button>
+					<button
+						onclick="filterActiveClients('Under Contract')"
+						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
+					>
+						Under Contract
+					</button>
+					<button
+						onclick="filterActiveClients('Buyer')"
+						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
+					>
+						Buyer
+					</button>
+					<button
+						onclick="filterActiveClients('Seller')"
+						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
+					>
+						Seller
+					</button>
+					<button
+						onclick="filterActiveClients('Estate Sale')"
+						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
+					>
+						Estate Sale
+					</button>
+					<button
+						onclick="filterActiveClients('Construction')"
+						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
+					>
+						Construction
+					</button>
+				</div>
+
+				<!-- Active Clients Grid -->
+				<div
+					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+					id="active-clients-grid"
+				>
+					<!-- Populated via JS -->
+				</div>
+			</div>
+
+			<!-- ================= TAB 4: CLIENT REGISTRY ================= -->
+			<div
+				id="tab-registry"
+				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6 flex flex-col"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Client Registry Database
+						</h2>
+						<p class="text-sm text-slate-500">
+							Comprehensive searchable client directory, contact
+							information, and tags.
+						</p>
+					</div>
+					<div class="mt-3 md:mt-0 flex items-center space-x-3">
+						<button
+							onclick="openAddClientModal()"
+							class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2"
+						>
+							<i class="fa-solid fa-user-plus"></i>
+							<span>Add New Client</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Search & Tag Filters -->
+				<div
+					class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 items-center justify-between"
+				>
+					<div class="relative w-full sm:w-96">
+						<i
+							class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"
+						></i>
+						<input
+							type="text"
+							id="registry-search"
+							oninput="renderRegistryTable()"
+							placeholder="Search by name, email, phone, or address..."
+							class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
+						/>
+					</div>
+					<div
+						class="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1"
+					>
+						<span class="text-xs font-semibold text-slate-500"
+							>Filter Tag:</span
+						>
+						<select
+							id="registry-tag-filter"
+							onchange="renderRegistryTable()"
+							class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+						>
+							<option value="all">All Tags</option>
+							<option value="VIP">VIP</option>
+							<option value="Zillow Lead">Zillow Lead</option>
+							<option value="First-Time Buyer">
+								First-Time Buyer
+							</option>
+							<option value="Investor">Investor</option>
+							<option value="Luxury">Luxury</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- Registry Table -->
+				<div
+					class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1"
+				>
+					<div class="overflow-x-auto">
+						<table class="w-full text-left border-collapse">
+							<thead>
+								<tr
+									class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200"
+								>
+									<th class="p-4">Client Name</th>
+									<th class="p-4">Category / Status</th>
+									<th class="p-4">Contact Info</th>
+									<th class="p-4">Property Address</th>
+									<th class="p-4">Tags</th>
+									<th class="p-4 text-right">Actions</th>
+								</tr>
+							</thead>
+							<tbody
+								id="registry-table-body"
+								class="divide-y divide-slate-100 text-xs text-slate-700"
+							>
+								<!-- Populated via JS -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<!-- ================= TAB 5: INTERACTIVE CALENDAR ================= -->
+			<div
+				id="tab-calendar"
+				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6 flex flex-col"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200 flex-shrink-0"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Interactive Calendar & Schedule
+						</h2>
+						<p class="text-sm text-slate-500">
+							Schedule property showings, inspections, and client
+							meetings.
+						</p>
+					</div>
+					<div class="mt-3 md:mt-0 flex items-center space-x-3">
+						<button
+							onclick="openAddEventModal()"
+							class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2"
+						>
+							<i class="fa-solid fa-calendar-plus"></i>
+							<span>+ Add Event</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Calendar Controls -->
+				<div
+					class="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex-shrink-0"
+				>
+					<div class="flex items-center space-x-3 mb-3 sm:mb-0">
+						<button
+							onclick="changeMonth(-1)"
+							class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+						>
+							<i class="fa-solid fa-chevron-left text-xs"></i>
+						</button>
+						<h3
+							id="calendar-month-year"
+							class="font-bold text-slate-900 text-base"
+						>
+							September 2026
+						</h3>
+						<button
+							onclick="changeMonth(1)"
+							class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+						>
+							<i class="fa-solid fa-chevron-right text-xs"></i>
+						</button>
+					</div>
+					<div class="flex items-center space-x-2">
+						<div class="relative">
+							<i
+								class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"
+							></i>
+							<input
+								type="text"
+								id="calendar-search"
+								placeholder="Search calendar events..."
+								oninput="renderCalendarGrid()"
+								class="pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+						<div class="flex bg-slate-100 p-1 rounded-lg">
+							<button
+								onclick="setCalView('month')"
+								id="btn-view-month"
+								class="px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800"
+							>
+								Month
+							</button>
+							<button
+								onclick="setCalView('week')"
+								id="btn-view-week"
+								class="px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900"
+							>
+								Week
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Calendar Grid Container -->
+				<div
+					class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden"
+					id="calendar-container"
+				>
+					<!-- Rendered dynamically -->
+				</div>
+			</div>
+
+			<!-- ================= TAB 6: COMMUNICATIONS HUB ================= -->
+			<div
+				id="tab-communications"
+				class="tab-content hidden flex-1 overflow-hidden p-6 flex flex-col"
+			>
+				<div
+					class="flex justify-between items-center pb-3 mb-4 border-b border-slate-200 flex-shrink-0"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Communications Hub
+						</h2>
+						<p class="text-sm text-slate-500">
+							1-on-1 SMS & Gmail Threads + Bulk Email Marketing
+							Campaigns.
+						</p>
+					</div>
+					<div class="flex space-x-2">
+						<button
+							onclick="switchCommMode('threads')"
+							id="comm-tab-threads"
+							class="px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow"
+						>
+							1-on-1 Threads
+						</button>
+						<button
+							onclick="switchCommMode('bulk')"
+							id="comm-tab-bulk"
+							class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
+						>
+							Bulk Campaigns
+						</button>
+					</div>
+				</div>
+
+				<!-- Mode 1: Threads -->
+				<div
+					id="comm-mode-threads"
+					class="flex-1 flex bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+				>
+					<!-- Left Sidebar: Conversations List -->
+					<div
+						class="w-80 border-r border-slate-200 flex flex-col flex-shrink-0"
+					>
+						<div class="p-3 border-b border-slate-200 bg-slate-50">
+							<input
+								type="text"
+								id="comm-search"
+								oninput="renderCommThreads()"
+								placeholder="Search messages or contacts..."
+								class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+						<div
+							class="overflow-y-auto flex-1 divide-y divide-slate-100"
+							id="comm-threads-list"
+						>
+							<!-- Populated via JS -->
+						</div>
+					</div>
+					<!-- Right Main: Active Chat Thread -->
+					<div class="flex-1 flex flex-col bg-slate-50/50">
+						<div
+							id="active-chat-header"
+							class="p-4 bg-white border-b border-slate-200 flex justify-between items-center"
+						>
+							<div class="flex items-center space-x-3">
+								<img
+									id="active-chat-avatar"
+									src="https://placehold.co/40x40/16a34a/ffffff?text=MV"
+									class="w-10 h-10 rounded-full object-cover"
+								/>
+								<div>
+									<h3
+										id="active-chat-name"
+										class="font-bold text-slate-900 text-sm"
+									>
+										Marcus Vance
+									</h3>
+									<p
+										id="active-chat-status"
+										class="text-xs text-brand-600 font-medium"
+									>
+										Under Contract • 428 Meadow Lane
+									</p>
+								</div>
+							</div>
+							<div class="flex items-center space-x-2">
+								<button
+									class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+								>
+									<i class="fa-solid fa-phone text-xs"></i>
+								</button>
+								<button
+									class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+								>
+									<i class="fa-solid fa-envelope text-xs"></i>
+								</button>
+							</div>
+						</div>
+						<div
+							class="flex-1 p-4 overflow-y-auto space-y-4"
+							id="active-chat-messages"
+						>
+							<!-- Messages populated here -->
+						</div>
+						<div
+							class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2"
+						>
+							<button
+								class="p-2 text-slate-400 hover:text-slate-600"
+							>
+								<i class="fa-solid fa-paperclip text-sm"></i>
+							</button>
+							<input
+								type="text"
+								id="chat-input-msg"
+								onkeydown="
+									if (event.key === 'Enter')
+										sendChatMessage();
+								"
+								placeholder="Type a message or SMS..."
+								class="flex-1 px-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
+							/>
+							<button
+								onclick="sendChatMessage()"
+								class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5"
+							>
+								<span>Send</span>
+								<i class="fa-solid fa-paper-plane text-xs"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Mode 2: Bulk Email Marketing Campaign -->
+				<div
+					id="comm-mode-bulk"
+					class="hidden flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 p-6 overflow-y-auto"
+				>
+					<div class="max-w-2xl mx-auto w-full space-y-4">
+						<h3
+							class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2"
+						>
+							Launch Bulk Email Marketing Campaign
+						</h3>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Campaign Title / Name</label
+							>
+							<input
+								type="text"
+								id="bulk-title"
+								value="Fall Luxury Real Estate Showcase 2026"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Target Recipient Segment</label
+							>
+							<select
+								id="bulk-segment"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							>
+								<option value="all">
+									All Active Contacts (1,420 Recipients)
+								</option>
+								<option value="VIP">
+									VIP Investors & Buyers (340 Recipients)
+								</option>
+								<option value="Zillow">
+									Zillow Premier Leads (180 Recipients)
+								</option>
+								<option value="Sellers">
+									Past & Current Sellers (450 Recipients)
+								</option>
+							</select>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Email Subject Line</label
+							>
+							<input
+								type="text"
+								id="bulk-subject"
+								value="Exclusive New Listings & Market Insights in Meadow Lane"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Email HTML / Body Template</label
+							>
+							<textarea
+								id="bulk-body"
+								rows="6"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							>
+Dear [Client Name],
+
+Meadow Lane Realty & Development is thrilled to present our premier seasonal catalog featuring luxury estates and high-yield commercial parcels.
+
+Explore our latest properties online or reply to schedule a private walkthrough.
+
+Best regards,
+Meadow Lane Managing Broker</textarea>
+						</div>
+						<div class="flex justify-end space-x-3 pt-2">
+							<button
+								onclick="sendBulkCampaign()"
+								class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-2"
+							>
+								<i class="fa-solid fa-paper-plane"></i>
+								<span>Send Bulk Campaign Now</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ================= TAB 7: SOCIAL MEDIA HUB ================= -->
+			<div
+				id="tab-social"
+				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Social Media Hub
+						</h2>
+						<p class="text-sm text-slate-500">
+							Connected profiles, post composer, live previews,
+							and publishing queue.
+						</p>
+					</div>
+					<div class="flex items-center space-x-2">
+						<span
+							class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-xl"
+							><i
+								class="fa-solid fa-circle text-[8px] text-emerald-600 mr-1"
+							></i>
+							4 Profiles Connected</span
+						>
+					</div>
+				</div>
+
+				<!-- Connected Profiles Cards -->
+				<div
+					class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+				>
+					<div
+						class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+					>
+						<div class="flex items-center space-x-3">
+							<div
+								class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center text-lg"
+							>
+								<i class="fa-brands fa-facebook-f"></i>
+							</div>
+							<div>
+								<h4 class="font-bold text-sm text-slate-900">
+									Facebook
+								</h4>
+								<p class="text-xs text-brand-600 font-medium">
+									Connected (12.4k followers)
+								</p>
+							</div>
+						</div>
+						<span
+							class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md font-bold"
+							>Active</span
+						>
+					</div>
+					<div
+						class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+					>
+						<div class="flex items-center space-x-3">
+							<div
+								class="w-10 h-10 bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white rounded-xl flex items-center justify-center text-lg"
+							>
+								<i class="fa-brands fa-instagram"></i>
+							</div>
+							<div>
+								<h4 class="font-bold text-sm text-slate-900">
+									Instagram
+								</h4>
+								<p class="text-xs text-brand-600 font-medium">
+									Connected (24.1k followers)
+								</p>
+							</div>
+						</div>
+						<span
+							class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md font-bold"
+							>Active</span
+						>
+					</div>
+					<div
+						class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+					>
+						<div class="flex items-center space-x-3">
+							<div
+								class="w-10 h-10 bg-sky-600 text-white rounded-xl flex items-center justify-center text-lg"
+							>
+								<i class="fa-brands fa-linkedin-in"></i>
+							</div>
+							<div>
+								<h4 class="font-bold text-sm text-slate-900">
+									LinkedIn
+								</h4>
+								<p class="text-xs text-brand-600 font-medium">
+									Connected (5.8k followers)
+								</p>
+							</div>
+						</div>
+						<span
+							class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md font-bold"
+							>Active</span
+						>
+					</div>
+					<div
+						class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+					>
+						<div class="flex items-center space-x-3">
+							<div
+								class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg"
+							>
+								<i class="fa-brands fa-x-twitter"></i>
+							</div>
+							<div>
+								<h4 class="font-bold text-sm text-slate-900">
+									X (Twitter)
+								</h4>
+								<p class="text-xs text-brand-600 font-medium">
+									Connected (3.2k followers)
+								</p>
+							</div>
+						</div>
+						<span
+							class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md font-bold"
+							>Active</span
+						>
+					</div>
+				</div>
+
+				<!-- Post Composer & Queue Grid -->
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Composer Form -->
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+					>
+						<h3
+							class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2"
+						>
+							Multi-Channel Post Composer
+						</h3>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Select Platforms</label
+							>
+							<div
+								class="flex space-x-4 text-xs font-medium text-slate-700"
+							>
+								<label class="flex items-center space-x-1.5"
+									><input
+										type="checkbox"
+										checked
+										class="rounded text-brand-600"
+									/>
+									<span>Facebook</span></label
+								>
+								<label class="flex items-center space-x-1.5"
+									><input
+										type="checkbox"
+										checked
+										class="rounded text-brand-600"
+									/>
+									<span>Instagram</span></label
+								>
+								<label class="flex items-center space-x-1.5"
+									><input
+										type="checkbox"
+										checked
+										class="rounded text-brand-600"
+									/>
+									<span>LinkedIn</span></label
+								>
+								<label class="flex items-center space-x-1.5"
+									><input
+										type="checkbox"
+										checked
+										class="rounded text-brand-600"
+									/>
+									<span>X</span></label
+								>
+							</div>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Post Caption & Hashtags</label
+							>
+							<textarea
+								id="social-caption"
+								rows="4"
+								placeholder="Draft your engaging property listing or market update..."
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							>
+Just listed! ✨ Experience luxury modern living at 428 Meadow Lane. Featuring 4 beds, custom chef kitchen, and panoramic valley views. DM us or visit Meadow Lane Realty to schedule your private tour! 🏡🔑 #MeadowLaneRealty #RealEstate #LuxuryHomes</textarea>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Media Attachment</label
+							>
+							<div
+								class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-50 transition"
+							>
+								<i
+									class="fa-solid fa-cloud-arrow-up text-2xl text-brand-600 mb-1"
+								></i>
+								<p class="text-xs text-slate-600 font-semibold">
+									Click to upload property photos or video
+									reel
+								</p>
+								<span class="text-[10px] text-slate-400"
+									>PNG, JPG, MP4 up to 50MB</span
+								>
+							</div>
+						</div>
+						<div class="flex justify-end space-x-3 pt-2">
+							<button
+								onclick="previewSocialPost()"
+								class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition"
+							>
+								Live Preview
+							</button>
+							<button
+								onclick="queueSocialPost()"
+								class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md transition"
+							>
+								Approve & Publish
+							</button>
+						</div>
+					</div>
+
+					<!-- Publishing Queue -->
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col"
+					>
+						<h3
+							class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2 mb-4"
+						>
+							Scheduled & Published Queue
+						</h3>
+						<div
+							class="space-y-3 flex-1 overflow-y-auto"
+							id="social-queue-list"
+						>
+							<div
+								class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
+							>
+								<div class="flex items-center space-x-3">
+									<div
+										class="bg-blue-100 text-blue-600 w-9 h-9 rounded-lg flex items-center justify-center"
+									>
+										<i
+											class="fa-brands fa-facebook-f text-sm"
+										></i>
+									</div>
+									<div>
+										<h4
+											class="text-xs font-bold text-slate-900"
+										>
+											Oakridge Estates Phase II
+											Walkthrough
+										</h4>
+										<p
+											class="text-[11px] text-slate-500 line-clamp-1"
+										>
+											Scheduled for Sep 27, 2026 at 10:00
+											AM
+										</p>
+									</div>
+								</div>
+								<span
+									class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded-full"
+									>Queued</span
+								>
+							</div>
+							<div
+								class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
+							>
+								<div class="flex items-center space-x-3">
+									<div
+										class="bg-pink-100 text-pink-600 w-9 h-9 rounded-lg flex items-center justify-center"
+									>
+										<i
+											class="fa-brands fa-instagram text-sm"
+										></i>
+									</div>
+									<div>
+										<h4
+											class="text-xs font-bold text-slate-900"
+										>
+											Luxury Kitchen Showcase Reel
+										</h4>
+										<p
+											class="text-[11px] text-slate-500 line-clamp-1"
+										>
+											Published successfully 2 hours ago
+										</p>
+									</div>
+								</div>
+								<span
+									class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-full"
+									>Published</span
+								>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ================= TAB 8: GOOGLE BUSINESS PROFILE ================= -->
+			<div
+				id="tab-google-business"
+				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Google Business Profile Management
+						</h2>
+						<p class="text-sm text-slate-500">
+							Reviews reply engine, local post publisher, and
+							search/map analytics.
+						</p>
+					</div>
+					<div class="flex items-center space-x-3">
+						<span
+							class="bg-red-50 text-red-700 font-bold text-xs px-3 py-1 rounded-xl border border-red-200"
+							><i
+								class="fa-brands fa-google text-red-600 mr-1.5"
+							></i>
+							Meadow Lane Realty HQ</span
+						>
+					</div>
+				</div>
+
+				<!-- GBP Analytics Bar -->
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Map Views (Last 30 Days)
+						</p>
+						<h3 class="text-3xl font-extrabold text-slate-900 mt-1">
+							24,850
+						</h3>
+						<p class="text-xs text-brand-600 font-semibold mt-1">
+							<i class="fa-solid fa-arrow-trend-up"></i> +18.4% vs
+							last month
+						</p>
+					</div>
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Search Direction Requests
+						</p>
+						<h3 class="text-3xl font-extrabold text-slate-900 mt-1">
+							1,420
+						</h3>
+						<p class="text-xs text-brand-600 font-semibold mt-1">
+							<i class="fa-solid fa-arrow-trend-up"></i> +9.2% vs
+							last month
+						</p>
+					</div>
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Website Clicks from GBP
+						</p>
+						<h3 class="text-3xl font-extrabold text-slate-900 mt-1">
+							3,890
+						</h3>
+						<p class="text-xs text-brand-600 font-semibold mt-1">
+							<i class="fa-solid fa-arrow-trend-up"></i> +14.1% vs
+							last month
+						</p>
+					</div>
+				</div>
+
+				<!-- Reviews Reply Engine & Local Posts -->
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Reviews Reply Engine -->
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+					>
+						<div
+							class="flex justify-between items-center border-b border-slate-100 pb-2"
+						>
+							<h3 class="font-bold text-slate-900 text-base">
+								Google Reviews Reply Engine
+							</h3>
+							<span
+								class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full"
+								>4.9 ★ (142 Reviews)</span
+							>
+						</div>
+						<div
+							class="space-y-4 max-h-96 overflow-y-auto"
+							id="gbp-reviews-list"
+						>
+							<div
+								class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2"
+							>
+								<div class="flex justify-between items-start">
+									<div>
+										<h4
+											class="font-bold text-slate-900 text-xs"
+										>
+											Sarah Jenkins
+										</h4>
+										<div class="text-amber-400 text-xs">
+											<i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i>
+										</div>
+									</div>
+									<span class="text-[10px] text-slate-400"
+										>2 hours ago</span
+									>
+								</div>
+								<p class="text-xs text-slate-700">
+									"Meadow Lane Realty made selling our family
+									estate seamless. Incredible communication
+									and professionalism throughout!"
+								</p>
+								<div
+									class="pt-2 border-t border-slate-200 flex items-center justify-between"
+								>
+									<span
+										class="text-[10px] text-emerald-600 font-bold"
+										><i class="fa-solid fa-check mr-1"></i>
+										Auto-Replied with AI Agent</span
+									>
+									<button
+										onclick="
+											openReviewReplyModal(
+												'Sarah Jenkins',
+											)
+										"
+										class="text-xs bg-brand-50 text-brand-700 font-semibold px-3 py-1 rounded-lg hover:bg-brand-100 transition"
+									>
+										Edit Reply
+									</button>
+								</div>
+							</div>
+							<div
+								class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2"
+							>
+								<div class="flex justify-between items-start">
+									<div>
+										<h4
+											class="font-bold text-slate-900 text-xs"
+										>
+											Robert Sterling
+										</h4>
+										<div class="text-amber-400 text-xs">
+											<i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i
+											><i class="fa-solid fa-star"></i>
+										</div>
+									</div>
+									<span class="text-[10px] text-slate-400"
+										>Yesterday</span
+									>
+								</div>
+								<p class="text-xs text-slate-700">
+									"Outstanding experience buying our first
+									home. The team at Meadow Lane guided us step
+									by step."
+								</p>
+								<div
+									class="pt-2 border-t border-slate-200 flex items-center justify-between"
+								>
+									<span
+										class="text-[10px] text-emerald-600 font-bold"
+										><i class="fa-solid fa-check mr-1"></i>
+										Auto-Replied with AI Agent</span
+									>
+									<button
+										onclick="
+											openReviewReplyModal(
+												'Robert Sterling',
+											)
+										"
+										class="text-xs bg-brand-50 text-brand-700 font-semibold px-3 py-1 rounded-lg hover:bg-brand-100 transition"
+									>
+										Edit Reply
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Local Post Publisher -->
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+					>
+						<h3
+							class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2"
+						>
+							Google Maps Local Post Publisher
+						</h3>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Post Type</label
+							>
+							<select
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							>
+								<option>What's New / Update</option>
+								<option>Property Listing / Offer</option>
+								<option>Brokerage Event</option>
+							</select>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Post Content</label
+							>
+							<textarea
+								rows="4"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+								placeholder="Write an update that appears directly on your Google Maps business card..."
+							>
+Visit Meadow Lane Realty & Development's new model homes open this weekend at Oakridge Estates. Speak with our managing brokers on site!</textarea>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Call to Action Button</label
+							>
+							<select
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							>
+								<option>Learn More</option>
+								<option>Call Now</option>
+								<option>Book Appointment</option>
+							</select>
+						</div>
+						<div class="flex justify-end pt-2">
+							<button
+								onclick="publishGbpPost()"
+								class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-2"
+							>
+								<i class="fa-brands fa-google"></i>
+								<span>Publish to Google Maps</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ================= TAB 9: ZILLOW PREMIER AGENT ACCOUNT ================= -->
+			<div
+				id="tab-zillow"
+				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6"
+			>
+				<div
+					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
+				>
+					<div>
+						<h2 class="text-2xl font-bold text-slate-900">
+							Zillow Premier Agent Account
+						</h2>
+						<p class="text-sm text-slate-500">
+							Webhook speed-to-lead configuration, ROAS analytics,
+							active listings, and review automation.
+						</p>
+					</div>
+					<div class="flex items-center space-x-3">
+						<span
+							class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-xl"
+							><i class="fa-solid fa-bolt text-blue-600 mr-1"></i>
+							Premier Agent Tier 1 Active</span
+						>
+					</div>
+				</div>
+
+				<!-- Zillow Metrics & ROAS -->
+				<div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Monthly Ad Spend
+						</p>
+						<h3 class="text-2xl font-extrabold text-slate-900 mt-1">
+							$4,500.00
+						</h3>
+						<p class="text-xs text-brand-600 font-semibold mt-1">
+							Zip Codes: 90210, 90211
+						</p>
+					</div>
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Leads Ingested (MTD)
+						</p>
+						<h3 class="text-2xl font-extrabold text-slate-900 mt-1">
+							68 Leads
+						</h3>
+						<p class="text-xs text-brand-600 font-semibold mt-1">
+							<i class="fa-solid fa-bolt"></i> Avg response: 1m
+							42s
+						</p>
+					</div>
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Calculated ROAS
+						</p>
+						<h3 class="text-2xl font-extrabold text-brand-600 mt-1">
+							6.4x
+						</h3>
+						<p class="text-xs text-slate-500 mt-1">
+							Return on Ad Spend
+						</p>
+					</div>
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"
+					>
+						<p class="text-xs font-bold text-slate-500 uppercase">
+							Active Zillow Listings
+						</p>
+						<h3 class="text-2xl font-extrabold text-slate-900 mt-1">
+							5 Properties
+						</h3>
+						<p class="text-xs text-slate-500 mt-1">
+							Syndicated instantly
+						</p>
+					</div>
+				</div>
+
+				<!-- Webhook Speed-To-Lead & Active Listings -->
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Webhook Configuration -->
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+					>
+						<h3
+							class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2"
+						>
+							Webhook Speed-to-Lead Configuration
+						</h3>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Zillow API Webhook Endpoint URL</label
+							>
+							<div class="flex space-x-2">
+								<input
+									type="text"
+									readonly
+									value="https://api.meadowlanerealty.com/v1/webhooks/zillow/lead-ingest"
+									class="flex-1 bg-slate-100 px-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-600 font-mono"
+								/>
+								<button
+									onclick="copyWebhookUrl()"
+									class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition"
+								>
+									Copy
+								</button>
+							</div>
+						</div>
+						<div>
+							<label
+								class="block text-xs font-bold text-slate-700 uppercase mb-1"
+								>Instant Auto-Response SMS Trigger</label
+							>
+							<textarea
+								rows="3"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-brand-500"
+							>
+Hi [Lead Name], thanks for your inquiry on Zillow regarding [Property Address]! This is Meadow Lane Realty & Development. When would you like to schedule a private tour?</textarea>
+						</div>
+						<div
+							class="flex items-center justify-between p-3 bg-brand-50 rounded-xl border border-brand-200"
+						>
+							<div>
+								<h4 class="font-bold text-brand-900 text-xs">
+									Instant Round-Robin Dispatch
+								</h4>
+								<p class="text-[11px] text-brand-700">
+									Assign incoming Zillow inquiries immediately
+									to available brokers.
+								</p>
+							</div>
+							<input
+								type="checkbox"
+								checked
+								class="w-5 h-5 rounded text-brand-600"
+							/>
+						</div>
+						<div class="flex justify-end pt-2">
+							<button
+								onclick="saveZillowSettings()"
+								class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition"
+							>
+								Save Webhook Settings
+							</button>
+						</div>
+					</div>
+
+					<!-- Active Zillow Listings & Reviews Sync -->
+					<div
+						class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4"
+					>
+						<h3
+							class="font-bold text-slate-900 text-base border-b border-slate-100 pb-2"
+						>
+							Zillow Syndicated Listings & Review Automation
+						</h3>
+						<div class="space-y-3 max-h-72 overflow-y-auto">
+							<div
+								class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between"
+							>
+								<div class="flex items-center space-x-3">
+									<img
+										src="https://placehold.co/60x40/16a34a/ffffff?text=Home"
+										class="w-14 h-10 object-cover rounded-lg"
+									/>
+									<div>
+										<h4
+											class="text-xs font-bold text-slate-900"
+										>
+											428 Meadow Lane, Beverly Hills
+										</h4>
+										<p class="text-[11px] text-slate-500">
+											$650,000 • 4 Bed, 3 Bath
+										</p>
+									</div>
+								</div>
+								<span
+									class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-full"
+									>Syndicated Active</span
+								>
+							</div>
+							<div
+								class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between"
+							>
+								<div class="flex items-center space-x-3">
+									<img
+										src="https://placehold.co/60x40/16a34a/ffffff?text=Home"
+										class="w-14 h-10 object-cover rounded-lg"
+									/>
+									<div>
+										<h4
+											class="text-xs font-bold text-slate-900"
+										>
+											742 Evergreen Terrace
+										</h4>
+										<p class="text-[11px] text-slate-500">
+											$820,000 • 5 Bed, 4 Bath
+										</p>
+									</div>
+								</div>
+								<span
+									class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-1 rounded-full"
+									>Syndicated Active</span
+								>
+							</div>
+						</div>
+						<div
+							class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between"
+						>
+							<div>
+								<h4 class="font-bold text-slate-900 text-xs">
+									Automated Review Request SMS
+								</h4>
+								<p class="text-[11px] text-slate-500">
+									Automatically text clients 24 hours after
+									closing asking for Zillow review.
+								</p>
+							</div>
+							<button
+								onclick="triggerReviewAutomation()"
+								class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition"
+							>
+								Test Trigger
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<!-- Add / Edit Client Modal -->
+		<div
+			id="modal-client"
+			class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-200"
+			>
+				<div
+					class="flex justify-between items-center border-b border-slate-100 pb-3"
+				>
+					<h3
+						id="modal-client-title"
+						class="font-bold text-slate-900 text-lg"
+					>
+						Add New Deal / Client
+					</h3>
+					<button
+						onclick="closeModal('modal-client')"
+						class="text-slate-400 hover:text-slate-600"
+					>
+						<i class="fa-solid fa-xmark text-lg"></i>
+					</button>
+				</div>
+				<form
+					id="form-client"
+					onsubmit="saveClient(event)"
+					class="space-y-3 text-xs"
+				>
+					<div>
+						<label
+							class="block font-bold text-slate-700 uppercase mb-1"
+							>Full Name</label
+						>
+						<input
+							type="text"
+							id="client-name"
+							required
+							placeholder="e.g. Jonathan Taylor"
+							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+						/>
+					</div>
+					<div class="grid grid-cols-2 gap-3">
+						<div>
+							<label
+								class="block font-bold text-slate-700 uppercase mb-1"
+								>Email Address</label
+							>
+							<input
+								type="email"
+								id="client-email"
+								required
+								placeholder="jonathan@example.com"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+						<div>
+							<label
+								class="block font-bold text-slate-700 uppercase mb-1"
+								>Phone Number</label
+							>
+							<input
+								type="text"
+								id="client-phone"
+								required
+								placeholder="(555) 019-2834"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+					</div>
+					<div>
+						<label
+							class="block font-bold text-slate-700 uppercase mb-1"
+							>Property Address</label
+						>
+						<input
+							type="text"
+							id="client-address"
+							required
+							placeholder="123 Meadow Lane, Beverly Hills, CA"
+							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+						/>
+					</div>
+					<div class="grid grid-cols-2 gap-3">
+						<div>
+							<label
+								class="block font-bold text-slate-700 uppercase mb-1"
+								>Pipeline Stage</label
+							>
+							<select
+								id="client-stage"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+							>
+								<option value="New Lead">New Lead</option>
+								<option value="Contacted">Contacted</option>
+								<option value="Showing / Tour">
+									Showing / Tour
+								</option>
+								<option value="Under Contract">
+									Under Contract
+								</option>
+								<option value="Closed">Closed</option>
+							</select>
+						</div>
+						<div>
+							<label
+								class="block font-bold text-slate-700 uppercase mb-1"
+								>Category / Type</label
+							>
+							<select
+								id="client-category"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+							>
+								<option value="Buyer">Buyer</option>
+								<option value="Seller">Seller</option>
+								<option value="Under Contract">
+									Under Contract
+								</option>
+								<option value="Estate Sale">Estate Sale</option>
+								<option value="Construction">
+									Construction
+								</option>
+							</select>
+						</div>
+					</div>
+					<div>
+						<label
+							class="block font-bold text-slate-700 uppercase mb-1"
+							>Tags (comma separated)</label
+						>
+						<input
+							type="text"
+							id="client-tags"
+							placeholder="VIP, Zillow Lead, First-Time Buyer"
+							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+						/>
+					</div>
+					<div
+						class="flex justify-end space-x-3 pt-3 border-t border-slate-100"
+					>
+						<button
+							type="button"
+							onclick="closeModal('modal-client')"
+							class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow"
+						>
+							Save Client
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- Add Event Modal -->
+		<div
+			id="modal-event"
+			class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200"
+			>
+				<div
+					class="flex justify-between items-center border-b border-slate-100 pb-3"
+				>
+					<h3 class="font-bold text-slate-900 text-lg">
+						Schedule Calendar Event
+					</h3>
+					<button
+						onclick="closeModal('modal-event')"
+						class="text-slate-400 hover:text-slate-600"
+					>
+						<i class="fa-solid fa-xmark text-lg"></i>
+					</button>
+				</div>
+				<form
+					onsubmit="saveCalendarEvent(event)"
+					class="space-y-3 text-xs"
+				>
+					<div>
+						<label
+							class="block font-bold text-slate-700 uppercase mb-1"
+							>Event Title</label
+						>
+						<input
+							type="text"
+							id="event-title"
+							required
+							placeholder="e.g. Closing Walkthrough"
+							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+						/>
+					</div>
+					<div class="grid grid-cols-2 gap-3">
+						<div>
+							<label
+								class="block font-bold text-slate-700 uppercase mb-1"
+								>Date</label
+							>
+							<input
+								type="date"
+								id="event-date"
+								required
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+						<div>
+							<label
+								class="block font-bold text-slate-700 uppercase mb-1"
+								>Time</label
+							>
+							<input
+								type="time"
+								id="event-time"
+								required
+								value="10:00"
+								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+							/>
+						</div>
+					</div>
+					<div>
+						<label
+							class="block font-bold text-slate-700 uppercase mb-1"
+							>Client / Attendee</label
+						>
+						<input
+							type="text"
+							id="event-attendee"
+							placeholder="Marcus Vance"
+							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
+						/>
+					</div>
+					<div
+						class="flex justify-end space-x-3 pt-3 border-t border-slate-100"
+					>
+						<button
+							type="button"
+							onclick="closeModal('modal-event')"
+							class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow"
+						>
+							Schedule Event
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- Live Post Preview Modal -->
+		<div
+			id="modal-preview"
+			class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200"
+			>
+				<div
+					class="flex justify-between items-center border-b border-slate-100 pb-3"
+				>
+					<h3 class="font-bold text-slate-900 text-lg">
+						Live Social Media Preview
+					</h3>
+					<button
+						onclick="closeModal('modal-preview')"
+						class="text-slate-400 hover:text-slate-600"
+					>
+						<i class="fa-solid fa-xmark text-lg"></i>
+					</button>
+				</div>
+				<div
+					class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3"
+				>
+					<div class="flex items-center space-x-3">
+						<div
+							class="w-9 h-9 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-xs"
+						>
+							ML
+						</div>
+						<div>
+							<h4 class="font-bold text-xs text-slate-900">
+								Meadow Lane Realty & Development
+							</h4>
+							<p class="text-[10px] text-slate-500">
+								Sponsored • <i class="fa-solid fa-globe"></i>
+							</p>
+						</div>
+					</div>
+					<p
+						id="preview-text-content"
+						class="text-xs text-slate-800 leading-relaxed"
+					>
+						Just listed! ✨ Experience luxury modern living at 428
+						Meadow Lane...
+					</p>
+					<div
+						class="bg-slate-200 rounded-xl h-40 flex items-center justify-center text-slate-500 font-bold text-xs"
+					>
+						<i class="fa-solid fa-image text-2xl mr-2"></i> 428
+						Meadow Lane Hero Photo
+					</div>
+				</div>
+				<div class="flex justify-end pt-2">
+					<button
+						onclick="closeModal('modal-preview')"
+						class="px-5 py-2 bg-brand-600 text-white font-bold rounded-xl text-xs"
+					>
+						Close Preview
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Notification Toast -->
+		<div
+			id="toast"
+			class="hidden fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 text-xs font-semibold flex items-center space-x-3 border border-slate-700 transition-all transform translate-y-10 opacity-0"
+		>
+			<i class="fa-solid fa-circle-check text-brand-500 text-base"></i>
+			<span id="toast-msg">Action completed successfully.</span>
+		</div>
+
+		<!-- Application JavaScript -->
+		<script>
+			// State Management
+			let appState = {
+				activeTab: "dashboard",
+				commMode: "threads",
+				calView: "month",
+				currentMonth: 8, // September (0-indexed)
+				currentYear: 2026,
+				activeChatId: 1,
+				clients: [
+					{
+						id: 1,
+						name: "Marcus Vance",
+						email: "marcus@example.com",
+						phone: "(555) 234-5678",
+						address: "428 Meadow Lane, Beverly Hills, CA",
+						stage: "Under Contract",
+						category: "Under Contract",
+						tags: ["VIP", "Luxury"],
+					},
+					{
+						id: 2,
+						name: "Eleanor Vance",
+						email: "eleanor@example.com",
+						phone: "(555) 987-6543",
+						address: "12 Evergreen Terrace, Los Angeles, CA",
+						stage: "Showing / Tour",
+						category: "Buyer",
+						tags: ["First-Time Buyer", "Zillow Lead"],
+					},
+					{
+						id: 3,
+						name: "Jonathan Sterling",
+						email: "jonathan@sterling.com",
+						phone: "(555) 456-7890",
+						address: "90210 Ocean Drive, Malibu, CA",
+						stage: "New Lead",
+						category: "Estate Sale",
+						tags: ["Zillow Lead", "VIP"],
+					},
+					{
+						id: 4,
+						name: "Sophia Loren",
+						email: "sophia@loren.com",
+						phone: "(555) 321-0987",
+						address: "77 Meadow Lane, Beverly Hills, CA",
+						stage: "Contacted",
+						category: "Seller",
+						tags: ["Luxury"],
+					},
+					{
+						id: 5,
+						name: "David Miller",
+						email: "david@miller.com",
+						phone: "(555) 654-3210",
+						address: "142 Construction Blvd, Austin, TX",
+						stage: "Under Contract",
+						category: "Construction",
+						tags: ["Investor"],
+					},
+				],
+				events: [
+					{
+						id: 1,
+						title: "Closing Walkthrough - 428 Meadow Lane",
+						date: "2026-09-26",
+						time: "10:00",
+						attendee: "Marcus Vance",
+					},
+					{
+						id: 2,
+						title: "VIP Open House - Oakridge Estates",
+						date: "2026-09-28",
+						time: "13:00",
+						attendee: "All Agents",
+					},
+				],
+				chats: [
+					{
+						id: 1,
+						name: "Marcus Vance",
+						status: "Under Contract • 428 Meadow Lane",
+						avatar: "https://placehold.co/40x40/16a34a/ffffff?text=MV",
+						messages: [
+							{
+								sender: "them",
+								text: "Hi, looking forward to the walkthrough this Friday!",
+								time: "Yesterday, 4:15 PM",
+							},
+							{
+								sender: "me",
+								text: "Hello Marcus! Everything is prepared and inspection passed.",
+								time: "Yesterday, 4:20 PM",
+							},
+						],
+					},
+					{
+						id: 2,
+						name: "Eleanor Vance",
+						status: "Showing / Tour • 12 Evergreen",
+						avatar: "https://placehold.co/40x40/2563eb/ffffff?text=EV",
+						messages: [
+							{
+								sender: "them",
+								text: "Can we reschedule Saturday showing to 2 PM?",
+								time: "Today, 9:30 AM",
+							},
+							{
+								sender: "me",
+								text: "Confirmed! See you at 2 PM.",
+								time: "Today, 9:35 AM",
+							},
+						],
+					},
+				],
+			};
+
+			// Charts initialization
+			let revenueChartInstance = null;
+			let leadsChartInstance = null;
+
+			window.addEventListener("DOMContentLoaded", () => {
+				initCharts();
+				renderAll();
+			});
+
+			function switchTab(tabId) {
+				document
+					.querySelectorAll(".tab-content")
+					.forEach((el) => el.classList.add("hidden"));
+				document
+					.getElementById(`tab-${tabId}`)
+					.classList.remove("hidden");
+
+				document.querySelectorAll(".tab-btn").forEach((btn) => {
+					btn.classList.remove(
+						"border-brand-600",
+						"text-brand-700",
+						"active-tab",
+					);
+					btn.classList.add("border-transparent", "text-slate-600");
+				});
+				const activeBtn = document.querySelector(
+					`[data-tab="${tabId}"]`,
+				);
+				if (activeBtn) {
+					activeBtn.classList.add(
+						"border-brand-600",
+						"text-brand-700",
+						"active-tab",
+					);
+					activeBtn.classList.remove(
+						"border-transparent",
+						"text-slate-600",
+					);
+				}
+				appState.activeTab = tabId;
+				if (tabId === "dashboard") {
+					setTimeout(() => {
+						if (revenueChartInstance) revenueChartInstance.resize();
+						if (leadsChartInstance) leadsChartInstance.resize();
+					}, 100);
+				}
+			}
+
+			function initCharts() {
+				// Revenue Chart
+				const ctxRev = document
+					.getElementById("revenueChart")
+					.getContext("2d");
+				revenueChartInstance = new Chart(ctxRev, {
+					type: "bar",
+					data: {
+						labels: [
+							"Jan",
+							"Feb",
+							"Mar",
+							"Apr",
+							"May",
+							"Jun",
+							"Jul",
+							"Aug",
+							"Sep",
+						],
+						datasets: [
+							{
+								label: "Gross Commission ($)",
+								data: [
+									42000, 58000, 64000, 72000, 89000, 95000,
+									110000, 88000, 94500,
+								],
+								backgroundColor: "#16a34a",
+								borderRadius: 8,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: { legend: { display: false } },
+						scales: {
+							y: {
+								beginAtZero: true,
+								grid: { color: "#f1f5f9" },
+							},
+							x: { grid: { display: false } },
+						},
+					},
+				});
+
+				// Leads Chart
+				const ctxLead = document
+					.getElementById("leadsChart")
+					.getContext("2d");
+				leadsChartInstance = new Chart(ctxLead, {
+					type: "doughnut",
+					data: {
+						labels: [
+							"Zillow Premier",
+							"Google Business",
+							"Direct Referral",
+							"Social Media",
+							"Website Organic",
+						],
+						datasets: [
+							{
+								data: [45, 25, 18, 12, 28],
+								backgroundColor: [
+									"#16a34a",
+									"#2563eb",
+									"#f59e0b",
+									"#ec4899",
+									"#8b5cf6",
+								],
+								borderWidth: 0,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							legend: {
+								position: "bottom",
+								labels: { boxWidth: 12, font: { size: 11 } },
+							},
+						},
+					},
+				});
+			}
+
+			function renderAll() {
+				renderKanban();
+				renderActiveClients();
+				renderRegistryTable();
+				renderCalendarGrid();
+				renderCommThreads();
+				updateDashboardMetrics();
+			}
+
+			function updateDashboardMetrics() {
+				const activeCount = appState.clients.length;
+				const contractCount = appState.clients.filter(
+					(c) => c.stage === "Under Contract",
+				).length;
+				document.getElementById("dash-active-count").innerText =
+					activeCount;
+				document.getElementById("dash-contract-count").innerText =
+					contractCount;
+				document.getElementById("active-badge-count").innerText =
+					activeCount;
+				document.getElementById("active-count-label").innerText =
+					activeCount;
+			}
+
+			// Kanban Board logic
+			function renderKanban() {
+				const stages = [
+					"New Lead",
+					"Contacted",
+					"Showing / Tour",
+					"Under Contract",
+					"Closed",
+				];
+				let counts = {
+					"New Lead": 0,
+					Contacted: 0,
+					"Showing / Tour": 0,
+					"Under Contract": 0,
+					Closed: 0,
+				};
+
+				stages.forEach((stage) => {
+					const containerId =
+						"col-" +
+						stage
+							.toLowerCase()
+							.replace(/ \/ /g, "-")
+							.replace(/ /g, "-");
+					const container = document.getElementById(containerId);
+					if (container) container.innerHTML = "";
+				});
+
+				appState.clients.forEach((client) => {
+					counts[client.stage] = (counts[client.stage] || 0) + 1;
+					const containerId =
+						"col-" +
+						client.stage
+							.toLowerCase()
+							.replace(/ \/ /g, "-")
+							.replace(/ /g, "-");
+					const container = document.getElementById(containerId);
+					if (container) {
+						const card = document.createElement("div");
+						card.className =
+							"bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition space-y-2";
+						card.draggable = true;
+						card.ondragstart = (e) =>
+							e.dataTransfer.setData("text/plain", client.id);
+						card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-slate-900 text-xs">${client.name}</h4>
+                            <span class="text-[10px] bg-brand-50 text-brand-700 px-2 py-0.5 rounded-md font-semibold">${client.category}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500"><i class="fa-solid fa-location-dot mr-1"></i>${client.address}</p>
+                        <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px] text-slate-400">
+                            <span>${client.phone}</span>
+                            <span class="text-brand-600 font-bold">${client.tags[0] || "Client"}</span>
+                        </div>
+                    `;
+						container.appendChild(card);
+					}
+				});
+
+				document.getElementById("count-new").innerText =
+					counts["New Lead"];
+				document.getElementById("count-contacted").innerText =
+					counts["Contacted"];
+				document.getElementById("count-showing").innerText =
+					counts["Showing / Tour"];
+				document.getElementById("count-contract").innerText =
+					counts["Under Contract"];
+				document.getElementById("count-closed").innerText =
+					counts["Closed"];
+			}
+
+			function allowDrop(e) {
+				e.preventDefault();
+			}
+			function dropCard(e, newStage) {
+				e.preventDefault();
+				const clientId = parseInt(e.dataTransfer.getData("text/plain"));
+				const client = appState.clients.find((c) => c.id === clientId);
+				if (client) {
+					client.stage = newStage;
+					renderAll();
+					showToast(`Moved ${client.name} to ${newStage}`);
+				}
+			}
+
+			// Active Clients Dashboard
+			let activeClientsFilter = "all";
+			function filterActiveClients(cat) {
+				activeClientsFilter = cat;
+				document
+					.querySelectorAll(".active-filter-btn")
+					.forEach((btn) => {
+						btn.className =
+							"active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition";
+					});
+				event.target.className =
+					"active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm transition";
+				renderActiveClients();
+			}
+
+			function renderActiveClients() {
+				const grid = document.getElementById("active-clients-grid");
+				grid.innerHTML = "";
+				const filtered = appState.clients.filter(
+					(c) =>
+						activeClientsFilter === "all" ||
+						c.category === activeClientsFilter ||
+						c.stage === activeClientsFilter,
+				);
+
+				filtered.forEach((client) => {
+					const card = document.createElement("div");
+					card.className =
+						"bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3";
+					card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center font-bold text-xs">${client.name
+								.split(" ")
+								.map((n) => n[0])
+								.join("")}</div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">${client.name}</h4>
+                                <p class="text-xs text-brand-600 font-medium">${client.category} • ${client.stage}</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-bold">${client.tags[0] || "Client"}</span>
+                    </div>
+                    <p class="text-xs text-slate-600"><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>${client.address}</p>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                        <span><i class="fa-solid fa-phone mr-1"></i>${client.phone}</span>
+                        <button onclick="switchTab('communications')" class="text-brand-600 font-bold hover:underline">Open Chat</button>
+                    </div>
+                `;
+					grid.appendChild(card);
+				});
+			}
+
+			// Client Registry Table
+			function renderRegistryTable() {
+				const tbody = document.getElementById("registry-table-body");
+				tbody.innerHTML = "";
+				const query = document
+					.getElementById("registry-search")
+					.value.toLowerCase();
+				const tagFilter = document.getElementById(
+					"registry-tag-filter",
+				).value;
+
+				const filtered = appState.clients.filter((c) => {
+					const matchQuery =
+						c.name.toLowerCase().includes(query) ||
+						c.email.toLowerCase().includes(query) ||
+						c.address.toLowerCase().includes(query) ||
+						c.phone.includes(query);
+					const matchTag =
+						tagFilter === "all" || c.tags.includes(tagFilter);
+					return matchQuery && matchTag;
+				});
+
+				filtered.forEach((client) => {
+					const tr = document.createElement("tr");
+					tr.className = "hover:bg-slate-50 transition";
+					tr.innerHTML = `
+                    <td class="p-4 font-bold text-slate-900">${client.name}</td>
+                    <td class="p-4"><span class="bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full text-[10px] font-bold">${client.stage}</span></td>
+                    <td class="p-4"><div class="text-slate-800">${client.email}</div><div class="text-slate-400 text-[10px]">${client.phone}</div></td>
+                    <td class="p-4 text-slate-600">${client.address}</td>
+                    <td class="p-4"><div class="flex flex-wrap gap-1">${client.tags.map((t) => `<span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-medium">${t}</span>`).join("")}</div></td>
+                    <td class="p-4 text-right">
+                        <button onclick="deleteClient(${client.id})" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </td>
+                `;
+					tbody.appendChild(tr);
+				});
+			}
+
+			// Calendar Logic
+			const monthsNames = [
+				"January",
+				"February",
+				"March",
+				"April",
+				"May",
+				"June",
+				"July",
+				"August",
+				"September",
+				"October",
+				"November",
+				"December",
+			];
+			function changeMonth(dir) {
+				appState.currentMonth += dir;
+				if (appState.currentMonth > 11) {
+					appState.currentMonth = 0;
+					appState.currentYear++;
+				}
+				if (appState.currentMonth < 0) {
+					appState.currentMonth = 11;
+					appState.currentYear--;
+				}
+				renderCalendarGrid();
+			}
+			function setCalView(view) {
+				appState.calView = view;
+				document.getElementById("btn-view-month").className =
+					view === "month"
+						? "px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800"
+						: "px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900";
+				document.getElementById("btn-view-week").className =
+					view === "week"
+						? "px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800"
+						: "px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900";
+				renderCalendarGrid();
+			}
+
+			function renderCalendarGrid() {
+				document.getElementById("calendar-month-year").innerText =
+					`${monthsNames[appState.currentMonth]} ${appState.currentYear}`;
+				const container = document.getElementById("calendar-container");
+				container.innerHTML = "";
+
+				if (appState.calView === "month") {
+					const headerRow = document.createElement("div");
+					headerRow.className =
+						"grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center font-bold text-xs text-slate-600 py-2.5";
+					["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(
+						(d) => (headerRow.innerHTML += `<div>${d}</div>`),
+					);
+					container.appendChild(headerRow);
+
+					const grid = document.createElement("div");
+					grid.className =
+						"grid grid-cols-7 grid-rows-5 flex-1 divide-x divide-y divide-slate-200 bg-slate-100";
+
+					// Days calculation
+					const firstDayIndex = new Date(
+						appState.currentYear,
+						appState.currentMonth,
+						1,
+					).getDay();
+					const totalDays = new Date(
+						appState.currentYear,
+						appState.currentMonth + 1,
+						0,
+					).getDate();
+
+					for (let i = 0; i < 35; i++) {
+						const dayNum = i - firstDayIndex + 1;
+						const isCurrentMonth =
+							dayNum > 0 && dayNum <= totalDays;
+						const dateStr = `${appState.currentYear}-${String(appState.currentMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+
+						const cell = document.createElement("div");
+						cell.className = `bg-white p-2 flex flex-col justify-between overflow-y-auto ${!isCurrentMonth ? "bg-slate-50/50 text-slate-400" : "text-slate-800"}`;
+						if (isCurrentMonth) {
+							cell.innerHTML = `<span class="font-bold text-xs">${dayNum}</span>`;
+							// Render events for this day
+							appState.events
+								.filter((ev) => ev.date === dateStr)
+								.forEach((ev) => {
+									const badge = document.createElement("div");
+									badge.className =
+										"bg-brand-50 text-brand-800 text-[10px] font-bold p-1 rounded mt-1 truncate";
+									badge.innerText = `${ev.time} - ${ev.title}`;
+									cell.appendChild(badge);
+								});
+						}
+						grid.appendChild(cell);
+					}
+					container.appendChild(grid);
+				} else {
+					// Week view
+					container.innerHTML = `<div class="p-6 text-center text-sm text-slate-600">Weekly hourly grid for Week of ${monthsNames[appState.currentMonth]} 26, ${appState.currentYear}. All inspections and showings synced.</div>`;
+				}
+			}
+
+			// Communications Hub
+			function switchCommMode(mode) {
+				appState.commMode = mode;
+				if (mode === "threads") {
+					document
+						.getElementById("comm-mode-threads")
+						.classList.remove("hidden");
+					document
+						.getElementById("comm-mode-bulk")
+						.classList.add("hidden");
+					document.getElementById("comm-tab-threads").className =
+						"px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow";
+					document.getElementById("comm-tab-bulk").className =
+						"px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+				} else {
+					document
+						.getElementById("comm-mode-threads")
+						.classList.add("hidden");
+					document
+						.getElementById("comm-mode-bulk")
+						.classList.remove("hidden");
+					document.getElementById("comm-tab-bulk").className =
+						"px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow";
+					document.getElementById("comm-tab-threads").className =
+						"px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+				}
+			}
+
+			function renderCommThreads() {
+				const list = document.getElementById("comm-threads-list");
+				list.innerHTML = "";
+				appState.chats.forEach((chat) => {
+					const item = document.createElement("div");
+					item.className = `p-3 flex items-center space-x-3 cursor-pointer hover:bg-slate-50 transition ${chat.id === appState.activeChatId ? "bg-brand-50/60 border-l-4 border-brand-600" : ""}`;
+					item.onclick = () => selectChat(chat.id);
+					item.innerHTML = `
+                    <img src="${chat.avatar}" class="w-10 h-10 rounded-full object-cover">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-slate-900 text-xs truncate">${chat.name}</h4>
+                        <p class="text-[11px] text-slate-500 truncate">${chat.messages[chat.messages.length - 1].text}</p>
+                    </div>
+                `;
+					list.appendChild(item);
+				});
+				renderActiveChatMessages();
+			}
+
+			function selectChat(id) {
+				appState.activeChatId = id;
+				renderCommThreads();
+			}
+
+			function renderActiveChatMessages() {
+				const chat = appState.chats.find(
+					(c) => c.id === appState.activeChatId,
+				);
+				if (!chat) return;
+				document.getElementById("active-chat-name").innerText =
+					chat.name;
+				document.getElementById("active-chat-status").innerText =
+					chat.status;
+				document.getElementById("active-chat-avatar").src = chat.avatar;
+
+				const container = document.getElementById(
+					"active-chat-messages",
+				);
+				container.innerHTML = "";
+				chat.messages.forEach((msg) => {
+					const div = document.createElement("div");
+					div.className = `flex flex-col ${msg.sender === "me" ? "items-end" : "items-start"} space-y-1`;
+					div.innerHTML = `
+                    <div class="max-w-md px-4 py-2.5 rounded-2xl text-xs ${msg.sender === "me" ? "bg-brand-600 text-white rounded-br-none shadow-sm" : "bg-white text-slate-800 rounded-bl-none border border-slate-200"}">
+                        ${msg.text}
+                    </div>
+                    <span class="text-[10px] text-slate-400 px-1">${msg.time}</span>
+                `;
+					container.appendChild(div);
+				});
+				container.scrollTop = container.scrollHeight;
+			}
+
+			function sendChatMessage() {
+				const input = document.getElementById("chat-input-msg");
+				const text = input.value.trim();
+				if (!text) return;
+				const chat = appState.chats.find(
+					(c) => c.id === appState.activeChatId,
+				);
+				if (chat) {
+					chat.messages.push({
+						sender: "me",
+						text: text,
+						time: "Just now",
+					});
+					input.value = "";
+					renderCommThreads();
+					showToast("Message sent via SMS / Gmail sync");
+				}
+			}
+
+			// Modals & Triggers
+			function openAddClientModal() {
+				document
+					.getElementById("modal-client")
+					.classList.remove("hidden");
+			}
+			function openAddEventModal() {
+				document
+					.getElementById("modal-event")
+					.classList.remove("hidden");
+			}
+			function closeModal(id) {
+				document.getElementById(id).classList.add("hidden");
+			}
+
+			function saveClient(e) {
+				e.preventDefault();
+				const newClient = {
+					id: Date.now(),
+					name: document.getElementById("client-name").value,
+					email: document.getElementById("client-email").value,
+					phone: document.getElementById("client-phone").value,
+					address: document.getElementById("client-address").value,
+					stage: document.getElementById("client-stage").value,
+					category: document.getElementById("client-category").value,
+					tags: document
+						.getElementById("client-tags")
+						.value.split(",")
+						.map((t) => t.trim())
+						.filter(Boolean),
+				};
+				appState.clients.push(newClient);
+				closeModal("modal-client");
+				renderAll();
+				showToast("Client added successfully to Meadow Lane CRM.");
+				document.getElementById("form-client").reset();
+			}
+
+			function deleteClient(id) {
+				appState.clients = appState.clients.filter((c) => c.id !== id);
+				renderAll();
+				showToast("Client removed from registry.");
+			}
+
+			function saveCalendarEvent(e) {
+				e.preventDefault();
+				const newEv = {
+					id: Date.now(),
+					title: document.getElementById("event-title").value,
+					date: document.getElementById("event-date").value,
+					time: document.getElementById("event-time").value,
+					attendee: document.getElementById("event-attendee").value,
+				};
+				appState.events.push(newEv);
+				closeModal("modal-event");
+				renderCalendarGrid();
+				showToast("Event successfully scheduled.");
+			}
+
+			function previewSocialPost() {
+				document.getElementById("preview-text-content").innerText =
+					document.getElementById("social-caption").value;
+				document
+					.getElementById("modal-preview")
+					.classList.remove("hidden");
+			}
+
+			function queueSocialPost() {
+				showToast(
+					"Post successfully approved and queued across all connected profiles.",
+				);
+			}
+
+			function sendBulkCampaign() {
+				showToast(
+					"Bulk email marketing campaign sent successfully to selected recipients.",
+				);
+			}
+
+			function publishGbpPost() {
+				showToast("Google Maps local post published successfully.");
+			}
+
+			function copyWebhookUrl() {
+				showToast("Zillow webhook URL copied to clipboard.");
+			}
+
+			function saveZillowSettings() {
+				showToast("Zillow speed-to-lead webhook configuration saved.");
+			}
+
+			function triggerReviewAutomation() {
+				showToast(
+					"Test review request SMS dispatched via Zillow Premier API.",
+				);
+			}
+
+			function openReviewReplyModal(name) {
+				showToast(`Editing AI auto-reply for review by ${name}`);
+			}
+
+			function refreshDashboardData() {
+				showToast("Dashboard metrics re-synced successfully.");
+			}
+
+			function toggleNotifications() {
+				const dropdown = document.getElementById("notif-dropdown");
+				dropdown.classList.toggle("hidden");
+			}
+
+			function clearNotifications() {
+				document.getElementById("notif-badge").style.display = "none";
+				showToast("All notifications marked as read.");
+				toggleNotifications();
+			}
+
+			function showToast(msg) {
+				const toast = document.getElementById("toast");
+				document.getElementById("toast-msg").innerText = msg;
+				toast.classList.remove("hidden", "translate-y-10", "opacity-0");
+				setTimeout(() => {
+					toast.classList.add("translate-y-10", "opacity-0");
+					setTimeout(() => toast.classList.add("hidden"), 300);
+				}, 3000);
+			}
+
+			function openGlobalSearch() {
+				switchTab("registry");
+				document.getElementById("registry-search").focus();
+			}
+		</script>
+	</body>
+</html>

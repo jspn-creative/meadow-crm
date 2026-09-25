@@ -1,0 +1,17 @@
+{
+  "formatter": {
+    "external": {
+      "command": "vp",
+      "arguments": ["fmt", "--stdin-filepath", "{buffer_path}"]
+    }
+  },
+  "languages": {
+    "JavaScript": { "format_on_save": "on" },
+    "TypeScript": { "format_on_save": "on" },
+    "Svelte": { "format_on_save": "on" },
+    "CSS": { "format_on_save": "on" },
+    "HTML": { "format_on_save": "on" },
+    "JSON": { "format_on_save": "on" },
+    "JSONC": { "format_on_save": "on" }
+  }
+}
