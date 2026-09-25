@@ -1,5 +1,9 @@
 # AGENTS
 
+## Rapid prototyping mode
+
+This repo is in rapid prototyping mode based out of [static/example.html](static/example.html). Unless otherwise specified, direct requests to and limit changes to that HTML file.
+
 ## Commands
 
 This repo uses `vp` (Vite+). Always run scripts, checks, builds, and installs through it — `vp run <script>`, `vp check`, `vp build`, `vp install` — never `bun`/`npm`/`npx` directly. The one exception is the temporary invoice-import script below, which is deliberately not in `package.json`.

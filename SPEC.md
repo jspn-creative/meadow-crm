@@ -41,34 +41,6 @@
 - **Search & Filtering:** Search bar to filter events by client name or property address; color-coded event categories (Closing, Inspection, Open House, Client Meeting).
 - **Event Management:** "+ Add Event" modal supporting title, date/time pickers, location/address field, attendee tagging, and recurrence rules (Daily, Weekly, Monthly).
 
-### Module 6: Communications Hub
+## MVP scope
 
-- **1-on-1 SMS & Gmail Simulator:**
-    - Real-time client search input to locate specific threads.
-    - Chronological chat history thread view with distinct visual bubbles, timestamps, and channel indicators (SMS vs. Gmail).
-    - Direct input form to compose and dispatch new messages.
-- **Bulk Email Marketing Campaign Manager:**
-    - Campaign Creator: Define campaign title, target audience filter (e.g., all Past Clients, active Buyers), and dispatch schedule.
-    - Performance Analytics: Track sent counts, open rates, click-through rates (CTR), and bounce logs.
-    - Bulk dispatch testing simulator.
-
-### Module 7: Social Media Hub
-
-- **Connected Profiles Management:** Status toggles and follower count metrics for Facebook, Instagram, LinkedIn, and X/Twitter.
-- **Multi-Platform Post Composer:** Select target channels, input caption text, attach media/listing URLs, and choose between immediate publish or scheduling.
-- **Live Post Preview & Approval Workflow:**
-    - **Preview Modal:** Renders an exact replica of how the post will look on live mobile/desktop feeds for the chosen network.
-    - **Approval Queue:** Requires explicit broker sign-off ("Approve & Publish") before scheduled posts move to the live publishing queue.
-
-### Module 8: Google Business Profile Integration
-
-- **OAuth 2.0 Connection Panel:** Secure authorization flow to link the local Google Business account.
-- **Reviews Hub:** Real-time stream of incoming Google reviews with star ratings and direct in-app reply capabilities.
-- **Local Post Publisher:** Create and push "Just Listed / Just Sold" updates directly to Google Search & Maps.
-- **Analytics Dashboard:** Track Search vs. Maps discovery metrics, phone call clicks, direction requests, and website link clicks.
-
-### Module 9: Zillow Premier Agent Account Integration
-
-- **Webhook & Lead Routing Configuration:** Settings to manage Zillow Connect webhook endpoints and configure instant "Speed-to-Lead" auto-responders (automated SMS/Email fired within 30 seconds of ingestion).
-- **ROI & Ad Spend Tracker:** Input monthly Zillow ad spend to automatically calculate Cost Per Lead (CPL) and Return on Ad Spend (ROAS).
-- **Listing Sync & Review Automation:** Monitor active syndicated listings and trigger automated review request workflows for closed Zillow clients.
+The MVP includes Modules 1–5 only: Executive Dashboard, Pipeline Kanban Board, Active Clients Dashboard, Client Registry, and Interactive Calendar. Modules after the calendar are deferred and are not included in the MVP.
