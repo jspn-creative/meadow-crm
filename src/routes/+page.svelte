@@ -3,7 +3,8 @@
 
 <h1>Currently Prototyping</h1>
 <p>
-  Please visit <a class="text-sky-500 hover:text-sky-400" href="/example.html"
-    >the current prototype</a
-  > to see where it's at!
+	Please visit <a class="text-sky-500 hover:text-sky-400" href="/example.html">the current prototype</a> to see where it's at!
+</p>
+<p>
+	Or <a class="text-sky-500 hover:text-sky-400" href="/dashboards">compare prototype dashboard directions</a>.
 </p>

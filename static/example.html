@@ -7,17 +7,11 @@
 		<!-- Tailwind CSS CDN -->
 		<script src="https://cdn.tailwindcss.com"></script>
 		<!-- FontAwesome Icons -->
-		<link
-			rel="stylesheet"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-		/>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 		<!-- Chart.js for Dashboard Visualizations -->
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<!-- Google Fonts Inter -->
-		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 		<script>
 			tailwind.config = {
 				theme: {
@@ -63,222 +57,109 @@
 			::-webkit-scrollbar-thumb:hover {
 				background: #94a3b8;
 			}
+			/* Placeholder text for editable metadata lines */
+			[contenteditable][data-placeholder]:empty::before {
+				content: attr(data-placeholder);
+				color: #94a3b8;
+			}
 		</style>
 	</head>
-	<body
-		class="bg-slate-50 text-slate-800 h-full flex flex-col overflow-hidden"
-	>
+	<body class="flex h-full flex-col overflow-hidden bg-slate-50 text-slate-800">
 		<!-- Top Header Bar -->
-		<header
-			class="bg-slate-900 text-white shadow-md z-30 flex items-center justify-between px-6 py-3.5 flex-shrink-0"
-		>
+		<header class="z-30 flex flex-shrink-0 items-center justify-between bg-slate-900 px-6 py-3.5 text-white shadow-md">
 			<div class="flex items-center space-x-3">
-				<div
-					class="bg-brand-600 p-2 rounded-xl text-white shadow-lg flex items-center justify-center"
-				>
+				<div class="bg-brand-600 flex items-center justify-center rounded-xl p-2 text-white shadow-lg">
 					<i class="fa-solid fa-house-chimney text-xl"></i>
 				</div>
 				<div>
-					<h1 class="font-bold text-lg tracking-tight">
-						Meadow Lane Realty & Development
-					</h1>
-					<p class="text-xs text-slate-400">
-						Enterprise Real Estate CRM & Operations Suite
-					</p>
+					<h1 class="text-lg font-bold tracking-tight">Meadow Lane Realty & Development</h1>
+					<p class="text-xs text-slate-400">Enterprise Real Estate CRM & Operations Suite</p>
 				</div>
 			</div>
 			<div class="flex items-center space-x-4">
-				<button
-					onclick="openGlobalSearch()"
-					class="hidden md:flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-sm transition border border-slate-700"
-				>
+				<button onclick="openGlobalSearch()" class="hidden items-center space-x-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-700 md:flex">
 					<i class="fa-solid fa-magnifying-glass text-xs"></i>
 					<span>Quick Search (Ctrl+K)</span>
 				</button>
 				<div class="relative">
-					<button
-						onclick="toggleNotifications()"
-						class="relative p-2 text-slate-300 hover:text-white transition rounded-lg hover:bg-slate-800"
-					>
+					<button onclick="toggleNotifications()" class="relative rounded-lg p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white">
 						<i class="fa-regular fa-bell text-lg"></i>
-						<span
-							id="notif-badge"
-							class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"
-							>3</span
-						>
+						<span id="notif-badge" class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">3</span>
 					</button>
 					<!-- Notification Dropdown -->
-					<div
-						id="notif-dropdown"
-						class="hidden absolute right-0 mt-2 w-80 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 z-50 p-3"
-					>
-						<div
-							class="flex justify-between items-center pb-2 border-b border-slate-100 mb-2"
-						>
-							<span class="font-bold text-sm">Notifications</span>
-							<span
-								class="text-xs text-brand-600 cursor-pointer font-medium hover:underline"
-								onclick="clearNotifications()"
-								>Mark all read</span
-							>
+					<div id="notif-dropdown" class="absolute right-0 z-50 mt-2 hidden w-80 rounded-xl border border-slate-200 bg-white p-3 text-slate-800 shadow-2xl">
+						<div class="mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
+							<span class="text-sm font-bold">Notifications</span>
+							<span class="text-brand-600 cursor-pointer text-xs font-medium hover:underline" onclick="clearNotifications()">Mark all read</span>
 						</div>
-						<div
-							class="space-y-2 text-xs max-h-64 overflow-y-auto"
-							id="notif-list"
-						>
-							<div
-								class="p-2 bg-slate-50 rounded-lg border-l-4 border-brand-500"
-							>
-								<p class="font-semibold text-slate-900">
-									Zillow Premier Lead Ingested
-								</p>
-								<p class="text-slate-600">
-									New inquiry for 742 Evergreen Terrace
-									($650k)
-								</p>
-								<span
-									class="text-[10px] text-slate-400 mt-1 block"
-									>2 mins ago</span
-								>
+						<div class="max-h-64 space-y-2 overflow-y-auto text-xs" id="notif-list">
+							<div class="border-brand-500 rounded-lg border-l-4 bg-slate-50 p-2">
+								<p class="font-semibold text-slate-900">Zillow Premier Lead Ingested</p>
+								<p class="text-slate-600">New inquiry for 742 Evergreen Terrace ($650k)</p>
+								<span class="mt-1 block text-[10px] text-slate-400">2 mins ago</span>
 							</div>
-							<div
-								class="p-2 bg-slate-50 rounded-lg border-l-4 border-blue-500"
-							>
-								<p class="font-semibold text-slate-900">
-									Google Business Review
-								</p>
-								<p class="text-slate-600">
-									Sarah Jenkins left a 5-star review!
-								</p>
-								<span
-									class="text-[10px] text-slate-400 mt-1 block"
-									>15 mins ago</span
-								>
+							<div class="rounded-lg border-l-4 border-blue-500 bg-slate-50 p-2">
+								<p class="font-semibold text-slate-900">Google Business Review</p>
+								<p class="text-slate-600">Sarah Jenkins left a 5-star review!</p>
+								<span class="mt-1 block text-[10px] text-slate-400">15 mins ago</span>
 							</div>
-							<div
-								class="p-2 bg-slate-50 rounded-lg border-l-4 border-amber-500"
-							>
-								<p class="font-semibold text-slate-900">
-									Inspection Reminder
-								</p>
-								<p class="text-slate-600">
-									Client Marcus Vance @ 10:00 AM
-								</p>
-								<span
-									class="text-[10px] text-slate-400 mt-1 block"
-									>1 hour ago</span
-								>
+							<div class="rounded-lg border-l-4 border-amber-500 bg-slate-50 p-2">
+								<p class="font-semibold text-slate-900">Inspection Reminder</p>
+								<p class="text-slate-600">Client Marcus Vance @ 10:00 AM</p>
+								<span class="mt-1 block text-[10px] text-slate-400">1 hour ago</span>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div
-					class="flex items-center space-x-3 border-l border-slate-700 pl-4"
-				>
-					<img
-						src="https://placehold.co/40x40/16a34a/ffffff?text=ML"
-						alt="User"
-						class="w-9 h-9 rounded-full border-2 border-brand-500 object-cover"
-					/>
-					<div class="hidden lg:block text-left">
-						<span
-							class="block text-sm font-semibold leading-none text-white"
-							>Managing Broker</span
-						>
-						<span class="block text-[11px] text-brand-400 mt-0.5"
-							>Meadow Lane HQ</span
-						>
+				<div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
+					<img src="https://placehold.co/40x40/16a34a/ffffff?text=JA" alt="Current user" id="dash-user-avatar" class="border-brand-500 h-9 w-9 rounded-full border-2 object-cover" />
+					<div class="text-left">
+						<label for="dashboard-role" class="mb-1 block text-[11px] leading-none font-medium text-slate-400">Viewing as</label>
+						<select id="dashboard-role" onchange="setDashboardRole(this.value)" class="focus:ring-brand-500 rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-sm font-semibold text-white focus:ring-2 focus:outline-none">
+							<option value="assistant">Janae · Assistant</option>
+							<option value="realtor">Jayden · Realtor</option>
+						</select>
 					</div>
 				</div>
 			</div>
 		</header>
 
 		<!-- Tab Navigation Bar -->
-		<nav
-			class="bg-white border-b border-slate-200 overflow-x-auto flex-shrink-0 flex items-center px-4 space-x-1 shadow-sm"
-		>
-			<button
-				onclick="switchTab('dashboard')"
-				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition active-tab border-brand-600 text-brand-700"
-				data-tab="dashboard"
-			>
+		<nav class="flex flex-shrink-0 items-center space-x-1 overflow-x-auto border-b border-slate-200 bg-white px-4 shadow-sm">
+			<button onclick="switchTab('dashboard')" class="tab-btn active-tab border-brand-600 text-brand-700 flex items-center space-x-2 border-b-2 px-3.5 py-3 text-xs font-medium whitespace-nowrap transition" data-tab="dashboard">
 				<i class="fa-solid fa-chart-pie text-sm"></i>
 				<span>1. Dashboard</span>
 			</button>
-			<button
-				onclick="switchTab('pipeline')"
-				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
-				data-tab="pipeline"
-			>
+			<button onclick="switchTab('pipeline')" class="tab-btn flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900" data-tab="pipeline">
 				<i class="fa-solid fa-kanban text-sm"></i>
 				<span>2. Pipeline Kanban</span>
 			</button>
-			<button
-				onclick="switchTab('active-clients')"
-				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
-				data-tab="active-clients"
-			>
+			<button onclick="switchTab('active-clients')" class="tab-btn flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900" data-tab="active-clients">
 				<i class="fa-solid fa-user-check text-sm"></i>
-				<span
-					>3. Active Clients
-					<span
-						id="active-badge-count"
-						class="bg-brand-100 text-brand-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1"
-						>4</span
-					></span
-				>
+				<span>3. Active Clients <span id="active-badge-count" class="bg-brand-100 text-brand-800 ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold">4</span></span>
 			</button>
-			<button
-				onclick="switchTab('registry')"
-				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
-				data-tab="registry"
-			>
+			<button onclick="switchTab('registry')" class="tab-btn flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900" data-tab="registry">
 				<i class="fa-solid fa-address-book text-sm"></i>
 				<span>4. Client Registry</span>
 			</button>
-			<button
-				onclick="switchTab('calendar')"
-				class="tab-btn flex items-center space-x-2 py-3 px-3.5 border-b-2 font-medium text-xs whitespace-nowrap transition border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
-				data-tab="calendar"
-			>
+			<button onclick="switchTab('calendar')" class="tab-btn flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900" data-tab="calendar">
 				<i class="fa-solid fa-calendar-days text-sm"></i>
 				<span>5. Calendar</span>
 			</button>
 		</nav>
 
 		<!-- Main Content Area -->
-		<main
-			class="flex-1 overflow-hidden relative bg-slate-100 flex flex-col"
-		>
+		<main class="relative flex flex-1 flex-col overflow-hidden bg-slate-100">
 			<!-- ================= TAB 1: DASHBOARD ================= -->
-			<div
-				id="tab-dashboard"
-				class="tab-content flex-1 overflow-y-auto p-6 space-y-6"
-			>
-				<div
-					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
-				>
+			<div id="tab-dashboard" class="tab-content flex-1 space-y-6 overflow-y-auto p-6">
+				<div class="flex flex-col border-b border-slate-200 pb-2 md:flex-row md:items-center md:justify-between">
 					<div>
-						<h2 class="text-2xl font-bold text-slate-900">
-							Executive Dashboard
-						</h2>
-						<p class="text-sm text-slate-500">
-							Real-time metrics, lead conversions, and brokerage
-							performance for Meadow Lane Realty.
-						</p>
+						<h2 class="text-2xl font-bold text-slate-900">Executive Dashboard</h2>
+						<p class="text-sm text-slate-500">Real-time metrics, lead conversions, and brokerage performance for Meadow Lane Realty.</p>
 					</div>
-					<div class="mt-3 md:mt-0 flex items-center space-x-3">
-						<span
-							class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-3 py-1 rounded-full"
-							><i
-								class="fa-solid fa-circle text-[8px] text-emerald-600 mr-1.5 animate-pulse"
-							></i>
-							Live Data Feed Active</span
-						>
-						<button
-							onclick="refreshDashboardData()"
-							class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center space-x-1.5"
-						>
+					<div class="mt-3 flex items-center space-x-3 md:mt-0">
+						<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"><i class="fa-solid fa-circle mr-1.5 animate-pulse text-[8px] text-emerald-600"></i> Live Data Feed Active</span>
+						<button onclick="refreshDashboardData()" class="flex items-center space-x-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
 							<i class="fa-solid fa-rotate"></i>
 							<span>Refresh Metrics</span>
 						</button>
@@ -286,705 +167,603 @@
 				</div>
 
 				<!-- Summary Cards Grid -->
-				<div
-					class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
-				>
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+				<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-							>
-								Total Active Clients
-							</p>
-							<h3
-								class="text-3xl font-extrabold text-slate-900 mt-1"
-								id="dash-active-count"
-							>
-								28
-							</h3>
-							<p
-								class="text-xs text-brand-600 font-semibold mt-1 flex items-center"
-							>
+							<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Total Active Clients</p>
+							<h3 class="mt-1 text-3xl font-extrabold text-slate-900" id="dash-active-count">28</h3>
+							<p class="text-brand-600 mt-1 flex items-center text-xs font-semibold">
 								<i class="fa-solid fa-arrow-trend-up mr-1"></i>
 								+12% this month
 							</p>
 						</div>
-						<div
-							class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
-						>
+						<div class="bg-brand-50 text-brand-600 flex h-12 w-12 items-center justify-center rounded-2xl text-xl shadow-inner">
 							<i class="fa-solid fa-users"></i>
 						</div>
 					</div>
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-							>
-								Under Contract Count
-							</p>
-							<h3
-								class="text-3xl font-extrabold text-slate-900 mt-1"
-								id="dash-contract-count"
-							>
-								7
-							</h3>
-							<p
-								class="text-xs text-emerald-600 font-semibold mt-1 flex items-center"
-							>
+							<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Under Contract Count</p>
+							<h3 class="mt-1 text-3xl font-extrabold text-slate-900" id="dash-contract-count">7</h3>
+							<p class="mt-1 flex items-center text-xs font-semibold text-emerald-600">
 								<i class="fa-solid fa-file-contract mr-1"></i>
 								$4.8M Volume
 							</p>
 						</div>
-						<div
-							class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
-						>
+						<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-xl text-blue-600 shadow-inner">
 							<i class="fa-solid fa-handshake"></i>
 						</div>
 					</div>
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-							>
-								Monthly Revenue
-							</p>
-							<h3
-								class="text-3xl font-extrabold text-slate-900 mt-1"
-							>
-								$94,500
-							</h3>
-							<p
-								class="text-xs text-brand-600 font-semibold mt-1 flex items-center"
-							>
+							<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Monthly Revenue</p>
+							<h3 class="mt-1 text-3xl font-extrabold text-slate-900">$94,500</h3>
+							<p class="text-brand-600 mt-1 flex items-center text-xs font-semibold">
 								<i class="fa-solid fa-arrow-trend-up mr-1"></i>
 								98% of Q3 Target
 							</p>
 						</div>
-						<div
-							class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
-						>
+						<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-xl text-amber-600 shadow-inner">
 							<i class="fa-solid fa-wallet"></i>
 						</div>
 					</div>
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-							>
-								Lead Conversion Rate
-							</p>
-							<h3
-								class="text-3xl font-extrabold text-slate-900 mt-1"
-							>
-								34.8%
-							</h3>
-							<p
-								class="text-xs text-brand-600 font-semibold mt-1 flex items-center"
-							>
-								<i class="fa-solid fa-bullseye mr-1"></i> Zillow
-								Premier avg: 22%
-							</p>
+							<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Lead Conversion Rate</p>
+							<h3 class="mt-1 text-3xl font-extrabold text-slate-900">34.8%</h3>
+							<p class="text-brand-600 mt-1 flex items-center text-xs font-semibold"><i class="fa-solid fa-bullseye mr-1"></i> Zillow Premier avg: 22%</p>
 						</div>
-						<div
-							class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-xl shadow-inner"
-						>
+						<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-xl text-purple-600 shadow-inner">
 							<i class="fa-solid fa-chart-line"></i>
 						</div>
 					</div>
 				</div>
 
 				<!-- Secondary Metrics Bar -->
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+				<div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase"
-							>
-								Google Business Rating
-							</p>
-							<div class="flex items-center space-x-2 mt-1">
-								<span class="text-2xl font-bold text-slate-900"
-									>4.9</span
-								>
-								<div class="text-amber-400 text-sm">
-									<i class="fa-solid fa-star"></i
-									><i class="fa-solid fa-star"></i
-									><i class="fa-solid fa-star"></i
-									><i class="fa-solid fa-star"></i
-									><i class="fa-solid fa-star"></i>
-								</div>
+							<p class="text-xs font-semibold text-slate-500 uppercase">Google Business Rating</p>
+							<div class="mt-1 flex items-center space-x-2">
+								<span class="text-2xl font-bold text-slate-900">4.9</span>
+								<div class="text-sm text-amber-400"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
 							</div>
-							<p class="text-xs text-slate-500 mt-0.5">
-								Based on 142 verified reviews
-							</p>
+							<p class="mt-0.5 text-xs text-slate-500">Based on 142 verified reviews</p>
 						</div>
-						<div
-							class="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center"
-						>
+						<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
 							<i class="fa-brands fa-google"></i>
 						</div>
 					</div>
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase"
-							>
-								Zillow Lead Speed-To-Lead
-							</p>
-							<h3 class="text-2xl font-bold text-slate-900 mt-1">
-								1m 42s
-							</h3>
-							<p
-								class="text-xs text-emerald-600 font-semibold mt-0.5"
-							>
-								<i class="fa-solid fa-bolt"></i> Webhook
-								automatic routing active
-							</p>
+							<p class="text-xs font-semibold text-slate-500 uppercase">Zillow Lead Speed-To-Lead</p>
+							<h3 class="mt-1 text-2xl font-bold text-slate-900">1m 42s</h3>
+							<p class="mt-0.5 text-xs font-semibold text-emerald-600"><i class="fa-solid fa-bolt"></i> Webhook automatic routing active</p>
 						</div>
-						<div
-							class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"
-						>
+						<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
 							<i class="fa-solid fa-gauge-high"></i>
 						</div>
 					</div>
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex items-center justify-between"
-					>
+					<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 						<div>
-							<p
-								class="text-xs font-semibold text-slate-500 uppercase"
-							>
-								Active Developments
-							</p>
-							<h3 class="text-2xl font-bold text-slate-900 mt-1">
-								4 Projects
-							</h3>
-							<p class="text-xs text-slate-500 mt-0.5">
-								Meadow Lane Estates Phase II
-							</p>
+							<p class="text-xs font-semibold text-slate-500 uppercase">Active Developments</p>
+							<h3 class="mt-1 text-2xl font-bold text-slate-900">4 Projects</h3>
+							<p class="mt-0.5 text-xs text-slate-500">Meadow Lane Estates Phase II</p>
 						</div>
-						<div
-							class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"
-						>
+						<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
 							<i class="fa-solid fa-hard-hat"></i>
 						</div>
 					</div>
 				</div>
 
-				<!-- Charts Section -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<!-- Revenue Trend Chart -->
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col"
-					>
-						<div class="flex justify-between items-center mb-4">
-							<h3 class="font-bold text-slate-900 text-sm">
-								Monthly Revenue & Commission (2026)
-							</h3>
-							<span class="text-xs text-slate-400 font-medium"
-								>Updated Real-Time</span
-							>
+				<!-- Dashboard work grid: review/tasks alongside schedule (50/50 on wide screens); charts sit at the bottom -->
+				<div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
+					<!-- Role work panel: review queue for assistants, tasks for realtors -->
+					<div class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+						<div class="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<h3 id="dash-role-title" class="text-sm font-bold text-slate-900">For your review · 4 waiting</h3>
+							</div>
+							<div class="flex w-fit rounded-xl bg-slate-100 p-1">
+								<button onclick="setDashboardRole('assistant')" id="btn-role-assistant" class="rounded-lg bg-white px-4 py-1.5 text-xs font-bold text-slate-900 shadow">Assistant queue</button>
+								<button onclick="setDashboardRole('realtor')" id="btn-role-realtor" class="rounded-lg px-4 py-1.5 text-xs font-bold text-slate-500">Today's tasks</button>
+							</div>
 						</div>
-						<div class="flex-1 relative h-64">
-							<canvas id="revenueChart"></canvas>
+
+						<!-- Assistant view -->
+						<div id="dash-review-queue" class="space-y-3 bg-slate-100/70 p-4 sm:p-5">
+							<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm transition open:bg-slate-50 open:ring-1 open:ring-slate-200 open:ring-inset hover:bg-slate-50" open>
+								<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+									<span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700"><i class="fa-solid fa-user-plus text-xs"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+											<span class="text-sm font-bold text-slate-900">New contact proposal · Jamie Rivera</span>
+											<span class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">Auto intake · Zillow</span>
+										</span>
+										<span class="mt-0.5 block text-xs text-slate-600">jamie.rivera@example.com · (555) 018-4420 · 12 Evergreen Terrace</span>
+										<span class="mt-0.5 block text-[11px] text-slate-400">24 min ago · No email match · <span class="text-brand-700 font-semibold">Review</span></span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept Jamie Rivera"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+										<i class="fa-solid fa-check text-xs"></i>
+									</button>
+								</summary>
+								<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-sm">
+									<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">What to check</p>
+									<div class="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+										<div>
+											<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Source</p>
+											<p class="mt-0.5 text-xs font-medium text-slate-800">Zillow Premier webhook · 9:42 AM</p>
+										</div>
+										<div>
+											<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Duplicate check</p>
+											<p class="mt-0.5 text-xs font-medium text-slate-800">0 email matches · 1 near name, different phone</p>
+										</div>
+										<div>
+											<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Proposed change</p>
+											<p class="mt-0.5 text-xs font-medium text-slate-800">Create contact + New Lead opportunity</p>
+										</div>
+										<div>
+											<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Property</p>
+											<p class="mt-0.5 text-xs font-medium text-slate-800">12 Evergreen Terrace, Los Angeles</p>
+										</div>
+									</div>
+									<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+										<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Confirm contact</button>
+										<button onclick="decideReview(this, 'duplicate')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Link as duplicate</button>
+										<button onclick="decideReview(this, 'rejected')" class="px-3 py-1.5 font-semibold text-slate-500 hover:text-red-600">Reject</button>
+										<button onclick="switchTab('registry')" class="text-brand-700 px-2 py-1.5 font-semibold hover:underline">Open registry</button>
+									</div>
+								</div>
+							</details>
+							<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm transition open:bg-slate-50 open:ring-1 open:ring-slate-200 open:ring-inset hover:bg-slate-50">
+								<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+									<span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700"><i class="fa-solid fa-phone text-xs"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+											<span class="text-sm font-bold text-slate-900">Matt Maestra progressed to Contacted</span>
+											<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Suggested transition</span>
+										</span>
+										<span class="mt-0.5 block text-xs text-slate-600">Janae reached out · 6 min call at 8:55 AM · Wants weekend showing</span>
+										<span class="mt-0.5 block text-[11px] text-slate-400">1 hr ago · New Lead since Sep 24 · <span class="text-brand-700 font-semibold">Review</span></span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept pipeline move"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+										<i class="fa-solid fa-check text-xs"></i>
+									</button>
+								</summary>
+								<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-sm">
+									<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Evidence</p>
+									<p class="text-xs font-medium text-slate-800">Call log + SMS reply "Saturday works".</p>
+									<div>
+										<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Linked records</p>
+										<p class="mt-0.5 text-xs">
+											<a
+												href="#"
+												onclick="
+													switchTab('pipeline');
+													return false;
+												"
+												class="text-brand-700 font-semibold hover:underline"
+												>Opportunity · Matt Maestra</a
+											><span class="text-slate-400"> · </span
+											><a
+												href="#"
+												onclick="
+													switchTab('calendar');
+													return false;
+												"
+												class="text-brand-700 font-semibold hover:underline"
+												>Proposed showing Sat 2 PM</a
+											>
+										</p>
+									</div>
+									<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+										<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Approve move</button>
+										<button onclick="decideReview(this, 'rejected')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Keep in New Lead</button>
+									</div>
+								</div>
+							</details>
+							<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm transition open:bg-slate-50 open:ring-1 open:ring-slate-200 open:ring-inset hover:bg-slate-50">
+								<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+									<span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-700"><i class="fa-solid fa-calendar-check text-xs"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+											<span class="text-sm font-bold text-slate-900">Eleanor Vance to Showing / Tour</span>
+											<span class="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800">Tour booked</span>
+										</span>
+										<span class="mt-0.5 block text-xs text-slate-600">Showing moved to Saturday 2 PM · 12 Evergreen Terrace</span>
+										<span class="mt-0.5 block text-[11px] text-slate-400">2 hrs ago · Was Contacted · <span class="text-brand-700 font-semibold">Review</span></span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept tour move"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+										<i class="fa-solid fa-check text-xs"></i>
+									</button>
+								</summary>
+								<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-sm">
+									<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Evidence</p>
+									<p class="text-xs font-medium text-slate-800">Calendar invite accepted by Eleanor.</p>
+									<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+										<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Approve move</button>
+										<button onclick="decideReview(this, 'rejected')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Reject</button>
+										<button onclick="switchTab('calendar')" class="text-brand-700 px-2 py-1.5 font-semibold hover:underline">View event</button>
+									</div>
+								</div>
+							</details>
+							<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-sm transition open:bg-slate-50 open:ring-1 open:ring-slate-200 open:ring-inset hover:bg-slate-50">
+								<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+									<span class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"><i class="fa-solid fa-pen-to-square text-xs"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+											<span class="text-sm font-bold text-slate-900">Marcus Vance phone update</span>
+											<span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Brokerage import</span>
+										</span>
+										<span class="mt-0.5 block text-xs text-slate-600">(555) 234-5678 → (555) 234-9001 · 1 email match</span>
+										<span class="mt-0.5 block text-[11px] text-slate-400">3 hrs ago · No other fields changed · <span class="text-brand-700 font-semibold">Review</span></span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept phone update"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+										<i class="fa-solid fa-check text-xs"></i>
+									</button>
+								</summary>
+								<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-sm">
+									<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Source</p>
+									<p class="text-xs font-medium text-slate-800">Brokerage CSV import this morning.</p>
+									<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+										<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Apply update</button>
+										<button onclick="decideReview(this, 'rejected')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Keep old number</button>
+									</div>
+								</div>
+							</details>
+						</div>
+
+						<!-- Realtor view -->
+						<div id="dash-task-list" class="hidden space-y-3 bg-slate-100/70 p-4 sm:p-5">
+							<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50">
+								<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+								<div class="min-w-0 flex-1">
+									<div class="flex flex-wrap items-center gap-2">
+										<p class="text-sm font-bold text-slate-900">Call Jamie Rivera · Zillow follow-up</p>
+										<span class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800">High · Due 10:30 AM</span>
+									</div>
+									<p class="mt-1 text-xs text-slate-600">From Janae: "She asked about Evergreen schools. Pre-approval PDF is attached."</p>
+									<details class="mt-2">
+										<summary class="text-brand-700 cursor-pointer text-xs font-semibold hover:underline">Details and links</summary>
+										<div class="mt-2 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+											<p>
+												<i class="fa-solid fa-user mr-1.5 text-slate-400"></i
+												><a
+													href="#"
+													onclick="
+														switchTab('registry');
+														return false;
+													"
+													class="text-brand-700 font-semibold hover:underline"
+													>Contact · Jamie Rivera</a
+												>
+												· (555) 018-4420
+											</p>
+											<p><i class="fa-solid fa-file-pdf mr-1.5 text-slate-400"></i><a href="https://example.com/docs/jamie-preapproval.pdf" target="_blank" rel="noopener" class="text-brand-700 font-semibold hover:underline">Pre-approval.pdf</a></p>
+											<p><i class="fa-solid fa-phone mr-1.5 text-slate-400"></i>Script: confirm budget, tour window, lender status.</p>
+										</div>
+									</details>
+								</div>
+							</div>
+							<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50">
+								<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+								<div class="min-w-0 flex-1">
+									<div class="flex flex-wrap items-center gap-2">
+										<p class="text-sm font-bold text-slate-900">Prep showing notes · 12 Evergreen Terrace</p>
+										<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Today 1:30 PM</span>
+									</div>
+									<p class="mt-1 text-xs text-slate-600">Eleanor moved her tour to 2 PM. Bring disclosure packet.</p>
+									<details class="mt-2">
+										<summary class="text-brand-700 cursor-pointer text-xs font-semibold hover:underline">Details and links</summary>
+										<div class="mt-2 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+											<p>
+												<i class="fa-solid fa-calendar mr-1.5 text-slate-400"></i
+												><a
+													href="#"
+													onclick="
+														switchTab('calendar');
+														return false;
+													"
+													class="text-brand-700 font-semibold hover:underline"
+													>Event · Sat 2 PM showing</a
+												>
+											</p>
+											<p>
+												<i class="fa-solid fa-arrow-up-right-from-square mr-1.5 text-slate-400"></i><a href="https://example.com/property/12-evergreen" target="_blank" rel="noopener" class="text-brand-700 font-semibold hover:underline">Listing page</a> ·
+												<a href="https://example.com/docs/evergreen-disclosures.pdf" target="_blank" rel="noopener" class="text-brand-700 font-semibold hover:underline">Disclosures.pdf</a>
+											</p>
+										</div>
+									</details>
+								</div>
+							</div>
+							<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50">
+								<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+								<div class="min-w-0 flex-1">
+									<div class="flex flex-wrap items-center gap-2">
+										<p class="text-sm font-bold text-slate-900">Sign inspection amendment · 428 Meadow Lane</p>
+										<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Due 4 PM</span>
+									</div>
+									<p class="mt-1 text-xs text-slate-600">Marcus approved the credit. Signature is the only blocker to closing prep.</p>
+									<details class="mt-2">
+										<summary class="text-brand-700 cursor-pointer text-xs font-semibold hover:underline">Details and links</summary>
+										<div class="mt-2 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+											<p>
+												<i class="fa-solid fa-user mr-1.5 text-slate-400"></i
+												><a
+													href="#"
+													onclick="
+														switchTab('active-clients');
+														return false;
+													"
+													class="text-brand-700 font-semibold hover:underline"
+													>Marcus Vance · Under Contract</a
+												>
+											</p>
+											<p><i class="fa-solid fa-file-signature mr-1.5 text-slate-400"></i><a href="https://example.com/docs/amendment-428-meadow" target="_blank" rel="noopener" class="text-brand-700 font-semibold hover:underline">Open Docusign envelope</a></p>
+										</div>
+									</details>
+								</div>
+							</div>
+							<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50">
+								<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+								<div class="min-w-0 flex-1">
+									<div class="flex flex-wrap items-center gap-2">
+										<p class="text-sm font-bold text-slate-900">Confirm vendor quote · 142 Construction Blvd</p>
+										<span class="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">Low · Anytime today</span>
+									</div>
+									<p class="mt-1 text-xs text-slate-600">David Miller waits on the framing revision before release of funds.</p>
+									<details class="mt-2">
+										<summary class="text-brand-700 cursor-pointer text-xs font-semibold hover:underline">Details and links</summary>
+										<div class="mt-2 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+											<p>
+												<i class="fa-solid fa-diagram-project mr-1.5 text-slate-400"></i
+												><a
+													href="#"
+													onclick="
+														switchTab('pipeline');
+														return false;
+													"
+													class="text-brand-700 font-semibold hover:underline"
+													>Opportunity · 142 Construction</a
+												>
+											</p>
+											<p><i class="fa-solid fa-file-lines mr-1.5 text-slate-400"></i><a href="https://example.com/docs/framing-quote.pdf" target="_blank" rel="noopener" class="text-brand-700 font-semibold hover:underline">Framing-quote.pdf</a></p>
+										</div>
+									</details>
+								</div>
+							</div>
+						</div>
+						<div class="border-t border-slate-100 bg-slate-50 px-5 py-3">
+							<p id="dash-role-footnote" class="text-[11px] text-slate-500">4 waiting</p>
 						</div>
 					</div>
-					<!-- Lead Sources Breakdown -->
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col"
-					>
-						<div class="flex justify-between items-center mb-4">
-							<h3 class="font-bold text-slate-900 text-sm">
-								Lead Source Distribution
-							</h3>
-							<span class="text-xs text-slate-400 font-medium"
-								>Total: 128 Leads</span
-							>
+
+					<!-- Schedule column: events over activity feed -->
+					<div class="min-w-0 space-y-6">
+						<!-- Upcoming Events Widget -->
+						<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+							<div class="mb-4 flex items-center justify-between">
+								<h3 class="text-sm font-bold text-slate-900">Upcoming Brokerage Events</h3>
+								<button onclick="switchTab('calendar')" class="text-brand-600 text-xs font-semibold hover:underline">View Calendar</button>
+							</div>
+							<div class="space-y-3" id="dash-events-list">
+								<div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
+									<div class="flex items-center space-x-3">
+										<div class="bg-brand-100 text-brand-700 flex h-10 w-10 flex-col items-center justify-center rounded-lg text-xs font-bold">
+											<span>SEP</span>
+											<span class="text-sm">26</span>
+										</div>
+										<div>
+											<h4 class="text-sm font-semibold text-slate-900">Closing Walkthrough - 428 Meadow Lane</h4>
+											<p class="text-xs text-slate-500">10:00 AM - With Marcus Vance & Inspector</p>
+										</div>
+									</div>
+									<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">Pending</span>
+								</div>
+								<div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
+									<div class="flex items-center space-x-3">
+										<div class="bg-brand-100 text-brand-700 flex h-10 w-10 flex-col items-center justify-center rounded-lg text-xs font-bold">
+											<span>SEP</span>
+											<span class="text-sm">28</span>
+										</div>
+										<div>
+											<h4 class="text-sm font-semibold text-slate-900">VIP Open House - Oakridge Estates</h4>
+											<p class="text-xs text-slate-500">01:00 PM - 12 Agents Attending</p>
+										</div>
+									</div>
+									<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">Scheduled</span>
+								</div>
+							</div>
 						</div>
-						<div
-							class="flex-1 relative h-64 flex items-center justify-center"
-						>
-							<canvas id="leadsChart"></canvas>
+
+						<!-- Recent Activities Feed -->
+						<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+							<div class="mb-4 flex items-center justify-between">
+								<h3 class="text-sm font-bold text-slate-900">Recent Activity Stream</h3>
+								<span class="text-xs text-slate-400">Live Sync</span>
+							</div>
+							<div class="space-y-3 text-xs" id="dash-activity-stream">
+								<div class="flex items-start space-x-3 border-b border-slate-100 pb-3">
+									<div class="bg-brand-100 text-brand-600 mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
+										<i class="fa-solid fa-phone text-xs"></i>
+									</div>
+									<div>
+										<p class="font-medium text-slate-800">
+											<span class="font-bold">Sarah Jenkins</span>
+											called client
+											<span class="font-bold">Eleanor Vance</span>
+											regarding closing docs.
+										</p>
+										<span class="text-[10px] text-slate-400">12 minutes ago</span>
+									</div>
+								</div>
+								<div class="flex items-start space-x-3 border-b border-slate-100 pb-3">
+									<div class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+										<i class="fa-solid fa-envelope text-xs"></i>
+									</div>
+									<div>
+										<p class="font-medium text-slate-800">
+											Bulk Email Campaign
+											<span class="font-bold">"Fall Luxury Homes"</span>
+											sent to 450 contacts.
+										</p>
+										<span class="text-[10px] text-slate-400">45 minutes ago</span>
+									</div>
+								</div>
+								<div class="flex items-start space-x-3">
+									<div class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+										<i class="fa-solid fa-user-plus text-xs"></i>
+									</div>
+									<div>
+										<p class="font-medium text-slate-800">
+											New lead ingested from
+											<span class="font-bold">Zillow Premier Agent</span>
+											API.
+										</p>
+										<span class="text-[10px] text-slate-400">1 hour ago</span>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
 
-				<!-- Upcoming Events & Recent Activity Bottom Grid -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<!-- Upcoming Events Widget -->
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200"
-					>
-						<div class="flex justify-between items-center mb-4">
-							<h3 class="font-bold text-slate-900 text-sm">
-								Upcoming Brokerage Events
-							</h3>
-							<button
-								onclick="switchTab('calendar')"
-								class="text-xs text-brand-600 font-semibold hover:underline"
-							>
-								View Calendar
-							</button>
+				<!-- Charts Section (moved to bottom; less prominent) -->
+				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+					<!-- Revenue Trend Chart -->
+					<div class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+						<div class="mb-4 flex items-center justify-between">
+							<h3 class="text-sm font-bold text-slate-900">Monthly Revenue & Commission (2026)</h3>
+							<span class="text-xs font-medium text-slate-400">Updated Real-Time</span>
 						</div>
-						<div class="space-y-3" id="dash-events-list">
-							<div
-								class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
-							>
-								<div class="flex items-center space-x-3">
-									<div
-										class="bg-brand-100 text-brand-700 w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold text-xs"
-									>
-										<span>SEP</span>
-										<span class="text-sm">26</span>
-									</div>
-									<div>
-										<h4
-											class="text-sm font-semibold text-slate-900"
-										>
-											Closing Walkthrough - 428 Meadow
-											Lane
-										</h4>
-										<p class="text-xs text-slate-500">
-											10:00 AM - With Marcus Vance &
-											Inspector
-										</p>
-									</div>
-								</div>
-								<span
-									class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium"
-									>Pending</span
-								>
-							</div>
-							<div
-								class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
-							>
-								<div class="flex items-center space-x-3">
-									<div
-										class="bg-brand-100 text-brand-700 w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold text-xs"
-									>
-										<span>SEP</span>
-										<span class="text-sm">28</span>
-									</div>
-									<div>
-										<h4
-											class="text-sm font-semibold text-slate-900"
-										>
-											VIP Open House - Oakridge Estates
-										</h4>
-										<p class="text-xs text-slate-500">
-											01:00 PM - 12 Agents Attending
-										</p>
-									</div>
-								</div>
-								<span
-									class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-medium"
-									>Scheduled</span
-								>
-							</div>
+						<div class="relative h-64 flex-1">
+							<canvas id="revenueChart"></canvas>
 						</div>
 					</div>
-
-					<!-- Recent Activities Feed -->
-					<div
-						class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200"
-					>
-						<div class="flex justify-between items-center mb-4">
-							<h3 class="font-bold text-slate-900 text-sm">
-								Recent Activity Stream
-							</h3>
-							<span class="text-xs text-slate-400"
-								>Live Sync</span
-							>
+					<!-- Lead Sources Breakdown -->
+					<div class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+						<div class="mb-4 flex items-center justify-between">
+							<h3 class="text-sm font-bold text-slate-900">Lead Source Distribution</h3>
+							<span class="text-xs font-medium text-slate-400">Total: 128 Leads</span>
 						</div>
-						<div
-							class="space-y-3 text-xs"
-							id="dash-activity-stream"
-						>
-							<div
-								class="flex items-start space-x-3 pb-3 border-b border-slate-100"
-							>
-								<div
-									class="w-7 h-7 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-								>
-									<i class="fa-solid fa-phone text-xs"></i>
-								</div>
-								<div>
-									<p class="text-slate-800 font-medium">
-										<span class="font-bold"
-											>Sarah Jenkins</span
-										>
-										called client
-										<span class="font-bold"
-											>Eleanor Vance</span
-										>
-										regarding closing docs.
-									</p>
-									<span class="text-[10px] text-slate-400"
-										>12 minutes ago</span
-									>
-								</div>
-							</div>
-							<div
-								class="flex items-start space-x-3 pb-3 border-b border-slate-100"
-							>
-								<div
-									class="w-7 h-7 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-								>
-									<i class="fa-solid fa-envelope text-xs"></i>
-								</div>
-								<div>
-									<p class="text-slate-800 font-medium">
-										Bulk Email Campaign
-										<span class="font-bold"
-											>"Fall Luxury Homes"</span
-										>
-										sent to 450 contacts.
-									</p>
-									<span class="text-[10px] text-slate-400"
-										>45 minutes ago</span
-									>
-								</div>
-							</div>
-							<div class="flex items-start space-x-3">
-								<div
-									class="w-7 h-7 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-								>
-									<i
-										class="fa-solid fa-user-plus text-xs"
-									></i>
-								</div>
-								<div>
-									<p class="text-slate-800 font-medium">
-										New lead ingested from
-										<span class="font-bold"
-											>Zillow Premier Agent</span
-										>
-										API.
-									</p>
-									<span class="text-[10px] text-slate-400"
-										>1 hour ago</span
-									>
-								</div>
-							</div>
+						<div class="relative flex h-64 flex-1 items-center justify-center">
+							<canvas id="leadsChart"></canvas>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- ================= TAB 2: PIPELINE KANBAN ================= -->
-			<div
-				id="tab-pipeline"
-				class="tab-content hidden flex-1 overflow-x-auto p-6 flex flex-col"
-			>
-				<div
-					class="flex justify-between items-center pb-4 mb-4 border-b border-slate-200 flex-shrink-0"
-				>
+			<div id="tab-pipeline" class="tab-content flex hidden min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-6">
+				<div class="mb-4 flex flex-shrink-0 flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
 					<div>
-						<h2 class="text-2xl font-bold text-slate-900">
-							Pipeline Kanban Board
-						</h2>
-						<p class="text-sm text-slate-500">
-							Manage deal stages, Zillow lead ingestions, and
-							closing milestones.
-						</p>
+						<h2 class="text-2xl font-bold text-slate-900">Pipeline Kanban Board</h2>
+						<p class="text-sm text-slate-500">People first. One opportunity per engagement, with room to move at your own pace.</p>
 					</div>
 					<div class="flex items-center space-x-3">
-						<button
-							onclick="openAddClientModal()"
-							class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2"
-						>
+						<button onclick="openOpportunity()" class="bg-brand-600 hover:bg-brand-700 flex items-center space-x-2 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition">
 							<i class="fa-solid fa-plus"></i>
-							<span>Add Deal / Client</span>
+							<span>Add opportunity</span>
 						</button>
 					</div>
 				</div>
 
+				<div class="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+					<div id="pipeline-filters" class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter opportunities by deal type"></div>
+					<div class="flex flex-wrap items-center gap-3">
+						<label class="flex items-center gap-2"
+							>Show
+							<select id="pipeline-view" onchange="renderKanban()" class="rounded-lg border border-slate-300 bg-white px-2 py-2">
+								<option value="live">Current board</option>
+								<option value="paused">Paused</option>
+								<option value="ended">Ended without completion</option>
+								<option value="archived">Archived</option>
+								<option value="all">All opportunities</option>
+							</select></label
+						>
+						<label class="flex items-center gap-2"><input id="pipeline-tasks-enabled" type="checkbox" checked onchange="setPipelineTasks(this.checked)" class="accent-green-600" /> Tasks enabled</label>
+					</div>
+				</div>
+				<p id="pipeline-summary" class="mb-3 text-xs text-slate-500" aria-live="polite"></p>
 				<!-- Kanban Columns Container -->
-				<div
-					class="flex-1 flex space-x-5 overflow-x-auto pb-4 items-start h-full"
-					id="kanban-board"
-				>
-					<!-- Column: New Lead -->
-					<div
-						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
-					>
-						<div
-							class="flex justify-between items-center mb-3 px-1"
-						>
-							<div class="flex items-center space-x-2">
-								<span
-									class="w-3 h-3 rounded-full bg-blue-500"
-								></span>
-								<h3 class="font-bold text-slate-800 text-sm">
-									New Lead
-								</h3>
-								<span
-									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
-									id="count-new"
-									>2</span
-								>
-							</div>
-							<button class="text-slate-500 hover:text-slate-800">
-								<i class="fa-solid fa-ellipsis"></i>
-							</button>
-						</div>
-						<div
-							class="space-y-3 overflow-y-auto flex-1 pr-1"
-							id="col-new"
-							ondragover="allowDrop(event)"
-							ondrop="dropCard(event, 'New Lead')"
-						>
-							<!-- Cards will render here -->
-						</div>
-					</div>
-
-					<!-- Column: Contacted -->
-					<div
-						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
-					>
-						<div
-							class="flex justify-between items-center mb-3 px-1"
-						>
-							<div class="flex items-center space-x-2">
-								<span
-									class="w-3 h-3 rounded-full bg-amber-500"
-								></span>
-								<h3 class="font-bold text-slate-800 text-sm">
-									Contacted
-								</h3>
-								<span
-									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
-									id="count-contacted"
-									>1</span
-								>
-							</div>
-							<button class="text-slate-500 hover:text-slate-800">
-								<i class="fa-solid fa-ellipsis"></i>
-							</button>
-						</div>
-						<div
-							class="space-y-3 overflow-y-auto flex-1 pr-1"
-							id="col-contacted"
-							ondragover="allowDrop(event)"
-							ondrop="dropCard(event, 'Contacted')"
-						>
-							<!-- Cards -->
-						</div>
-					</div>
-
-					<!-- Column: Showing / Tour -->
-					<div
-						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
-					>
-						<div
-							class="flex justify-between items-center mb-3 px-1"
-						>
-							<div class="flex items-center space-x-2">
-								<span
-									class="w-3 h-3 rounded-full bg-purple-500"
-								></span>
-								<h3 class="font-bold text-slate-800 text-sm">
-									Showing / Tour
-								</h3>
-								<span
-									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
-									id="count-showing"
-									>1</span
-								>
-							</div>
-							<button class="text-slate-500 hover:text-slate-800">
-								<i class="fa-solid fa-ellipsis"></i>
-							</button>
-						</div>
-						<div
-							class="space-y-3 overflow-y-auto flex-1 pr-1"
-							id="col-showing"
-							ondragover="allowDrop(event)"
-							ondrop="dropCard(event, 'Showing / Tour')"
-						>
-							<!-- Cards -->
-						</div>
-					</div>
-
-					<!-- Column: Under Contract -->
-					<div
-						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
-					>
-						<div
-							class="flex justify-between items-center mb-3 px-1"
-						>
-							<div class="flex items-center space-x-2">
-								<span
-									class="w-3 h-3 rounded-full bg-brand-500"
-								></span>
-								<h3 class="font-bold text-slate-800 text-sm">
-									Under Contract
-								</h3>
-								<span
-									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
-									id="count-contract"
-									>2</span
-								>
-							</div>
-							<button class="text-slate-500 hover:text-slate-800">
-								<i class="fa-solid fa-ellipsis"></i>
-							</button>
-						</div>
-						<div
-							class="space-y-3 overflow-y-auto flex-1 pr-1"
-							id="col-contract"
-							ondragover="allowDrop(event)"
-							ondrop="dropCard(event, 'Under Contract')"
-						>
-							<!-- Cards -->
-						</div>
-					</div>
-
-					<!-- Column: Closed -->
-					<div
-						class="w-80 flex-shrink-0 bg-slate-200/70 rounded-2xl p-4 flex flex-col max-h-full border border-slate-300"
-					>
-						<div
-							class="flex justify-between items-center mb-3 px-1"
-						>
-							<div class="flex items-center space-x-2">
-								<span
-									class="w-3 h-3 rounded-full bg-emerald-600"
-								></span>
-								<h3 class="font-bold text-slate-800 text-sm">
-									Closed
-								</h3>
-								<span
-									class="bg-slate-300 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold"
-									id="count-closed"
-									>1</span
-								>
-							</div>
-							<button class="text-slate-500 hover:text-slate-800">
-								<i class="fa-solid fa-ellipsis"></i>
-							</button>
-						</div>
-						<div
-							class="space-y-3 overflow-y-auto flex-1 pr-1"
-							id="col-closed"
-							ondragover="allowDrop(event)"
-							ondrop="dropCard(event, 'Closed')"
-						>
-							<!-- Cards -->
-						</div>
-					</div>
+				<div class="flex min-h-0 flex-1 items-start gap-4 overflow-auto pb-4" id="kanban-board">
+					<!-- Six shared stages render from the opportunity records. -->
 				</div>
 			</div>
 
 			<!-- ================= TAB 3: ACTIVE CLIENTS DASHBOARD ================= -->
-			<div
-				id="tab-active-clients"
-				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6"
-			>
-				<div
-					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
-				>
+			<div id="tab-active-clients" class="tab-content hidden flex-1 space-y-6 overflow-y-auto p-6">
+				<div class="flex flex-col border-b border-slate-200 pb-2 md:flex-row md:items-center md:justify-between">
 					<div>
-						<h2 class="text-2xl font-bold text-slate-900">
-							Active Clients Dashboard
-						</h2>
-						<p class="text-sm text-slate-500">
-							Track active client categories, property addresses,
-							and critical transaction timelines.
-						</p>
+						<h2 class="text-2xl font-bold text-slate-900">Active Clients Dashboard</h2>
+						<p class="text-sm text-slate-500">Track active client categories, property addresses, and critical transaction timelines.</p>
 					</div>
-					<div class="mt-3 md:mt-0 flex items-center space-x-3">
-						<span
-							class="bg-brand-100 text-brand-800 font-bold text-xs px-3 py-1.5 rounded-xl"
-							><span id="active-count-label">4</span> Active
-							Clients Enrolled</span
-						>
+					<div class="mt-3 flex items-center space-x-3 md:mt-0">
+						<span class="bg-brand-100 text-brand-800 rounded-xl px-3 py-1.5 text-xs font-bold"><span id="active-count-label">4</span> Active Clients Enrolled</span>
 					</div>
 				</div>
 
 				<!-- Filter Pills -->
-				<div class="flex flex-wrap gap-2 items-center">
-					<button
-						onclick="filterActiveClients('all')"
-						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm transition"
-					>
-						All Active
-					</button>
-					<button
-						onclick="filterActiveClients('Under Contract')"
-						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
-					>
-						Under Contract
-					</button>
-					<button
-						onclick="filterActiveClients('Buyer')"
-						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
-					>
-						Buyer
-					</button>
-					<button
-						onclick="filterActiveClients('Seller')"
-						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
-					>
-						Seller
-					</button>
-					<button
-						onclick="filterActiveClients('Estate Sale')"
-						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
-					>
-						Estate Sale
-					</button>
-					<button
-						onclick="filterActiveClients('Construction')"
-						class="active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition"
-					>
-						Construction
-					</button>
+				<div class="flex flex-wrap items-center gap-2">
+					<button onclick="filterActiveClients('all')" class="active-filter-btn bg-brand-600 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-sm transition">All Active</button>
+					<button onclick="filterActiveClients('Under Contract')" class="active-filter-btn rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Under Contract</button>
+					<button onclick="filterActiveClients('Buyer')" class="active-filter-btn rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Buyer</button>
+					<button onclick="filterActiveClients('Seller')" class="active-filter-btn rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Seller</button>
+					<button onclick="filterActiveClients('Estate Sale')" class="active-filter-btn rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Estate Sale</button>
+					<button onclick="filterActiveClients('Construction')" class="active-filter-btn rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Construction</button>
 				</div>
 
 				<!-- Active Clients Grid -->
-				<div
-					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-					id="active-clients-grid"
-				>
+				<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3" id="active-clients-grid">
 					<!-- Populated via JS -->
 				</div>
 			</div>
 
 			<!-- ================= TAB 4: CLIENT REGISTRY ================= -->
-			<div
-				id="tab-registry"
-				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6 flex flex-col"
-			>
-				<div
-					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200"
-				>
+			<div id="tab-registry" class="tab-content flex hidden flex-1 flex-col space-y-6 overflow-y-auto p-6">
+				<div class="flex flex-col border-b border-slate-200 pb-2 md:flex-row md:items-center md:justify-between">
 					<div>
-						<h2 class="text-2xl font-bold text-slate-900">
-							Client Registry Database
-						</h2>
-						<p class="text-sm text-slate-500">
-							Comprehensive searchable client directory, contact
-							information, and tags.
-						</p>
+						<h2 class="text-2xl font-bold text-slate-900">Client Registry Database</h2>
+						<p class="text-sm text-slate-500">Comprehensive searchable client directory, contact information, and tags.</p>
 					</div>
-					<div class="mt-3 md:mt-0 flex items-center space-x-3">
-						<button
-							onclick="openAddClientModal()"
-							class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2"
-						>
+					<div class="mt-3 flex items-center space-x-3 md:mt-0">
+						<button onclick="openAddClientModal()" class="bg-brand-600 hover:bg-brand-700 flex items-center space-x-2 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition">
 							<i class="fa-solid fa-user-plus"></i>
 							<span>Add New Client</span>
 						</button>
@@ -992,38 +771,18 @@
 				</div>
 
 				<!-- Search & Tag Filters -->
-				<div
-					class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 items-center justify-between"
-				>
+				<div class="flex flex-col items-center justify-between space-y-3 sm:flex-row sm:space-y-0 sm:space-x-4">
 					<div class="relative w-full sm:w-96">
-						<i
-							class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"
-						></i>
-						<input
-							type="text"
-							id="registry-search"
-							oninput="renderRegistryTable()"
-							placeholder="Search by name, email, phone, or address..."
-							class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
-						/>
+						<i class="fa-solid fa-magnifying-glass absolute top-3 left-3.5 text-xs text-slate-400"></i>
+						<input type="text" id="registry-search" oninput="renderRegistryTable()" placeholder="Search by name, email, phone, or address..." class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 bg-white py-2 pr-4 pl-10 text-xs shadow-sm focus:ring-2 focus:outline-none" />
 					</div>
-					<div
-						class="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1"
-					>
-						<span class="text-xs font-semibold text-slate-500"
-							>Filter Tag:</span
-						>
-						<select
-							id="registry-tag-filter"
-							onchange="renderRegistryTable()"
-							class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
-						>
+					<div class="flex w-full items-center space-x-2 overflow-x-auto pb-1 sm:w-auto">
+						<span class="text-xs font-semibold text-slate-500">Filter Tag:</span>
+						<select id="registry-tag-filter" onchange="renderRegistryTable()" class="focus:ring-brand-500 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:outline-none">
 							<option value="all">All Tags</option>
 							<option value="VIP">VIP</option>
 							<option value="Zillow Lead">Zillow Lead</option>
-							<option value="First-Time Buyer">
-								First-Time Buyer
-							</option>
+							<option value="First-Time Buyer">First-Time Buyer</option>
 							<option value="Investor">Investor</option>
 							<option value="Luxury">Luxury</option>
 						</select>
@@ -1031,15 +790,11 @@
 				</div>
 
 				<!-- Registry Table -->
-				<div
-					class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-1"
-				>
+				<div class="flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 					<div class="overflow-x-auto">
-						<table class="w-full text-left border-collapse">
+						<table class="w-full border-collapse text-left">
 							<thead>
-								<tr
-									class="bg-slate-50 text-slate-600 uppercase text-[11px] font-bold tracking-wider border-b border-slate-200"
-								>
+								<tr class="border-b border-slate-200 bg-slate-50 text-[11px] font-bold tracking-wider text-slate-600 uppercase">
 									<th class="p-4">Client Name</th>
 									<th class="p-4">Category / Status</th>
 									<th class="p-4">Contact Info</th>
@@ -1048,10 +803,7 @@
 									<th class="p-4 text-right">Actions</th>
 								</tr>
 							</thead>
-							<tbody
-								id="registry-table-body"
-								class="divide-y divide-slate-100 text-xs text-slate-700"
-							>
+							<tbody id="registry-table-body" class="divide-y divide-slate-100 text-xs text-slate-700">
 								<!-- Populated via JS -->
 							</tbody>
 						</table>
@@ -1060,27 +812,14 @@
 			</div>
 
 			<!-- ================= TAB 5: INTERACTIVE CALENDAR ================= -->
-			<div
-				id="tab-calendar"
-				class="tab-content hidden flex-1 overflow-y-auto p-6 space-y-6 flex flex-col"
-			>
-				<div
-					class="flex flex-col md:flex-row md:items-center md:justify-between pb-2 border-b border-slate-200 flex-shrink-0"
-				>
+			<div id="tab-calendar" class="tab-content flex hidden flex-1 flex-col space-y-6 overflow-y-auto p-6">
+				<div class="flex flex-shrink-0 flex-col border-b border-slate-200 pb-2 md:flex-row md:items-center md:justify-between">
 					<div>
-						<h2 class="text-2xl font-bold text-slate-900">
-							Interactive Calendar & Schedule
-						</h2>
-						<p class="text-sm text-slate-500">
-							Schedule property showings, inspections, and client
-							meetings.
-						</p>
+						<h2 class="text-2xl font-bold text-slate-900">Interactive Calendar & Schedule</h2>
+						<p class="text-sm text-slate-500">Schedule property showings, inspections, and client meetings.</p>
 					</div>
-					<div class="mt-3 md:mt-0 flex items-center space-x-3">
-						<button
-							onclick="openAddEventModal()"
-							class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2"
-						>
+					<div class="mt-3 flex items-center space-x-3 md:mt-0">
+						<button onclick="openAddEventModal()" class="bg-brand-600 hover:bg-brand-700 flex items-center space-x-2 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-md transition">
 							<i class="fa-solid fa-calendar-plus"></i>
 							<span>+ Add Event</span>
 						</button>
@@ -1088,397 +827,227 @@
 				</div>
 
 				<!-- Calendar Controls -->
-				<div
-					class="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex-shrink-0"
-				>
-					<div class="flex items-center space-x-3 mb-3 sm:mb-0">
-						<button
-							onclick="changeMonth(-1)"
-							class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-						>
+				<div class="flex flex-shrink-0 flex-col items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row">
+					<div class="mb-3 flex items-center space-x-3 sm:mb-0">
+						<button onclick="changeMonth(-1)" class="rounded-lg border border-slate-300 p-2 text-slate-700 hover:bg-slate-100">
 							<i class="fa-solid fa-chevron-left text-xs"></i>
 						</button>
-						<h3
-							id="calendar-month-year"
-							class="font-bold text-slate-900 text-base"
-						>
-							September 2026
-						</h3>
-						<button
-							onclick="changeMonth(1)"
-							class="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-						>
+						<h3 id="calendar-month-year" class="text-base font-bold text-slate-900">September 2026</h3>
+						<button onclick="changeMonth(1)" class="rounded-lg border border-slate-300 p-2 text-slate-700 hover:bg-slate-100">
 							<i class="fa-solid fa-chevron-right text-xs"></i>
 						</button>
 					</div>
 					<div class="flex items-center space-x-2">
 						<div class="relative">
-							<i
-								class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"
-							></i>
-							<input
-								type="text"
-								id="calendar-search"
-								placeholder="Search calendar events..."
-								oninput="renderCalendarGrid()"
-								class="pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500"
-							/>
+							<i class="fa-solid fa-magnifying-glass absolute top-2.5 left-3 text-xs text-slate-400"></i>
+							<input type="text" id="calendar-search" placeholder="Search calendar events..." oninput="renderCalendarGrid()" class="focus:ring-brand-500 rounded-lg border border-slate-300 py-1.5 pr-3 pl-9 text-xs focus:ring-2 focus:outline-none" />
 						</div>
-						<div class="flex bg-slate-100 p-1 rounded-lg">
-							<button
-								onclick="setCalView('month')"
-								id="btn-view-month"
-								class="px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800"
-							>
-								Month
-							</button>
-							<button
-								onclick="setCalView('week')"
-								id="btn-view-week"
-								class="px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900"
-							>
-								Week
-							</button>
+						<div class="flex rounded-lg bg-slate-100 p-1">
+							<button onclick="setCalView('month')" id="btn-view-month" class="rounded-md bg-white px-3 py-1 text-xs font-bold text-slate-800 shadow">Month</button>
+							<button onclick="setCalView('week')" id="btn-view-week" class="rounded-md px-3 py-1 text-xs font-bold text-slate-600 hover:text-slate-900">Week</button>
 						</div>
 					</div>
 				</div>
 
 				<!-- Calendar Grid Container -->
-				<div
-					class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden"
-					id="calendar-container"
-				>
+				<div class="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" id="calendar-container">
 					<!-- Rendered dynamically -->
 				</div>
 			</div>
-
 		</main>
 
+		<!-- Opportunity details use a native dialog for focus trapping, Escape, and the backdrop. -->
+		<dialog id="opportunity-dialog" aria-labelledby="opportunity-dialog-heading" class="m-auto max-h-full w-full max-w-5xl overflow-y-auto rounded-2xl bg-white p-0 text-slate-800 shadow-2xl backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm">
+			<form id="opportunity-form" onsubmit="saveOpportunity(event)">
+				<header class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-5 py-4 sm:px-8">
+					<div><h2 id="opportunity-dialog-heading" class="font-semibold">Opportunity details</h2></div>
+					<button type="button" onclick="closeOpportunity()" aria-label="Close opportunity" class="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+				</header>
+				<div class="space-y-6 p-5 sm:p-8">
+					<div>
+						<div id="opportunity-title" contenteditable="true" spellcheck="false" aria-label="Opportunity card title" data-placeholder="Untitled opportunity" class="min-w-0 text-2xl font-bold break-words text-slate-900 focus:outline-none"></div>
+						<p id="opportunity-meta-type" class="mt-1 text-sm text-slate-500"></p>
+						<div id="opportunity-meta-address" contenteditable="true" spellcheck="false" aria-label="Property address" data-placeholder="No property selected" class="mt-1 min-w-0 text-sm break-words text-slate-500 focus:outline-none"></div>
+						<div id="opportunity-meta-budget" contenteditable="true" spellcheck="false" aria-label="Price or budget" data-placeholder="Add a price or budget" class="mt-1 min-w-0 text-sm break-words text-slate-500 focus:outline-none"></div>
+						<div id="opportunity-meta-next" contenteditable="true" spellcheck="false" aria-label="Next action" data-placeholder="Add a next action" class="mt-1 min-w-0 text-sm break-words text-slate-500 focus:outline-none"></div>
+					</div>
+					<div class="grid gap-6 md:grid-cols-3">
+						<div class="space-y-6 md:col-span-2">
+							<p id="opportunity-tasks-off" class="hidden rounded-xl bg-slate-100 p-4 text-sm text-slate-600">Tasks are disabled.</p>
+							<section class="rounded-xl border border-slate-200 p-4">
+								<h3 class="font-semibold">Dates & milestones</h3>
+								<p class="mt-1 mb-4 text-xs text-slate-500">Keep each deadline in one place. Overdue unfinished items stay visible on the card.</p>
+								<div id="opportunity-milestone-list" class="space-y-2"></div>
+								<button type="button" onclick="addOpportunityItem('milestone')" class="text-brand-700 hover:bg-brand-50 mt-3 rounded-lg px-2 py-2 text-xs font-semibold"><i class="fa-solid fa-plus mr-1" aria-hidden="true"></i>Add milestone</button>
+							</section>
+							<section class="rounded-xl border border-slate-200 p-4">
+								<h3 class="mb-3 font-semibold">Notes & activity</h3>
+								<div id="opportunity-history" class="mb-4 max-h-64 space-y-3 overflow-y-auto text-sm"></div>
+								<label for="opportunity-note" class="sr-only">Add a note</label><textarea id="opportunity-note" rows="3" maxlength="2000" class="w-full rounded-lg border border-slate-300 p-3 text-sm" placeholder="Add context, a conversation, or a decision. Saved with a timestamp."></textarea>
+							</section>
+						</div>
+						<aside class="space-y-5">
+							<section id="opportunity-checklist-section" class="rounded-xl border border-slate-200 p-4">
+								<div class="mb-3 flex items-center justify-between gap-2">
+									<h3 class="font-semibold">Checklist</h3>
+									<button type="button" onclick="showToast('Checklist editing is not available in this prototype.')" aria-label="Edit checklist" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+										<i class="fa-solid fa-pen text-xs" aria-hidden="true"></i>
+									</button>
+								</div>
+								<div id="opportunity-task-list" class="space-y-2"></div>
+							</section>
+							<section class="rounded-xl border border-slate-200 p-4">
+								<div id="opportunity-links" class="space-y-2"></div>
+								<label for="opportunity-link-input" class="sr-only">Add a link</label>
+								<input
+									id="opportunity-link-input"
+									maxlength="240"
+									class="mt-3 w-full rounded-lg border border-slate-300 p-2 text-sm"
+									placeholder="Link a person, opportunity, or paste a URL"
+									onkeydown="
+										if (event.key === 'Enter') {
+											event.preventDefault();
+											addOpportunityLink();
+										}
+									" />
+								<p id="opportunity-link-feedback" class="mt-1 hidden text-xs text-slate-500"></p>
+							</section>
+						</aside>
+					</div>
+				</div>
+				<footer class="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:px-8">
+					<p id="opportunity-feedback" role="status" class="text-xs text-slate-500"></p>
+					<div class="flex gap-2"><button type="button" onclick="closeOpportunity()" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold">Cancel</button><button type="submit" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-4 py-2 text-sm font-semibold text-white">Save opportunity</button></div>
+				</footer>
+			</form>
+		</dialog>
+
 		<!-- Add / Edit Client Modal -->
-		<div
-			id="modal-client"
-			class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-		>
-			<div
-				class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-slate-200"
-			>
-				<div
-					class="flex justify-between items-center border-b border-slate-100 pb-3"
-				>
-					<h3
-						id="modal-client-title"
-						class="font-bold text-slate-900 text-lg"
-					>
-						Add New Deal / Client
-					</h3>
-					<button
-						onclick="closeModal('modal-client')"
-						class="text-slate-400 hover:text-slate-600"
-					>
+		<div id="modal-client" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+			<div class="w-full max-w-lg space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+				<div class="flex items-center justify-between border-b border-slate-100 pb-3">
+					<h3 id="modal-client-title" class="text-lg font-bold text-slate-900">Add New Deal / Client</h3>
+					<button onclick="closeModal('modal-client')" class="text-slate-400 hover:text-slate-600">
 						<i class="fa-solid fa-xmark text-lg"></i>
 					</button>
 				</div>
-				<form
-					id="form-client"
-					onsubmit="saveClient(event)"
-					class="space-y-3 text-xs"
-				>
+				<form id="form-client" onsubmit="saveClient(event)" class="space-y-3 text-xs">
 					<div>
-						<label
-							class="block font-bold text-slate-700 uppercase mb-1"
-							>Full Name</label
-						>
-						<input
-							type="text"
-							id="client-name"
-							required
-							placeholder="e.g. Jonathan Taylor"
-							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-						/>
+						<label class="mb-1 block font-bold text-slate-700 uppercase">Full Name</label>
+						<input type="text" id="client-name" required placeholder="e.g. Jonathan Taylor" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 					</div>
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<label
-								class="block font-bold text-slate-700 uppercase mb-1"
-								>Email Address</label
-							>
-							<input
-								type="email"
-								id="client-email"
-								required
-								placeholder="jonathan@example.com"
-								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-							/>
+							<label class="mb-1 block font-bold text-slate-700 uppercase">Email Address</label>
+							<input type="email" id="client-email" required placeholder="jonathan@example.com" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 						</div>
 						<div>
-							<label
-								class="block font-bold text-slate-700 uppercase mb-1"
-								>Phone Number</label
-							>
-							<input
-								type="text"
-								id="client-phone"
-								required
-								placeholder="(555) 019-2834"
-								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-							/>
+							<label class="mb-1 block font-bold text-slate-700 uppercase">Phone Number</label>
+							<input type="text" id="client-phone" required placeholder="(555) 019-2834" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 						</div>
 					</div>
 					<div>
-						<label
-							class="block font-bold text-slate-700 uppercase mb-1"
-							>Property Address</label
-						>
-						<input
-							type="text"
-							id="client-address"
-							required
-							placeholder="123 Meadow Lane, Beverly Hills, CA"
-							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-						/>
+						<label class="mb-1 block font-bold text-slate-700 uppercase">Property Address</label>
+						<input type="text" id="client-address" required placeholder="123 Meadow Lane, Beverly Hills, CA" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 					</div>
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<label
-								class="block font-bold text-slate-700 uppercase mb-1"
-								>Pipeline Stage</label
-							>
-							<select
-								id="client-stage"
-								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-							>
+							<label class="mb-1 block font-bold text-slate-700 uppercase">Pipeline Stage</label>
+							<select id="client-stage" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2">
 								<option value="New Lead">New Lead</option>
 								<option value="Contacted">Contacted</option>
-								<option value="Showing / Tour">
-									Showing / Tour
-								</option>
-								<option value="Under Contract">
-									Under Contract
-								</option>
+								<option value="Showing / Tour">Showing / Tour</option>
+								<option value="Under Contract">Under Contract</option>
 								<option value="Closed">Closed</option>
 							</select>
 						</div>
 						<div>
-							<label
-								class="block font-bold text-slate-700 uppercase mb-1"
-								>Category / Type</label
-							>
-							<select
-								id="client-category"
-								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-							>
+							<label class="mb-1 block font-bold text-slate-700 uppercase">Category / Type</label>
+							<select id="client-category" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2">
 								<option value="Buyer">Buyer</option>
 								<option value="Seller">Seller</option>
-								<option value="Under Contract">
-									Under Contract
-								</option>
+								<option value="Under Contract">Under Contract</option>
 								<option value="Estate Sale">Estate Sale</option>
-								<option value="Construction">
-									Construction
-								</option>
+								<option value="Construction">Construction</option>
 							</select>
 						</div>
 					</div>
 					<div>
-						<label
-							class="block font-bold text-slate-700 uppercase mb-1"
-							>Tags (comma separated)</label
-						>
-						<input
-							type="text"
-							id="client-tags"
-							placeholder="VIP, Zillow Lead, First-Time Buyer"
-							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-						/>
+						<label class="mb-1 block font-bold text-slate-700 uppercase">Tags (comma separated)</label>
+						<input type="text" id="client-tags" placeholder="VIP, Zillow Lead, First-Time Buyer" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 					</div>
-					<div
-						class="flex justify-end space-x-3 pt-3 border-t border-slate-100"
-					>
-						<button
-							type="button"
-							onclick="closeModal('modal-client')"
-							class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow"
-						>
-							Save Client
-						</button>
+					<div class="flex justify-end space-x-3 border-t border-slate-100 pt-3">
+						<button type="button" onclick="closeModal('modal-client')" class="rounded-xl bg-slate-200 px-4 py-2 font-bold text-slate-700">Cancel</button>
+						<button type="submit" class="bg-brand-600 hover:bg-brand-700 rounded-xl px-5 py-2 font-bold text-white shadow">Save Client</button>
 					</div>
 				</form>
 			</div>
 		</div>
 
 		<!-- Add Event Modal -->
-		<div
-			id="modal-event"
-			class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-		>
-			<div
-				class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200"
-			>
-				<div
-					class="flex justify-between items-center border-b border-slate-100 pb-3"
-				>
-					<h3 class="font-bold text-slate-900 text-lg">
-						Schedule Calendar Event
-					</h3>
-					<button
-						onclick="closeModal('modal-event')"
-						class="text-slate-400 hover:text-slate-600"
-					>
+		<div id="modal-event" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+			<div class="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+				<div class="flex items-center justify-between border-b border-slate-100 pb-3">
+					<h3 class="text-lg font-bold text-slate-900">Schedule Calendar Event</h3>
+					<button onclick="closeModal('modal-event')" class="text-slate-400 hover:text-slate-600">
 						<i class="fa-solid fa-xmark text-lg"></i>
 					</button>
 				</div>
-				<form
-					onsubmit="saveCalendarEvent(event)"
-					class="space-y-3 text-xs"
-				>
+				<form onsubmit="saveCalendarEvent(event)" class="space-y-3 text-xs">
 					<div>
-						<label
-							class="block font-bold text-slate-700 uppercase mb-1"
-							>Event Title</label
-						>
-						<input
-							type="text"
-							id="event-title"
-							required
-							placeholder="e.g. Closing Walkthrough"
-							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-						/>
+						<label class="mb-1 block font-bold text-slate-700 uppercase">Event Title</label>
+						<input type="text" id="event-title" required placeholder="e.g. Closing Walkthrough" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 					</div>
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<label
-								class="block font-bold text-slate-700 uppercase mb-1"
-								>Date</label
-							>
-							<input
-								type="date"
-								id="event-date"
-								required
-								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-							/>
+							<label class="mb-1 block font-bold text-slate-700 uppercase">Date</label>
+							<input type="date" id="event-date" required class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 						</div>
 						<div>
-							<label
-								class="block font-bold text-slate-700 uppercase mb-1"
-								>Time</label
-							>
-							<input
-								type="time"
-								id="event-time"
-								required
-								value="10:00"
-								class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-							/>
+							<label class="mb-1 block font-bold text-slate-700 uppercase">Time</label>
+							<input type="time" id="event-time" required value="10:00" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 						</div>
 					</div>
 					<div>
-						<label
-							class="block font-bold text-slate-700 uppercase mb-1"
-							>Client / Attendee</label
-						>
-						<input
-							type="text"
-							id="event-attendee"
-							placeholder="Marcus Vance"
-							class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500"
-						/>
+						<label class="mb-1 block font-bold text-slate-700 uppercase">Client / Attendee</label>
+						<input type="text" id="event-attendee" placeholder="Marcus Vance" class="focus:ring-brand-500 w-full rounded-xl border border-slate-300 px-3 py-2 focus:ring-2" />
 					</div>
-					<div
-						class="flex justify-end space-x-3 pt-3 border-t border-slate-100"
-					>
-						<button
-							type="button"
-							onclick="closeModal('modal-event')"
-							class="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl"
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow"
-						>
-							Schedule Event
-						</button>
+					<div class="flex justify-end space-x-3 border-t border-slate-100 pt-3">
+						<button type="button" onclick="closeModal('modal-event')" class="rounded-xl bg-slate-200 px-4 py-2 font-bold text-slate-700">Cancel</button>
+						<button type="submit" class="bg-brand-600 hover:bg-brand-700 rounded-xl px-5 py-2 font-bold text-white shadow">Schedule Event</button>
 					</div>
 				</form>
 			</div>
 		</div>
 
 		<!-- Live Post Preview Modal -->
-		<div
-			id="modal-preview"
-			class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-		>
-			<div
-				class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 border border-slate-200"
-			>
-				<div
-					class="flex justify-between items-center border-b border-slate-100 pb-3"
-				>
-					<h3 class="font-bold text-slate-900 text-lg">
-						Live Social Media Preview
-					</h3>
-					<button
-						onclick="closeModal('modal-preview')"
-						class="text-slate-400 hover:text-slate-600"
-					>
+		<div id="modal-preview" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+			<div class="w-full max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+				<div class="flex items-center justify-between border-b border-slate-100 pb-3">
+					<h3 class="text-lg font-bold text-slate-900">Live Social Media Preview</h3>
+					<button onclick="closeModal('modal-preview')" class="text-slate-400 hover:text-slate-600">
 						<i class="fa-solid fa-xmark text-lg"></i>
 					</button>
 				</div>
-				<div
-					class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3"
-				>
+				<div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
 					<div class="flex items-center space-x-3">
-						<div
-							class="w-9 h-9 bg-brand-600 rounded-full flex items-center justify-center text-white font-bold text-xs"
-						>
-							ML
-						</div>
+						<div class="bg-brand-600 flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white">ML</div>
 						<div>
-							<h4 class="font-bold text-xs text-slate-900">
-								Meadow Lane Realty & Development
-							</h4>
-							<p class="text-[10px] text-slate-500">
-								Sponsored • <i class="fa-solid fa-globe"></i>
-							</p>
+							<h4 class="text-xs font-bold text-slate-900">Meadow Lane Realty & Development</h4>
+							<p class="text-[10px] text-slate-500">Sponsored • <i class="fa-solid fa-globe"></i></p>
 						</div>
 					</div>
-					<p
-						id="preview-text-content"
-						class="text-xs text-slate-800 leading-relaxed"
-					>
-						Just listed! ✨ Experience luxury modern living at 428
-						Meadow Lane...
-					</p>
-					<div
-						class="bg-slate-200 rounded-xl h-40 flex items-center justify-center text-slate-500 font-bold text-xs"
-					>
-						<i class="fa-solid fa-image text-2xl mr-2"></i> 428
-						Meadow Lane Hero Photo
-					</div>
+					<p id="preview-text-content" class="text-xs leading-relaxed text-slate-800">Just listed! ✨ Experience luxury modern living at 428 Meadow Lane...</p>
+					<div class="flex h-40 items-center justify-center rounded-xl bg-slate-200 text-xs font-bold text-slate-500"><i class="fa-solid fa-image mr-2 text-2xl"></i> 428 Meadow Lane Hero Photo</div>
 				</div>
 				<div class="flex justify-end pt-2">
-					<button
-						onclick="closeModal('modal-preview')"
-						class="px-5 py-2 bg-brand-600 text-white font-bold rounded-xl text-xs"
-					>
-						Close Preview
-					</button>
+					<button onclick="closeModal('modal-preview')" class="bg-brand-600 rounded-xl px-5 py-2 text-xs font-bold text-white">Close Preview</button>
 				</div>
 			</div>
 		</div>
 
 		<!-- Notification Toast -->
-		<div
-			id="toast"
-			class="hidden fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 text-xs font-semibold flex items-center space-x-3 border border-slate-700 transition-all transform translate-y-10 opacity-0"
-		>
+		<div id="toast" class="fixed right-6 bottom-6 z-50 flex hidden translate-y-10 transform items-center space-x-3 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-3 text-xs font-semibold text-white opacity-0 shadow-2xl transition-all">
 			<i class="fa-solid fa-circle-check text-brand-500 text-base"></i>
 			<span id="toast-msg">Action completed successfully.</span>
 		</div>
@@ -1611,34 +1180,17 @@
 			});
 
 			function switchTab(tabId) {
-				document
-					.querySelectorAll(".tab-content")
-					.forEach((el) => el.classList.add("hidden"));
-				document
-					.getElementById(`tab-${tabId}`)
-					.classList.remove("hidden");
+				document.querySelectorAll(".tab-content").forEach((el) => el.classList.add("hidden"));
+				document.getElementById(`tab-${tabId}`).classList.remove("hidden");
 
 				document.querySelectorAll(".tab-btn").forEach((btn) => {
-					btn.classList.remove(
-						"border-brand-600",
-						"text-brand-700",
-						"active-tab",
-					);
+					btn.classList.remove("border-brand-600", "text-brand-700", "active-tab");
 					btn.classList.add("border-transparent", "text-slate-600");
 				});
-				const activeBtn = document.querySelector(
-					`[data-tab="${tabId}"]`,
-				);
+				const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
 				if (activeBtn) {
-					activeBtn.classList.add(
-						"border-brand-600",
-						"text-brand-700",
-						"active-tab",
-					);
-					activeBtn.classList.remove(
-						"border-transparent",
-						"text-slate-600",
-					);
+					activeBtn.classList.add("border-brand-600", "text-brand-700", "active-tab");
+					activeBtn.classList.remove("border-transparent", "text-slate-600");
 				}
 				appState.activeTab = tabId;
 				if (tabId === "dashboard") {
@@ -1650,31 +1202,17 @@
 			}
 
 			function initCharts() {
+				if (typeof Chart === "undefined") return;
 				// Revenue Chart
-				const ctxRev = document
-					.getElementById("revenueChart")
-					.getContext("2d");
+				const ctxRev = document.getElementById("revenueChart").getContext("2d");
 				revenueChartInstance = new Chart(ctxRev, {
 					type: "bar",
 					data: {
-						labels: [
-							"Jan",
-							"Feb",
-							"Mar",
-							"Apr",
-							"May",
-							"Jun",
-							"Jul",
-							"Aug",
-							"Sep",
-						],
+						labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
 						datasets: [
 							{
 								label: "Gross Commission ($)",
-								data: [
-									42000, 58000, 64000, 72000, 89000, 95000,
-									110000, 88000, 94500,
-								],
+								data: [42000, 58000, 64000, 72000, 89000, 95000, 110000, 88000, 94500],
 								backgroundColor: "#16a34a",
 								borderRadius: 8,
 							},
@@ -1695,29 +1233,15 @@
 				});
 
 				// Leads Chart
-				const ctxLead = document
-					.getElementById("leadsChart")
-					.getContext("2d");
+				const ctxLead = document.getElementById("leadsChart").getContext("2d");
 				leadsChartInstance = new Chart(ctxLead, {
 					type: "doughnut",
 					data: {
-						labels: [
-							"Zillow Premier",
-							"Google Business",
-							"Direct Referral",
-							"Social Media",
-							"Website Organic",
-						],
+						labels: ["Zillow Premier", "Google Business", "Direct Referral", "Social Media", "Website Organic"],
 						datasets: [
 							{
 								data: [45, 25, 18, 12, 28],
-								backgroundColor: [
-									"#16a34a",
-									"#2563eb",
-									"#f59e0b",
-									"#ec4899",
-									"#8b5cf6",
-								],
+								backgroundColor: ["#16a34a", "#2563eb", "#f59e0b", "#ec4899", "#8b5cf6"],
 								borderWidth: 0,
 							},
 						],
@@ -1746,140 +1270,454 @@
 
 			function updateDashboardMetrics() {
 				const activeCount = appState.clients.length;
-				const contractCount = appState.clients.filter(
-					(c) => c.stage === "Under Contract",
-				).length;
-				document.getElementById("dash-active-count").innerText =
-					activeCount;
-				document.getElementById("dash-contract-count").innerText =
-					contractCount;
-				document.getElementById("active-badge-count").innerText =
-					activeCount;
-				document.getElementById("active-count-label").innerText =
-					activeCount;
+				const contractCount = appState.clients.filter((c) => c.stage === "Under Contract").length;
+				document.getElementById("dash-active-count").innerText = activeCount;
+				document.getElementById("dash-contract-count").innerText = contractCount;
+				document.getElementById("active-badge-count").innerText = activeCount;
+				document.getElementById("active-count-label").innerText = activeCount;
 			}
 
-			// Kanban Board logic
-			function renderKanban() {
-				const stages = [
-					"New Lead",
-					"Contacted",
-					"Showing / Tour",
-					"Under Contract",
-					"Closed",
+			// Opportunities own their titles, stages, and work. Contacts can participate in several engagements.
+			const pipelineStages = ["Leads", "Discovery", "Prep & Onboarding", "Active Market", "Under Contract", "Closed"];
+			const pipelineHints = ["Start a conversation", "Understand their plans", "Get ready to search or market", "Search, market, and negotiate", "Due diligence and closing", "Post-close care and follow-up"];
+			const pipelineColors = { Buyer: "bg-sky-200 border-sky-600 hover:bg-sky-300", Seller: "bg-violet-200 border-violet-600 hover:bg-violet-300", Other: "bg-amber-100 border-amber-500 hover:bg-amber-200" };
+			const pipelineSwatches = { Buyer: "bg-sky-300 border-sky-600", Seller: "bg-violet-300 border-violet-600", Other: "bg-amber-200 border-amber-500" };
+			const pipelineStorageKey = "meadow-opportunity-prototype-v2";
+			const pipelineTemplates = {
+				intake: { name: "Intake & conversation", tasks: ["Log initial contact attempt", "Send a follow-up", "Record lead source", "Discuss timeline and budget", "Book consultation"] },
+				buyerDiscovery: { name: "Buyer · Discovery", tasks: ["Hold buyer consultation", "Discuss financing or proof of funds", "Record search criteria and dealbreakers", "Review applicable representation agreement"] },
+				sellerDiscovery: { name: "Seller · Discovery", tasks: ["Hold listing presentation", "Deliver comparative market analysis", "Review estimated net sheet", "Complete applicable listing agreement"] },
+				buyerPrep: { name: "Buyer · Preparation", tasks: ["Receive pre-approval or discuss proof of funds", "Configure property search", "Arrange first tours"] },
+				sellerPrep: { name: "Seller · Preparation", tasks: ["Finalize staging and maintenance plan", "Prepare applicable disclosures", "Arrange photography and floorplan", "Arrange lockbox and yard sign", "Prepare listing copy"] },
+				buyerActive: { name: "Buyer · Active search", tasks: ["Record showing feedback", "Review property disclosures", "Agree offer terms", "Submit offer and discuss counters"] },
+				sellerActive: { name: "Seller · Active marketing", tasks: ["Publish authorized listing", "Arrange open house", "Review showing feedback", "Review offers and counters"] },
+				contract: {
+					name: "Under contract · Optional closing steps",
+					tasks: [
+						"Distribute executed contract",
+						"Verify earnest money receipt",
+						"Review applicable disclosures",
+						"Complete inspections",
+						"Finalize repairs or credits",
+						"Confirm appraisal if applicable",
+						"Confirm loan clearance if financing",
+						"Review title and applicable liens",
+						"Acknowledge closing disclosure if applicable",
+						"Complete final walkthrough",
+						"Complete signing and funding",
+						"Verify recording and settlement",
+					],
+				},
+				postClose: { name: "Post-close · Options for stakeholder review", tasks: ["Recover lockbox, signs, and staging inventory", "Submit brokerage compliance file", "Confirm commission disbursement", "Deliver settlement gift", "Request client review", "Assign annual SOI retention campaign"] },
+			};
+			function stageTemplateKey(type, stage) {
+				if (stage === 5) return "postClose";
+				if (stage === 4) return "contract";
+				if (stage === 0) return "intake";
+				if (type === "Seller") return ["", "sellerDiscovery", "sellerPrep", "sellerActive"][stage];
+				if (type === "Buyer") return ["", "buyerDiscovery", "buyerPrep", "buyerActive"][stage];
+				return "intake";
+			}
+			function pipelineEscape(value) {
+				return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+			}
+			function pipelineDate(offset = 0) {
+				const date = new Date();
+				date.setDate(date.getDate() + offset);
+				return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+			}
+			function pipelineDateLabel(value) {
+				return value ? new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "No date";
+			}
+			function makeOpportunityItem(title, kind = "task", offset = null, done = false) {
+				return { id: crypto.randomUUID(), title, kind, date: offset === null ? "" : pipelineDate(offset), state: done ? "done" : "open" };
+			}
+			function seedPipeline() {
+				const extraContacts = [
+					{ id: 101, name: "Alex Chen", email: "alex@example.com", phone: "(555) 010-2301" },
+					{ id: 102, name: "Morgan Chen", email: "morgan@example.com", phone: "(555) 010-2302" },
+					{ id: 103, name: "Taylor Brooks", email: "taylor@example.com", phone: "(555) 010-4600" },
+					{ id: 104, name: "Riley Thompson", email: "riley@example.com", phone: "(555) 010-5200" },
+					{ id: 105, name: "Sam Patel", email: "sam@example.com", phone: "(555) 010-6100" },
 				];
-				let counts = {
-					"New Lead": 0,
-					Contacted: 0,
-					"Showing / Tour": 0,
-					"Under Contract": 0,
-					Closed: 0,
-				};
-
-				stages.forEach((stage) => {
-					const containerId =
-						"col-" +
-						stage
-							.toLowerCase()
-							.replace(/ \/ /g, "-")
-							.replace(/ /g, "-");
-					const container = document.getElementById(containerId);
-					if (container) container.innerHTML = "";
+				function opportunity(id, title, type, stage, contactIds, address, budget, items = [], extra = {}) {
+					return { id, title, type, stage, contactIds, address, budget, items, status: "live", archived: false, nextAction: "", followup: "", blocker: "", references: [], related: "", history: [{ at: new Date().toISOString(), text: "Example engagement added manually." }], ...extra };
+				}
+				const opportunities = [
+					opportunity(
+						"marcus",
+						"Marcus Vance",
+						"Buyer",
+						4,
+						[1],
+						appState.clients[0].address,
+						"$650,000 purchase",
+						[makeOpportunityItem("Earnest money verified", "task", null, true), makeOpportunityItem("Confirm repair agreement", "task", -2), makeOpportunityItem("Appraisal contingency", "milestone", 4), makeOpportunityItem("Closing", "milestone", 14)],
+						{ blocker: "Waiting for the signed repair agreement", references: [{ label: "Property documents · example", url: "https://example.com/docs/428-meadow" }] },
+					),
+					opportunity("eleanor", "Eleanor Vance", "Buyer", 3, [2], "", "Up to $575,000", [makeOpportunityItem("Prepare weekend shortlist", "task", 1)], { nextAction: "Arrange weekend tours" }),
+					opportunity("jonathan", "Jonathan Sterling", "Other", 0, [3], appState.clients[2].address, "Estate consultation", [], { nextAction: "Discuss the estate's plans" }),
+					opportunity("sophia", "Sophia Loren", "Seller", 1, [4], appState.clients[3].address, "$890,000 estimated value", [makeOpportunityItem("Review comparative market analysis", "task", 2)]),
+					opportunity("david", "David Miller", "Other", 2, [5], appState.clients[4].address, "Construction advisory", [makeOpportunityItem("Review revised framing quote", "task", 3)]),
+					opportunity("chen-sale", "Alex & Morgan Chen", "Seller", 3, [101, 102], "86 Oakridge Avenue", "$720,000 asking", [makeOpportunityItem("Review open house feedback", "task", 1)], { related: "chen-purchase" }),
+					opportunity("chen-purchase", "Alex & Morgan Chen", "Buyer", 2, [101, 102], "", "$800,000–$900,000 budget", [makeOpportunityItem("Discuss proof of funds", "task", null, true), makeOpportunityItem("Confirm search criteria")], { related: "chen-sale", nextAction: "Agree the first tour dates" }),
+					opportunity("taylor", "Taylor Brooks", "Buyer", 3, [103], "", "Up to $460,000", [makeOpportunityItem("Resume property shortlist", "task", -1)], { status: "paused", followup: pipelineDate(10), blocker: "Relocation timing is still being confirmed" }),
+					opportunity("riley-closed", "Riley Thompson", "Buyer", 5, [104], "19 Willow Court", "$515,000 closed", [
+						makeOpportunityItem("Confirm commission disbursement", "task", null, true),
+						makeOpportunityItem("Deliver settlement gift", "task", 2),
+						makeOpportunityItem("Request client review"),
+						makeOpportunityItem("Assign annual SOI retention campaign"),
+					]),
+					opportunity("riley-new", "Riley Thompson", "Seller", 0, [104], "19 Willow Court", "New selling engagement", [], { related: "riley-closed", nextAction: "Discuss plans for next spring" }),
+					opportunity("sam-ended", "Sam Patel", "Seller", 2, [105], "204 Cedar Lane", "", [], { status: "ended", blocker: "Seller chose to stay in the home" }),
+				];
+				opportunities.forEach((o) => {
+					const template = pipelineTemplates[stageTemplateKey(o.type, o.stage)];
+					if (!template) return;
+					template.tasks.forEach((title) => {
+						if (!o.items.some((item) => item.kind === "task" && item.title.toLowerCase() === title.toLowerCase())) o.items.push(makeOpportunityItem(title));
+					});
 				});
-
-				appState.clients.forEach((client) => {
-					counts[client.stage] = (counts[client.stage] || 0) + 1;
-					const containerId =
-						"col-" +
-						client.stage
-							.toLowerCase()
-							.replace(/ \/ /g, "-")
-							.replace(/ /g, "-");
-					const container = document.getElementById(containerId);
-					if (container) {
-						const card = document.createElement("div");
-						card.className =
-							"bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition space-y-2";
-						card.draggable = true;
-						card.ondragstart = (e) =>
-							e.dataTransfer.setData("text/plain", client.id);
-						card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-bold text-slate-900 text-xs">${client.name}</h4>
-                            <span class="text-[10px] bg-brand-50 text-brand-700 px-2 py-0.5 rounded-md font-semibold">${client.category}</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500"><i class="fa-solid fa-location-dot mr-1"></i>${client.address}</p>
-                        <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px] text-slate-400">
-                            <span>${client.phone}</span>
-                            <span class="text-brand-600 font-bold">${client.tags[0] || "Client"}</span>
-                        </div>
-                    `;
-						container.appendChild(card);
-					}
-				});
-
-				document.getElementById("count-new").innerText =
-					counts["New Lead"];
-				document.getElementById("count-contacted").innerText =
-					counts["Contacted"];
-				document.getElementById("count-showing").innerText =
-					counts["Showing / Tour"];
-				document.getElementById("count-contract").innerText =
-					counts["Under Contract"];
-				document.getElementById("count-closed").innerText =
-					counts["Closed"];
+				return { tasksEnabled: true, extraContacts, opportunities };
 			}
-
-			function allowDrop(e) {
-				e.preventDefault();
+			let pipelineStorageAvailable = true;
+			function loadPipeline() {
+				try {
+					const saved = JSON.parse(localStorage.getItem(pipelineStorageKey));
+					if (saved && Array.isArray(saved.opportunities) && Array.isArray(saved.extraContacts) && saved.opportunities.every((o) => pipelineStages[o.stage] && pipelineColors[o.type] && Array.isArray(o.items) && Array.isArray(o.history) && Array.isArray(o.contactIds) && Array.isArray(o.references))) return saved;
+				} catch {
+					pipelineStorageAvailable = false;
+				}
+				return seedPipeline();
 			}
-			function dropCard(e, newStage) {
-				e.preventDefault();
-				const clientId = parseInt(e.dataTransfer.getData("text/plain"));
-				const client = appState.clients.find((c) => c.id === clientId);
-				if (client) {
-					client.stage = newStage;
-					renderAll();
-					showToast(`Moved ${client.name} to ${newStage}`);
+			let pipelineData = loadPipeline();
+			let pipelineFilter = "All";
+			let opportunityDraft = null;
+			let opportunityOpener = null;
+			function persistPipeline() {
+				try {
+					localStorage.setItem(pipelineStorageKey, JSON.stringify(pipelineData));
+					pipelineStorageAvailable = true;
+				} catch {
+					pipelineStorageAvailable = false;
 				}
 			}
+			function pipelineContacts() {
+				return [...appState.clients, ...pipelineData.extraContacts];
+			}
+			function stageRing(opportunity) {
+				if (opportunity.status === "ended") return "";
+				const label = `${pipelineStages[opportunity.stage]}, stage ${opportunity.stage + 1} of 6`;
+				return `<svg class="h-7 w-7 shrink-0 -rotate-90 text-slate-600" viewBox="0 0 24 24" role="img" aria-label="${pipelineEscape(label)}"><title>${pipelineEscape(label)}. Pipeline position, not task completion.</title>${Array.from({ length: 6 }, (_, i) => `<circle cx="12" cy="12" r="9" pathLength="60" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="8 52" stroke-dashoffset="${-i * 10}" opacity="${i <= opportunity.stage ? 1 : 0.18}" />`).join("")}</svg>`;
+			}
+			function nextOpportunityItem(opportunity) {
+				return opportunity.items.filter((item) => item.state === "open" && item.date && (item.kind === "milestone" || pipelineData.tasksEnabled)).sort((a, b) => a.date.localeCompare(b.date))[0];
+			}
+			function renderKanban() {
+				const view = document.getElementById("pipeline-view").value;
+				document.getElementById("pipeline-tasks-enabled").checked = pipelineData.tasksEnabled;
+				document.getElementById("pipeline-filters").innerHTML =
+					`<span class="mr-1 text-slate-500">Key & filter</span>${["All", "Buyer", "Seller", "Other"].map((type) => `<button type="button" onclick="setPipelineFilter('${type}')" aria-pressed="${pipelineFilter === type}" class="flex items-center gap-2 rounded-lg border px-3 py-2 font-semibold ${pipelineFilter === type ? "border-slate-800 bg-slate-800 text-white" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"}">${type !== "All" ? `<span aria-hidden="true" class="h-3 w-3 rounded-sm border ${pipelineSwatches[type]}"></span>` : ""}${type}</button>`).join("")}`;
+				const opportunities = pipelineData.opportunities.filter((o) => (pipelineFilter === "All" || o.type === pipelineFilter) && (view === "all" || (view === "live" ? !o.archived && o.status !== "ended" : view === "archived" ? o.archived : !o.archived && o.status === view)));
+				document.getElementById("pipeline-summary").textContent = `${opportunities.length} opportunities · Drag to move, or open a card to change its stage. Rings show stage position. ${pipelineStorageAvailable ? "Edits stay in this browser." : "Browser storage unavailable; edits last for this page session."}`;
+				const board = document.getElementById("kanban-board");
+				const scrollLeft = board.scrollLeft;
+				board.innerHTML = pipelineStages
+					.map((stage, index) => {
+						const cards = opportunities.filter((o) => o.stage === index);
+						return `<section class="flex max-h-full w-72 shrink-0 flex-col rounded-2xl border border-slate-200 bg-slate-200/50 p-3" aria-label="${pipelineEscape(stage)}" ondragover="event.preventDefault()" ondrop="dropOpportunity(event, ${index})"><header class="mb-3 px-1"><div class="flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-slate-800">${pipelineEscape(stage)}</h3><span class="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">${cards.length}</span></div><p class="mt-1 text-xs text-slate-500">${pipelineHints[index]}</p></header><div class="min-h-24 space-y-3 overflow-y-auto">${cards.map(renderOpportunityCard).join("") || '<p class="rounded-xl border border-dashed border-slate-300 p-5 text-center text-xs text-slate-500">No opportunities in this view</p>'}</div></section>`;
+					})
+					.join("");
+				board.scrollLeft = scrollLeft;
+			}
+			function renderOpportunityCard(o) {
+				const next = nextOpportunityItem(o);
+				const overdue = next && next.date < pipelineDate();
+				return `<button type="button" data-opportunity-id="${pipelineEscape(o.id)}" draggable="${o.status !== "ended" && !o.archived}" ondragstart="event.dataTransfer.setData('application/x-meadow-opportunity', this.dataset.opportunityId)" onclick="openOpportunity(this.dataset.opportunityId)" aria-label="${pipelineEscape(`${o.title}, ${o.type}, ${pipelineStages[o.stage]}`)}" class="w-full space-y-3 rounded-xl border p-4 text-left shadow-sm transition hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700 ${pipelineColors[o.type]}"><span class="flex items-start justify-between gap-3"><span class="min-w-0 break-words text-sm font-bold text-slate-900">${pipelineEscape(o.title)}</span>${stageRing(o)}</span><span class="block text-xs leading-relaxed text-slate-600">${pipelineEscape(o.address || "Property not selected")}${o.budget ? `<span class="mt-1 block">${pipelineEscape(o.budget)}</span>` : ""}</span>${o.status !== "live" || o.archived ? `<span class="block text-xs font-semibold text-slate-700">${o.archived ? "Archived · " : ""}${o.status === "paused" ? `Paused${o.followup ? ` · Follow up ${pipelineDateLabel(o.followup)}` : ""}` : o.status === "ended" ? "Ended without completion" : ""}</span>` : ""}${o.blocker ? `<span class="block text-xs text-slate-600"><i class="fa-regular fa-comment mr-1" aria-hidden="true"></i>${pipelineEscape(o.blocker)}</span>` : ""}${next || o.nextAction ? `<span class="block border-t border-slate-300/60 pt-3 text-xs ${overdue ? "font-semibold text-red-700" : "text-slate-700"}">${overdue ? "Overdue · " : "Next · "}${pipelineEscape(next ? next.title : o.nextAction)}${next ? `<span class="mt-1 block">${pipelineDateLabel(next.date)}</span>` : ""}</span>` : ""}</button>`;
+			}
+			function setPipelineFilter(type) {
+				pipelineFilter = type;
+				renderKanban();
+				document.querySelector('#pipeline-filters [aria-pressed="true"]').focus({ preventScroll: true });
+			}
+			function setPipelineTasks(enabled) {
+				pipelineData.tasksEnabled = enabled;
+				persistPipeline();
+				renderKanban();
+			}
+			function recordOpportunityActivity(opportunity, text) {
+				opportunity.history.unshift({ at: new Date().toISOString(), text });
+			}
+			function retireContractDates(opportunity, previousStage) {
+				if (previousStage === 4 && opportunity.stage < 4) {
+					opportunity.items
+						.filter((item) => item.kind === "milestone" && item.state === "open")
+						.forEach((item) => {
+							item.state = "retired";
+						});
+					recordOpportunityActivity(opportunity, "Returned from Under Contract. Outstanding contract milestones retired and retained in history; tasks preserved.");
+				}
+			}
+			function dropOpportunity(event, stage) {
+				event.preventDefault();
+				const o = pipelineData.opportunities.find((item) => item.id === event.dataTransfer.getData("application/x-meadow-opportunity"));
+				if (!o || o.status === "ended" || o.archived || o.stage === stage) return;
+				const previousStage = o.stage;
+				o.stage = stage;
+				if (stage === 5) o.status = "live";
+				retireContractDates(o, previousStage);
+				recordOpportunityActivity(o, `Moved from ${pipelineStages[previousStage]} to ${pipelineStages[stage]}.`);
+				persistPipeline();
+				renderKanban();
+			}
+			function openOpportunity(id) {
+				const existing = pipelineData.opportunities.find((o) => o.id === id);
+				if (existing) {
+					opportunityDraft = structuredClone(existing);
+				} else {
+					opportunityDraft = {
+						id: crypto.randomUUID(),
+						title: "",
+						type: pipelineFilter === "All" ? "Buyer" : pipelineFilter,
+						stage: 0,
+						contactIds: [],
+						address: "",
+						budget: "",
+						nextAction: "",
+						status: "live",
+						archived: false,
+						followup: "",
+						blocker: "",
+						items: pipelineTemplates.intake.tasks.map((title) => makeOpportunityItem(title)),
+						references: [],
+						related: "",
+						history: [],
+					};
+				}
+				opportunityOpener = document.activeElement;
+				document.getElementById("opportunity-form").reset();
+				document.getElementById("opportunity-title").textContent = opportunityDraft.title;
+				document.getElementById("opportunity-meta-type").textContent = `${opportunityDraft.type} · ${pipelineStages[opportunityDraft.stage]}`;
+				document.getElementById("opportunity-meta-address").textContent = opportunityDraft.address;
+				document.getElementById("opportunity-meta-budget").textContent = opportunityDraft.budget;
+				document.getElementById("opportunity-meta-next").textContent = opportunityDraft.nextAction;
+				document.getElementById("opportunity-history").innerHTML =
+					opportunityDraft.history.map((entry) => `<div class="border-l-2 border-slate-200 pl-3"><p class="whitespace-pre-wrap break-words text-slate-700">${pipelineEscape(entry.text)}</p><p class="mt-1 text-xs text-slate-400">${pipelineEscape(new Date(entry.at).toLocaleString())}</p></div>`).join("") ||
+					'<p class="text-xs text-slate-500">Notes and changes will appear here.</p>';
+				document.getElementById("opportunity-checklist-section").classList.toggle("hidden", !pipelineData.tasksEnabled);
+				document.getElementById("opportunity-tasks-off").classList.toggle("hidden", pipelineData.tasksEnabled);
+				document.getElementById("opportunity-feedback").textContent = "";
+				document.getElementById("opportunity-link-input").value = "";
+				document.getElementById("opportunity-link-feedback").classList.add("hidden");
+				renderOpportunityTasks();
+				renderOpportunityMilestones();
+				renderOpportunityLinks();
+				document.getElementById("opportunity-dialog").showModal();
+			}
+			function opportunityTitleText() {
+				return document.getElementById("opportunity-title").textContent.trim().slice(0, 120);
+			}
+			function closeOpportunity() {
+				document.getElementById("opportunity-dialog").close();
+			}
+			function renderOpportunityTasks() {
+				const items = opportunityDraft.items.filter((item) => item.kind === "task");
+				document.getElementById("opportunity-task-list").innerHTML =
+					items
+						.map((item) => {
+							const index = opportunityDraft.items.indexOf(item);
+							return `<label class="flex cursor-pointer items-start gap-3 rounded-lg px-1 py-1.5 hover:bg-slate-50"><input type="checkbox" ${item.state === "done" ? "checked" : ""} onchange="setOpportunityItemDone(${index}, this.checked)" aria-label="${pipelineEscape(item.title)}" class="mt-0.5 h-4 w-4 shrink-0 accent-green-600" /><span class="min-w-0 break-words text-sm ${item.state === "done" ? "text-slate-400 line-through" : "text-slate-700"}">${pipelineEscape(item.title)}</span></label>`;
+						})
+						.join("") || '<p class="px-1 py-2 text-xs text-slate-500">No checklist items yet.</p>';
+			}
+			function renderOpportunityMilestones() {
+				const items = opportunityDraft.items.filter((item) => item.kind === "milestone");
+				document.getElementById("opportunity-milestone-list").innerHTML =
+					items
+						.map((item) => {
+							const index = opportunityDraft.items.indexOf(item);
+							const inactive = ["canceled", "retired"].includes(item.state);
+							return `<div class="rounded-lg border border-slate-200 bg-slate-50 p-3"><div class="flex items-start gap-3"><input type="checkbox" ${item.state === "done" ? "checked" : ""} ${inactive ? "disabled" : ""} onchange="setOpportunityItemDone(${index}, this.checked)" aria-label="Complete ${pipelineEscape(item.title)}" class="mt-1 h-4 w-4 shrink-0 accent-green-600" /><div class="min-w-0 flex-1"><p class="break-words text-sm ${item.state === "done" ? "text-slate-400 line-through" : "text-slate-700"}">${pipelineEscape(item.title)}</p><p class="mt-1 text-xs ${item.state === "open" && item.date && item.date < pipelineDate() ? "text-red-700" : "text-slate-500"}">${inactive ? `${item.state === "retired" ? "Retired" : "Canceled"} · ` : item.state === "open" && item.date && item.date < pipelineDate() ? "Overdue · " : ""}${pipelineDateLabel(item.date)}</p></div><button type="button" onclick="editOpportunityItem(${index})" aria-label="Edit ${pipelineEscape(item.title)}" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-white"><i class="fa-solid fa-pen text-xs" aria-hidden="true"></i></button></div><div id="opportunity-item-editor-${index}" class="hidden mt-3 space-y-2 border-t border-slate-200 pt-3"><label class="block text-xs">Milestone<input value="${pipelineEscape(item.title)}" maxlength="240" onchange="updateOpportunityItem(${index}, 'title', this.value)" class="mt-1 w-full rounded-lg border border-slate-300 p-2 text-sm" /></label><div class="grid grid-cols-2 gap-2"><label class="text-xs">Due date<input type="date" value="${pipelineEscape(item.date)}" onchange="updateOpportunityItem(${index}, 'date', this.value)" class="mt-1 w-full min-w-0 rounded-lg border border-slate-300 p-2 text-xs" /></label><label class="text-xs">State<select onchange="updateOpportunityItem(${index}, 'state', this.value)" class="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2 text-xs">${["open", "done", "canceled", "retired"].map((state) => `<option value="${state}" ${item.state === state ? "selected" : ""}>${state}</option>`).join("")}</select></label></div><div class="flex justify-between"><button type="button" onclick="removeOpportunityItem(${index})" class="py-2 text-xs font-semibold text-red-700">Remove milestone</button><button type="button" onclick="renderOpportunityMilestones()" class="py-2 text-xs font-semibold text-brand-700">Done editing</button></div></div></div>`;
+						})
+						.join("") || '<p class="py-3 text-xs text-slate-500">No milestones yet.</p>';
+			}
+			function editOpportunityItem(index) {
+				const editor = document.getElementById(`opportunity-item-editor-${index}`);
+				if (editor) {
+					editor.classList.toggle("hidden");
+					if (!editor.classList.contains("hidden")) editor.querySelector("input").focus();
+				}
+			}
+			function updateOpportunityItem(index, property, value) {
+				opportunityDraft.items[index][property] = property === "title" ? value.trim() || "Untitled item" : value;
+			}
+			function setOpportunityItemDone(index, checked) {
+				opportunityDraft.items[index].state = checked ? "done" : "open";
+				renderOpportunityTasks();
+				renderOpportunityMilestones();
+			}
+			function removeOpportunityItem(index) {
+				opportunityDraft.items.splice(index, 1);
+				renderOpportunityTasks();
+				renderOpportunityMilestones();
+			}
+			function addOpportunityItem(kind) {
+				opportunityDraft.items.push(makeOpportunityItem("New milestone", "milestone"));
+				renderOpportunityMilestones();
+				editOpportunityItem(opportunityDraft.items.length - 1);
+			}
+			function safeOpportunityURL(value) {
+				try {
+					const url = new URL(value);
+					return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+				} catch {
+					return "";
+				}
+			}
+			function renderOpportunityLinks() {
+				const rows = [];
+				opportunityDraft.contactIds.forEach((contactId) => {
+					const contact = pipelineContacts().find((c) => c.id === contactId);
+					if (!contact) return;
+					const initials = pipelineEscape(
+						contact.name
+							.split(" ")
+							.map((n) => n[0])
+							.join("")
+							.slice(0, 2),
+					);
+					rows.push(
+						`<div class="flex items-center gap-2 text-sm"><span aria-hidden="true" class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700">${initials}</span><span class="min-w-0 flex-1 truncate text-slate-700">${pipelineEscape(contact.name)}</span><button type="button" onclick="removeOpportunityLink('contact', ${contact.id})" aria-label="Remove ${pipelineEscape(contact.name)}" class="px-2 text-slate-400 hover:text-slate-700">×</button></div>`,
+					);
+				});
+				opportunityDraft.references.forEach((ref, index) => {
+					rows.push(
+						`<div class="flex items-center justify-between gap-2 text-sm"><a href="${pipelineEscape(safeOpportunityURL(ref.url))}" target="_blank" rel="noopener noreferrer" class="min-w-0 truncate text-brand-700 underline">${pipelineEscape(ref.label)}</a><button type="button" onclick="removeOpportunityLink('reference', ${index})" aria-label="Remove ${pipelineEscape(ref.label)}" class="px-2 text-slate-400 hover:text-slate-700">×</button></div>`,
+					);
+				});
+				if (opportunityDraft.related) {
+					const related = pipelineData.opportunities.find((o) => o.id === opportunityDraft.related);
+					if (related)
+						rows.push(
+							`<div class="flex items-center justify-between gap-2 text-sm"><span class="min-w-0 truncate text-slate-700">${pipelineEscape(related.title)}</span><button type="button" onclick="removeOpportunityLink('related', 0)" aria-label="Remove ${pipelineEscape(related.title)}" class="px-2 text-slate-400 hover:text-slate-700">×</button></div>`,
+						);
+				}
+				document.getElementById("opportunity-links").innerHTML = rows.join("") || '<p class="text-xs text-slate-500">No links yet.</p>';
+			}
+			function removeOpportunityLink(kind, key) {
+				if (kind === "contact") opportunityDraft.contactIds = opportunityDraft.contactIds.filter((id) => id !== key);
+				if (kind === "reference") opportunityDraft.references.splice(key, 1);
+				if (kind === "related") opportunityDraft.related = "";
+				renderOpportunityLinks();
+			}
+			function addOpportunityLink() {
+				const input = document.getElementById("opportunity-link-input");
+				const feedback = document.getElementById("opportunity-link-feedback");
+				const raw = input.value.trim();
+				if (!raw) return;
+				const url = safeOpportunityURL(raw);
+				if (url) {
+					opportunityDraft.references.push({ label: new URL(url).hostname, url });
+					input.value = "";
+					feedback.classList.add("hidden");
+					renderOpportunityLinks();
+					return;
+				}
+				const query = raw.toLowerCase();
+				let added = false;
+				pipelineContacts()
+					.filter((c) => c.name.toLowerCase().includes(query) && !opportunityDraft.contactIds.includes(c.id))
+					.forEach((c) => {
+						opportunityDraft.contactIds.push(c.id);
+						added = true;
+					});
+				const related = pipelineData.opportunities.filter((o) => o.id !== opportunityDraft.id).find((o) => o.title.toLowerCase().includes(query));
+				if (related && opportunityDraft.related !== related.id) {
+					opportunityDraft.related = related.id;
+					added = true;
+				}
+				if (added) {
+					input.value = "";
+					feedback.classList.add("hidden");
+					renderOpportunityLinks();
+					return;
+				}
+				if (opportunityDraft.contactIds.length || opportunityDraft.related) {
+					feedback.textContent = "Already linked.";
+					feedback.classList.remove("hidden");
+					return;
+				}
+				feedback.textContent = "No matching person or opportunity. Paste a URL to add it.";
+				feedback.classList.remove("hidden");
+			}
+			function saveOpportunity(event) {
+				event.preventDefault();
+				const original = pipelineData.opportunities.find((o) => o.id === opportunityDraft.id);
+				const value = (name) => document.getElementById(`opportunity-${name}`).value.trim();
+				const title = opportunityTitleText();
+				if (!title) {
+					document.getElementById("opportunity-feedback").textContent = "Give this opportunity a title.";
+					document.getElementById("opportunity-title").focus();
+					return;
+				}
+				const meta = (name, max) => document.getElementById(`opportunity-meta-${name}`).textContent.trim().slice(0, max);
+				Object.assign(opportunityDraft, { title, address: meta("address", 240), budget: meta("budget", 100), nextAction: meta("next", 240) });
+				if (original && JSON.stringify(original.items) !== JSON.stringify(opportunityDraft.items)) recordOpportunityActivity(opportunityDraft, "Checklist or milestone details updated.");
+				if (value("note")) recordOpportunityActivity(opportunityDraft, value("note"));
+				if (!original) recordOpportunityActivity(opportunityDraft, "Opportunity created manually.");
+				else if (original.title !== opportunityDraft.title) recordOpportunityActivity(opportunityDraft, `Card title changed from "${original.title}" to "${opportunityDraft.title}".`);
+				const index = pipelineData.opportunities.findIndex((o) => o.id === opportunityDraft.id);
+				if (index === -1) pipelineData.opportunities.push(opportunityDraft);
+				else pipelineData.opportunities[index] = opportunityDraft;
+				persistPipeline();
+				renderKanban();
+				closeOpportunity();
+				showToast(pipelineStorageAvailable ? "Opportunity saved in this browser." : "Saved for this session only; browser storage is unavailable.");
+			}
+			const opportunityDialog = document.getElementById("opportunity-dialog");
+			let opportunityBackdropPress = false;
+			opportunityDialog.addEventListener("pointerdown", (event) => {
+				opportunityBackdropPress = event.target === opportunityDialog;
+			});
+			opportunityDialog.addEventListener("click", (event) => {
+				if (opportunityBackdropPress && event.target === opportunityDialog) closeOpportunity();
+				opportunityBackdropPress = false;
+			});
+			opportunityDialog.addEventListener("close", () => {
+				const savedId = opportunityDraft?.id;
+				opportunityDraft = null;
+				const card = [...document.querySelectorAll("[data-opportunity-id]")].find((el) => el.dataset.opportunityId === savedId);
+				if (opportunityOpener?.isConnected) opportunityOpener.focus();
+				else if (card) card.focus();
+				else document.getElementById("pipeline-view").focus();
+			});
 
 			// Active Clients Dashboard
 			let activeClientsFilter = "all";
 			function filterActiveClients(cat) {
 				activeClientsFilter = cat;
-				document
-					.querySelectorAll(".active-filter-btn")
-					.forEach((btn) => {
-						btn.className =
-							"active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition";
-					});
-				event.target.className =
-					"active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm transition";
+				document.querySelectorAll(".active-filter-btn").forEach((btn) => {
+					btn.className = "active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition";
+				});
+				event.target.className = "active-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow-sm transition";
 				renderActiveClients();
 			}
 
 			function renderActiveClients() {
 				const grid = document.getElementById("active-clients-grid");
 				grid.innerHTML = "";
-				const filtered = appState.clients.filter(
-					(c) =>
-						activeClientsFilter === "all" ||
-						c.category === activeClientsFilter ||
-						c.stage === activeClientsFilter,
-				);
+				const filtered = appState.clients.filter((c) => activeClientsFilter === "all" || c.category === activeClientsFilter || c.stage === activeClientsFilter);
 
 				filtered.forEach((client) => {
 					const card = document.createElement("div");
-					card.className =
-						"bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3";
+					card.className = "bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-3";
 					card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 bg-brand-100 text-brand-700 rounded-full flex items-center justify-center font-bold text-xs">${client.name
-								.split(" ")
-								.map((n) => n[0])
-								.join("")}</div>
+																													.split(" ")
+																													.map((n) => n[0])
+																													.join("")}</div>
                             <div>
                                 <h4 class="font-bold text-slate-900 text-sm">${client.name}</h4>
                                 <p class="text-xs text-brand-600 font-medium">${client.category} • ${client.stage}</p>
@@ -1901,21 +1739,12 @@
 			function renderRegistryTable() {
 				const tbody = document.getElementById("registry-table-body");
 				tbody.innerHTML = "";
-				const query = document
-					.getElementById("registry-search")
-					.value.toLowerCase();
-				const tagFilter = document.getElementById(
-					"registry-tag-filter",
-				).value;
+				const query = document.getElementById("registry-search").value.toLowerCase();
+				const tagFilter = document.getElementById("registry-tag-filter").value;
 
 				const filtered = appState.clients.filter((c) => {
-					const matchQuery =
-						c.name.toLowerCase().includes(query) ||
-						c.email.toLowerCase().includes(query) ||
-						c.address.toLowerCase().includes(query) ||
-						c.phone.includes(query);
-					const matchTag =
-						tagFilter === "all" || c.tags.includes(tagFilter);
+					const matchQuery = c.name.toLowerCase().includes(query) || c.email.toLowerCase().includes(query) || c.address.toLowerCase().includes(query) || c.phone.includes(query);
+					const matchTag = tagFilter === "all" || c.tags.includes(tagFilter);
 					return matchQuery && matchTag;
 				});
 
@@ -1937,20 +1766,7 @@
 			}
 
 			// Calendar Logic
-			const monthsNames = [
-				"January",
-				"February",
-				"March",
-				"April",
-				"May",
-				"June",
-				"July",
-				"August",
-				"September",
-				"October",
-				"November",
-				"December",
-			];
+			const monthsNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 			function changeMonth(dir) {
 				appState.currentMonth += dir;
 				if (appState.currentMonth > 11) {
@@ -1965,52 +1781,32 @@
 			}
 			function setCalView(view) {
 				appState.calView = view;
-				document.getElementById("btn-view-month").className =
-					view === "month"
-						? "px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800"
-						: "px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900";
-				document.getElementById("btn-view-week").className =
-					view === "week"
-						? "px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800"
-						: "px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900";
+				document.getElementById("btn-view-month").className = view === "month" ? "px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800" : "px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900";
+				document.getElementById("btn-view-week").className = view === "week" ? "px-3 py-1 bg-white shadow text-xs font-bold rounded-md text-slate-800" : "px-3 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900";
 				renderCalendarGrid();
 			}
 
 			function renderCalendarGrid() {
-				document.getElementById("calendar-month-year").innerText =
-					`${monthsNames[appState.currentMonth]} ${appState.currentYear}`;
+				document.getElementById("calendar-month-year").innerText = `${monthsNames[appState.currentMonth]} ${appState.currentYear}`;
 				const container = document.getElementById("calendar-container");
 				container.innerHTML = "";
 
 				if (appState.calView === "month") {
 					const headerRow = document.createElement("div");
-					headerRow.className =
-						"grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center font-bold text-xs text-slate-600 py-2.5";
-					["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(
-						(d) => (headerRow.innerHTML += `<div>${d}</div>`),
-					);
+					headerRow.className = "grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center font-bold text-xs text-slate-600 py-2.5";
+					["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((d) => (headerRow.innerHTML += `<div>${d}</div>`));
 					container.appendChild(headerRow);
 
 					const grid = document.createElement("div");
-					grid.className =
-						"grid grid-cols-7 grid-rows-5 flex-1 divide-x divide-y divide-slate-200 bg-slate-100";
+					grid.className = "grid grid-cols-7 grid-rows-5 flex-1 divide-x divide-y divide-slate-200 bg-slate-100";
 
 					// Days calculation
-					const firstDayIndex = new Date(
-						appState.currentYear,
-						appState.currentMonth,
-						1,
-					).getDay();
-					const totalDays = new Date(
-						appState.currentYear,
-						appState.currentMonth + 1,
-						0,
-					).getDate();
+					const firstDayIndex = new Date(appState.currentYear, appState.currentMonth, 1).getDay();
+					const totalDays = new Date(appState.currentYear, appState.currentMonth + 1, 0).getDate();
 
 					for (let i = 0; i < 35; i++) {
 						const dayNum = i - firstDayIndex + 1;
-						const isCurrentMonth =
-							dayNum > 0 && dayNum <= totalDays;
+						const isCurrentMonth = dayNum > 0 && dayNum <= totalDays;
 						const dateStr = `${appState.currentYear}-${String(appState.currentMonth + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
 
 						const cell = document.createElement("div");
@@ -2022,8 +1818,7 @@
 								.filter((ev) => ev.date === dateStr)
 								.forEach((ev) => {
 									const badge = document.createElement("div");
-									badge.className =
-										"bg-brand-50 text-brand-800 text-[10px] font-bold p-1 rounded mt-1 truncate";
+									badge.className = "bg-brand-50 text-brand-800 text-[10px] font-bold p-1 rounded mt-1 truncate";
 									badge.innerText = `${ev.time} - ${ev.title}`;
 									cell.appendChild(badge);
 								});
@@ -2041,32 +1836,21 @@
 			function switchCommMode(mode) {
 				appState.commMode = mode;
 				if (mode === "threads") {
-					document
-						.getElementById("comm-mode-threads")
-						.classList.remove("hidden");
-					document
-						.getElementById("comm-mode-bulk")
-						.classList.add("hidden");
-					document.getElementById("comm-tab-threads").className =
-						"px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow";
-					document.getElementById("comm-tab-bulk").className =
-						"px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+					document.getElementById("comm-mode-threads").classList.remove("hidden");
+					document.getElementById("comm-mode-bulk").classList.add("hidden");
+					document.getElementById("comm-tab-threads").className = "px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow";
+					document.getElementById("comm-tab-bulk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
 				} else {
-					document
-						.getElementById("comm-mode-threads")
-						.classList.add("hidden");
-					document
-						.getElementById("comm-mode-bulk")
-						.classList.remove("hidden");
-					document.getElementById("comm-tab-bulk").className =
-						"px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow";
-					document.getElementById("comm-tab-threads").className =
-						"px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+					document.getElementById("comm-mode-threads").classList.add("hidden");
+					document.getElementById("comm-mode-bulk").classList.remove("hidden");
+					document.getElementById("comm-tab-bulk").className = "px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow";
+					document.getElementById("comm-tab-threads").className = "px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
 				}
 			}
 
 			function renderCommThreads() {
 				const list = document.getElementById("comm-threads-list");
+				if (!list) return;
 				list.innerHTML = "";
 				appState.chats.forEach((chat) => {
 					const item = document.createElement("div");
@@ -2090,19 +1874,13 @@
 			}
 
 			function renderActiveChatMessages() {
-				const chat = appState.chats.find(
-					(c) => c.id === appState.activeChatId,
-				);
+				const chat = appState.chats.find((c) => c.id === appState.activeChatId);
 				if (!chat) return;
-				document.getElementById("active-chat-name").innerText =
-					chat.name;
-				document.getElementById("active-chat-status").innerText =
-					chat.status;
+				document.getElementById("active-chat-name").innerText = chat.name;
+				document.getElementById("active-chat-status").innerText = chat.status;
 				document.getElementById("active-chat-avatar").src = chat.avatar;
 
-				const container = document.getElementById(
-					"active-chat-messages",
-				);
+				const container = document.getElementById("active-chat-messages");
 				container.innerHTML = "";
 				chat.messages.forEach((msg) => {
 					const div = document.createElement("div");
@@ -2122,9 +1900,7 @@
 				const input = document.getElementById("chat-input-msg");
 				const text = input.value.trim();
 				if (!text) return;
-				const chat = appState.chats.find(
-					(c) => c.id === appState.activeChatId,
-				);
+				const chat = appState.chats.find((c) => c.id === appState.activeChatId);
 				if (chat) {
 					chat.messages.push({
 						sender: "me",
@@ -2139,14 +1915,10 @@
 
 			// Modals & Triggers
 			function openAddClientModal() {
-				document
-					.getElementById("modal-client")
-					.classList.remove("hidden");
+				document.getElementById("modal-client").classList.remove("hidden");
 			}
 			function openAddEventModal() {
-				document
-					.getElementById("modal-event")
-					.classList.remove("hidden");
+				document.getElementById("modal-event").classList.remove("hidden");
 			}
 			function closeModal(id) {
 				document.getElementById(id).classList.add("hidden");
@@ -2197,23 +1969,16 @@
 			}
 
 			function previewSocialPost() {
-				document.getElementById("preview-text-content").innerText =
-					document.getElementById("social-caption").value;
-				document
-					.getElementById("modal-preview")
-					.classList.remove("hidden");
+				document.getElementById("preview-text-content").innerText = document.getElementById("social-caption").value;
+				document.getElementById("modal-preview").classList.remove("hidden");
 			}
 
 			function queueSocialPost() {
-				showToast(
-					"Post successfully approved and queued across all connected profiles.",
-				);
+				showToast("Post successfully approved and queued across all connected profiles.");
 			}
 
 			function sendBulkCampaign() {
-				showToast(
-					"Bulk email marketing campaign sent successfully to selected recipients.",
-				);
+				showToast("Bulk email marketing campaign sent successfully to selected recipients.");
 			}
 
 			function publishGbpPost() {
@@ -2229,9 +1994,7 @@
 			}
 
 			function triggerReviewAutomation() {
-				showToast(
-					"Test review request SMS dispatched via Zillow Premier API.",
-				);
+				showToast("Test review request SMS dispatched via Zillow Premier API.");
 			}
 
 			function openReviewReplyModal(name) {
@@ -2266,6 +2029,43 @@
 			function openGlobalSearch() {
 				switchTab("registry");
 				document.getElementById("registry-search").focus();
+			}
+
+			let dashboardRole = "assistant";
+			function setDashboardRole(role) {
+				dashboardRole = role;
+				const isAssistant = role === "assistant";
+				document.getElementById("dash-review-queue").classList.toggle("hidden", !isAssistant);
+				document.getElementById("dash-task-list").classList.toggle("hidden", isAssistant);
+				document.getElementById("btn-role-assistant").className = isAssistant ? "px-4 py-1.5 bg-white shadow text-xs font-bold rounded-lg text-slate-900" : "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500";
+				document.getElementById("btn-role-realtor").className = !isAssistant ? "px-4 py-1.5 bg-white shadow text-xs font-bold rounded-lg text-slate-900" : "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500";
+				document.getElementById("dashboard-role").value = role;
+				document.getElementById("dash-user-avatar").src = isAssistant ? "https://placehold.co/40x40/16a34a/ffffff?text=JA" : "https://placehold.co/40x40/2563eb/ffffff?text=JD";
+				document.getElementById("dash-role-title").innerText = isAssistant ? `For your review · ${document.querySelectorAll("#dash-review-queue details").length} waiting` : `Today's tasks · ${document.querySelectorAll("#dash-task-list input:not(:disabled)").length} open`;
+				document.getElementById("dash-role-footnote").innerText = isAssistant ? `${document.querySelectorAll("#dash-review-queue details").length} waiting` : `${document.querySelectorAll("#dash-task-list input:not(:disabled)").length} open`;
+			}
+
+			function decideReview(btn, decision) {
+				const card = btn.closest("details");
+				const title = card.querySelector("summary .font-bold").innerText;
+				const label = decision === "approved" ? "Approved" : decision === "duplicate" ? "Linked as duplicate" : "Rejected";
+				card.outerHTML = `<div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 shadow-sm"><i class="fa-solid fa-check mr-1.5 text-brand-600"></i>${title} · ${label}. <button onclick="showToast('Decision recorded in activity stream.')" class="text-brand-700 font-bold hover:underline ml-1">Undo</button></div>`;
+				updateRoleCounts();
+				showToast(`${label}: ${title}`);
+			}
+
+			function completeTask(checkbox) {
+				const row = checkbox.closest("#dash-task-list > div");
+				const title = row.querySelector(".font-bold").innerText;
+				row.style.opacity = "0.55";
+				row.querySelector(".font-bold").style.textDecoration = "line-through";
+				checkbox.disabled = true;
+				updateRoleCounts();
+				showToast(`Done: ${title}`);
+			}
+
+			function updateRoleCounts() {
+				setDashboardRole(dashboardRole);
 			}
 		</script>
 	</body>

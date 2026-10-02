@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Editorial Docket · Meadow Lane CRM</title>
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+		<style type="text/tailwindcss">
+			@theme {
+				--font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+				--font-serif: "Instrument Serif", Georgia, serif;
+
+				/* Paper stock and ink. */
+				--color-paper: #fbfbf9;
+				--color-warm-50: #faf9f6;
+				--color-warm-100: #f4f2ec;
+				--color-rule: #e7e3d9;
+
+				/* One deep forest, tuned warm so it sits on paper rather than on a screen. */
+				--color-brand-50: #f4f7f4;
+				--color-brand-100: #e5ece5;
+				--color-brand-300: #9fb8a8;
+				--color-brand-600: #224233;
+				--color-brand-700: #1a3428;
+				--color-brand-800: #13271e;
+				--color-brand-900: #0c1a13;
+
+				/* Status ink, sampled from the paper palette so nothing reads as stock Tailwind. */
+				--color-signal-ink: #8a4b12;
+				--color-signal-soft: #fdf6ea;
+				--color-signal-line: #efe0c4;
+				--color-alert-ink: #8c2f2f;
+				--color-alert-soft: #fdf3f2;
+				--color-alert-line: #f0d9d6;
+				--color-good-ink: #2c6449;
+				--color-good-soft: #f0f7f2;
+				--color-good-line: #d5e8dc;
+
+				/* Cards are 14px. Pills are for small controls only. */
+				--radius-card: 14px;
+
+				/* The floor of the type scale: 11px for tracked labels, 13px for everything else
+           currently written as text-xs. */
+				--text-2xs: 0.6875rem;
+				--text-xs: 0.8125rem;
+
+				/* Elevation, declared once: warm-tinted, offset, soft. Cards get this and no border. */
+				--shadow-card: 0 1px 1px rgb(28 25 18 / 0.04), 0 10px 24px -14px rgb(28 25 18 / 0.28);
+				--shadow-card-hover: 0 1px 1px rgb(28 25 18 / 0.05), 0 18px 34px -18px rgb(28 25 18 / 0.34);
+				--shadow-ink: 0 1px 2px rgb(12 26 19 / 0.16), 0 18px 40px -22px rgb(12 26 19 / 0.55);
+			}
+
+			@layer base {
+				html {
+					background-color: var(--color-paper);
+					color-scheme: light;
+				}
+
+				body {
+					font-family: var(--font-sans);
+					font-feature-settings: "cv05" 1;
+					-webkit-font-smoothing: antialiased;
+				}
+
+				h1,
+				h2,
+				h3,
+				h4 {
+					font-family: var(--font-serif);
+					text-wrap: balance;
+					letter-spacing: -0.02em;
+				}
+
+				/* Figures are measurements, so they line up in columns. */
+				.figure {
+					font-family: var(--font-serif);
+					font-variant-numeric: tabular-nums lining-nums;
+					letter-spacing: -0.03em;
+				}
+
+				/* Browser surfaces belong to the palette too — this is the cheapest signal that a page
+           was built rather than assembled. */
+				::selection {
+					background-color: var(--color-brand-800);
+					color: var(--color-paper);
+				}
+
+				:focus-visible {
+					outline: 2px solid var(--color-brand-600);
+					outline-offset: 2px;
+				}
+
+				input[type="checkbox"] {
+					accent-color: var(--color-brand-700);
+				}
+
+				::-webkit-scrollbar {
+					width: 10px;
+					height: 10px;
+				}
+
+				::-webkit-scrollbar-track {
+					background: var(--color-warm-50);
+				}
+
+				::-webkit-scrollbar-thumb {
+					background: #d8d3c6;
+					border: 3px solid var(--color-warm-50);
+					border-radius: 999px;
+				}
+
+				::-webkit-scrollbar-thumb:hover {
+					background: #b9b2a1;
+				}
+			}
+
+			@utility card {
+				border-radius: var(--radius-card);
+				background-color: #fff;
+				box-shadow: var(--shadow-card);
+			}
+
+			/* One authored moment: the docket assembles once, on load, and then is still. */
+			@keyframes rise {
+				from {
+					opacity: 0;
+					transform: translateY(10px);
+					filter: blur(6px);
+				}
+
+				to {
+					opacity: 1;
+					transform: none;
+					filter: blur(0);
+				}
+			}
+
+			@keyframes toast-in {
+				from {
+					opacity: 0;
+					transform: translateY(12px) scale(0.97);
+				}
+
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+
+			.assemble {
+				animation: rise 620ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+				animation-delay: calc(var(--i, 0) * 80ms + 60ms);
+			}
+
+			.toast {
+				animation: toast-in 320ms cubic-bezier(0.16, 1, 0.3, 1);
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.assemble,
+				.toast {
+					animation: none;
+				}
+			}
+
+			.task-completed {
+				text-decoration: line-through;
+				text-decoration-color: var(--color-brand-600);
+				opacity: 0.45;
+				transition: opacity 0.25s ease;
+			}
+		</style>
+	</head>
+	<body class="bg-paper min-h-full text-stone-900">
+		<!-- Top editorial header -->
+		<header class="border-rule bg-paper/85 sticky top-0 z-30 flex-shrink-0 border-b px-6 py-4 backdrop-blur-xl">
+			<div class="mx-auto flex max-w-7xl items-center justify-between">
+				<div class="flex items-center gap-3.5">
+					<div class="bg-brand-900 text-warm-50 shadow-ink flex size-10 items-center justify-center rounded-full font-serif text-xl leading-none italic">M</div>
+					<div>
+						<h1 class="text-2xl leading-none">Meadow Lane <span class="font-sans text-sm font-normal tracking-normal text-stone-500 italic">Realty Group</span></h1>
+					</div>
+				</div>
+				<div class="flex items-center gap-5">
+					<span class="border-rule shadow-card hidden items-center gap-2 rounded-full border bg-white px-3.5 py-1.5 text-xs font-medium text-stone-500 sm:inline-flex"><i class="fa-regular fa-calendar text-2xs mr-0.5 text-stone-400"></i>Tuesday, Oct 14</span>
+
+					<div class="flex items-center gap-2.5">
+						<span class="text-2xs hidden font-medium tracking-wider text-stone-500 uppercase md:inline">Viewing as</span>
+						<div class="bg-warm-100 flex items-center gap-1 rounded-full p-1">
+							<button id="role-btn-realtor" type="button" class="bg-brand-900 text-warm-50 shadow-card rounded-full px-4 py-1.5 text-xs font-semibold transition-all"><i class="fa-solid fa-compass text-2xs text-brand-300 mr-1.5"></i>Jayden (Lead Agent)</button>
+							<button id="role-btn-assistant" type="button" class="rounded-full px-4 py-1.5 text-xs font-semibold text-stone-500 transition-all hover:text-stone-800"><i class="fa-solid fa-list-check text-2xs mr-1.5"></i>Janae (Operations)</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Module navigation -->
+		<nav class="border-rule bg-paper/70 z-20 flex-shrink-0 border-b backdrop-blur-xl" aria-label="Modules">
+			<div class="mx-auto max-w-7xl px-6">
+				<div class="flex items-center gap-1 overflow-x-auto">
+					<button type="button" aria-current="page" class="text-brand-900 after:bg-brand-900 relative flex shrink-0 items-center gap-2 px-3.5 py-3.5 text-xs font-semibold after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full"><i class="fa-solid fa-gauge-high text-[13px]"></i>Dashboard</button>
+					<button type="button" data-stub="Pipeline Kanban" class="relative flex shrink-0 items-center gap-2 px-3.5 py-3.5 text-xs font-medium text-stone-500 transition-colors after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-stone-900 hover:after:bg-stone-300">
+						<i class="fa-solid fa-kanban text-[13px]"></i>
+						Pipeline Kanban
+					</button>
+					<button type="button" data-stub="Active Clients" class="relative flex shrink-0 items-center gap-2 px-3.5 py-3.5 text-xs font-medium text-stone-500 transition-colors after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-stone-900 hover:after:bg-stone-300">
+						<i class="fa-solid fa-user-check text-[13px]"></i>
+						Active Clients<span class="bg-brand-100 text-brand-800 ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold">4</span>
+					</button>
+					<button type="button" data-stub="Client Registry" class="relative flex shrink-0 items-center gap-2 px-3.5 py-3.5 text-xs font-medium text-stone-500 transition-colors after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-stone-900 hover:after:bg-stone-300">
+						<i class="fa-solid fa-address-book text-[13px]"></i>
+						Client Registry
+					</button>
+					<button type="button" data-stub="Calendar" class="relative flex shrink-0 items-center gap-2 px-3.5 py-3.5 text-xs font-medium text-stone-500 transition-colors after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-stone-900 hover:after:bg-stone-300">
+						<i class="fa-solid fa-calendar-days text-[13px]"></i>
+						Calendar
+					</button>
+				</div>
+			</div>
+		</nav>
+
+		<main class="px-6 py-8">
+			<div class="mx-auto max-w-7xl space-y-6">
+				<!-- The money and health strip, as it was in the original: one ruled statement instead of
+             four matching cards, so the day's position reads as a single figure of record. -->
+				<section class="assemble rounded-card bg-brand-900 shadow-ink relative overflow-hidden" style="--i: 0">
+					<div aria-hidden="true" class="pointer-events-none absolute top-0 right-0 h-full w-2/5 bg-[radial-gradient(120%_100%_at_100%_0%,var(--color-brand-600)_0%,transparent_70%)] opacity-70"></div>
+
+					<div class="relative grid grid-cols-1 divide-y divide-white/10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:divide-x lg:divide-y-0">
+						<div class="p-6 lg:pr-8">
+							<div class="flex items-center gap-2.5">
+								<span class="text-2xs text-brand-300 font-semibold tracking-[0.18em] uppercase">Projected GCI (October)</span>
+								<span class="text-2xs text-brand-100 rounded-full bg-white/10 px-2 py-0.5 font-bold tracking-wider uppercase">3 Closings</span>
+							</div>
+							<div class="mt-3.5 flex items-baseline gap-3">
+								<p class="figure text-warm-50 text-5xl leading-none">$31,450</p>
+								<span class="text-brand-300 text-xs">est. net commission</span>
+							</div>
+							<p class="text-brand-100 mt-3.5 flex items-center text-xs"><i class="fa-solid fa-shield-halved text-2xs text-brand-300 mr-2"></i>Next closing: Oct 21 (428 Meadow)</p>
+						</div>
+
+						<dl class="grid grid-cols-1 sm:grid-cols-3 lg:divide-x lg:divide-white/10">
+							<div class="flex items-center justify-between gap-3 px-6 py-4 sm:block sm:py-5 lg:px-5">
+								<div class="flex items-center gap-2">
+									<span class="text-2xs text-brand-300 font-semibold tracking-[0.14em] uppercase">In Escrow (Pending)</span>
+									<i class="fa-regular fa-file-lines text-2xs text-brand-300/70 sm:hidden"></i>
+								</div>
+								<dd class="mt-0 flex items-baseline gap-2 sm:mt-2.5 sm:block">
+									<span class="figure text-warm-50 block text-3xl leading-none">$4.18M</span>
+									<span class="text-2xs text-brand-300 mt-1.5 block">5 contracts live</span>
+								</dd>
+								<p class="text-2xs text-brand-100/80 mt-2.5 hidden items-center sm:flex"><span class="mr-2 size-1.5 rounded-full bg-amber-400"></span>1 inspection deadline pending</p>
+							</div>
+
+							<div class="flex items-center justify-between gap-3 px-6 py-4 sm:block sm:py-5 lg:px-5">
+								<div class="flex items-center gap-2">
+									<span class="text-2xs text-brand-300 font-semibold tracking-[0.14em] uppercase">Active Client Pipeline</span>
+									<i class="fa-regular fa-user text-2xs text-brand-300/70 sm:hidden"></i>
+								</div>
+								<dd class="mt-0 flex items-baseline gap-2 sm:mt-2.5 sm:block">
+									<span class="figure text-warm-50 block text-3xl leading-none">12</span>
+									<span class="text-2xs text-brand-300 mt-1.5 block">active buyers &amp; sellers</span>
+								</dd>
+								<p class="text-2xs text-brand-100/80 mt-2.5 hidden items-center sm:flex"><i class="fa-solid fa-arrow-trend-up text-brand-300 mr-1.5"></i>3 showing tours booked this week</p>
+							</div>
+
+							<div class="flex items-center justify-between gap-3 px-6 py-4 sm:block sm:py-5 lg:px-5">
+								<div class="flex items-center gap-2">
+									<span class="text-2xs text-brand-300 font-semibold tracking-[0.14em] uppercase">Pipeline Risk Radar</span>
+									<i class="fa-solid fa-triangle-exclamation text-2xs text-amber-400 sm:hidden"></i>
+								</div>
+								<dd class="mt-0 flex items-baseline gap-2 sm:mt-2.5 sm:block">
+									<span class="figure text-warm-50 block text-3xl leading-none">3</span>
+									<span class="text-2xs text-brand-300 mt-1.5 block">leads going cold (&gt;5d)</span>
+								</dd>
+								<p class="text-2xs text-brand-100/80 mt-2.5 hidden items-center sm:flex">Requires touch to prevent fallout</p>
+							</div>
+						</dl>
+					</div>
+				</section>
+
+				<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+					<div class="space-y-6 lg:col-span-7">
+						<!-- Realtor workspace -->
+						<div id="realtor-workspace" class="assemble space-y-6" style="--i: 1">
+							<div class="card p-6">
+								<div class="border-rule flex items-center justify-between border-b pb-4">
+									<div>
+										<h2 class="text-3xl">Today's Focus</h2>
+										<p class="mt-1 text-xs text-stone-500">High-leverage tasks: calls, showings &amp; document sign-offs</p>
+									</div>
+									<span id="realtor-tasks-count" class="bg-warm-100 rounded-full px-2.5 py-1 text-xs font-semibold text-stone-700">4 pending</span>
+								</div>
+								<div id="today-tasks-container" class="divide-rule mt-1 divide-y"></div>
+								<div id="all-tasks-done-msg" class="border-rule mt-3 hidden border-t py-7 text-center">
+									<div class="bg-good-soft text-good-ink mx-auto mb-2.5 flex size-11 items-center justify-center rounded-full"><i class="fa-solid fa-check"></i></div>
+									<h3 class="font-serif text-xl tracking-[-0.02em]">Today's slate is clear!</h3>
+									<p class="mx-auto mt-1 max-w-sm text-xs text-stone-500">Time to protect future cash flow. Check the stale leads below to keep your pipeline moving.</p>
+								</div>
+							</div>
+
+							<div class="card p-6">
+								<div class="border-rule flex items-center justify-between border-b pb-3">
+									<div>
+										<h2 class="text-2xl">Stale Opportunities</h2>
+										<p class="mt-1 text-xs text-stone-500">Leads with no logged outreach in &gt; 5 days</p>
+									</div>
+									<span class="text-2xs font-medium tracking-wider text-stone-500 uppercase">Pipeline hygiene</span>
+								</div>
+								<div class="mt-4 space-y-2.5" id="stale-wrap"></div>
+							</div>
+						</div>
+
+						<!-- Assistant workspace -->
+						<div id="assistant-workspace" class="hidden space-y-6">
+							<div class="card p-6">
+								<div class="border-rule flex items-center justify-between border-b pb-4">
+									<div>
+										<h2 class="text-3xl">Operations &amp; Escrow Queue</h2>
+										<p class="mt-1 text-xs text-stone-500">Where this data comes from: active contract milestones &amp; incoming inquiries</p>
+									</div>
+									<span class="bg-warm-100 rounded-full px-2.5 py-1 text-xs font-semibold text-stone-700">3 waiting on you</span>
+								</div>
+								<div class="mt-4 space-y-3">
+									<div class="rounded-card border-brand-100 bg-brand-50 border p-4">
+										<span class="bg-brand-100 text-2xs text-brand-800 rounded-full px-2 py-0.5 font-bold tracking-wider uppercase">Prepped for Jayden's Review</span>
+										<h3 class="mt-2.5 font-sans text-xs font-bold">Listing Agreement &amp; Disclosure Packet · 18 Canyon Rd</h3>
+										<p class="mt-1.5 text-xs text-stone-600">Data source: form filled out by seller online. Title search and tax records merged. Needs Jayden to confirm commission split before sending for signature.</p>
+										<div class="mt-3.5 flex items-center gap-2">
+											<button type="button" data-msg="Notified Jayden to sign off" class="bg-brand-900 text-warm-50 hover:bg-brand-800 rounded-full px-3.5 py-1.5 text-xs font-semibold transition">Push to Jayden's Tasks</button>
+											<button type="button" data-msg="Viewing draft document" class="border-rule hover:bg-warm-100 rounded-full border bg-white px-3.5 py-1.5 text-xs font-semibold text-stone-700 transition">View Draft</button>
+										</div>
+									</div>
+									<div class="rounded-card border-signal-line bg-signal-soft border p-4">
+										<div class="flex items-center justify-between gap-3">
+											<span class="bg-signal-line/70 text-2xs text-signal-ink rounded-full px-2 py-0.5 font-bold tracking-wider uppercase">Missing Escrow Document</span>
+											<span class="text-2xs text-signal-ink font-bold">Due in 24 hrs</span>
+										</div>
+										<h3 class="mt-2.5 font-sans text-xs font-bold">Earnest Money Deposit Receipt · 12 Evergreen Terrace</h3>
+										<p class="mt-1.5 text-xs text-stone-600">Data source: deal contract signed 2 days ago. Escrow holder (First National Title) hasn't sent verification of the $15,000 wire.</p>
+										<div class="mt-3.5 flex items-center gap-2">
+											<button type="button" data-msg="Email draft opened to escrow officer" class="rounded-full bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-stone-800">Email Escrow Officer</button>
+											<button type="button" data-msg="Marked as received" class="border-rule hover:bg-warm-100 rounded-full border bg-white px-3.5 py-1.5 text-xs font-semibold text-stone-700 transition">Mark Verified</button>
+										</div>
+									</div>
+									<div class="rounded-card border-rule bg-warm-50 border p-4">
+										<span class="bg-brand-50 text-2xs text-brand-800 rounded-full px-2 py-0.5 font-bold tracking-wider uppercase">Inbound Intake Verification</span>
+										<h3 class="mt-2.5 font-sans text-xs font-bold">Website Contact: Sarah &amp; Tim Bell ($700k Budget)</h3>
+										<p class="mt-1.5 text-xs text-stone-600">Data source: contact form submitted yesterday 9:30 PM. Needs phone validation before creating an active pipeline record.</p>
+										<div class="mt-3.5 flex items-center gap-2">
+											<button type="button" data-msg="Contact verified and added to Jayden's call sheet" class="bg-brand-900 text-warm-50 hover:bg-brand-800 rounded-full px-3.5 py-1.5 text-xs font-semibold transition">Approve &amp; Assign to Jayden</button>
+											<button type="button" data-msg="Rejected / marked as spam" class="hover:text-alert-ink px-2 py-1 text-xs font-medium text-stone-400 transition">Dismiss</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Critical radar -->
+					<div class="lg:col-span-5">
+						<div class="assemble card p-6" style="--i: 2">
+							<div class="border-rule flex items-center justify-between border-b pb-3">
+								<div>
+									<h2 class="text-3xl">Critical Radar</h2>
+									<p class="mt-1 text-xs text-stone-500">Real-world meetings &amp; binding contract deadlines</p>
+								</div>
+								<span class="relative flex size-2.5" title="Live clock active"><span class="bg-good-ink/40 absolute inset-0 animate-ping rounded-full"></span><span class="bg-good-ink relative size-2.5 rounded-full"></span></span>
+							</div>
+							<div class="mt-5 space-y-6">
+								<div>
+									<div class="mb-3 flex items-center gap-2">
+										<span class="bg-alert-soft text-2xs text-alert-ink rounded-full px-2 py-0.5 font-bold tracking-wider uppercase">Today · Priority Focus</span>
+										<span class="bg-rule h-px flex-1"></span>
+									</div>
+									<div class="space-y-2.5">
+										<div class="rounded-card border-rule bg-warm-50 hover:bg-warm-100 border p-3.5 transition">
+											<div class="flex items-start justify-between gap-3">
+												<span class="text-xs font-bold text-stone-950">Showing: 742 Evergreen Terrace</span>
+												<span class="bg-brand-900 text-warm-50 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold">2:00 PM</span>
+											</div>
+											<p class="mt-1.5 text-xs text-stone-600">With Eleanor &amp; Craig Vance (buyer clients).</p>
+											<div class="text-2xs mt-2.5 flex items-center gap-4 font-medium text-stone-500">
+												<span><i class="fa-solid fa-location-dot mr-1.5"></i>Lockbox on patio</span>
+												<span><i class="fa-regular fa-clock mr-1.5"></i>45 mins</span>
+											</div>
+										</div>
+										<div class="rounded-card border-signal-line bg-signal-soft border p-3.5 transition hover:brightness-[0.985]">
+											<div class="flex items-start justify-between gap-3">
+												<div>
+													<span class="text-xs font-bold text-stone-950">Inspection Objection Deadline</span>
+													<span class="text-2xs text-signal-ink mt-0.5 block font-semibold">428 Meadow Lane (in escrow)</span>
+												</div>
+												<span class="bg-signal-line text-signal-ink shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold">5:00 PM Sharp</span>
+											</div>
+											<p class="mt-1.5 text-xs text-stone-700">Counter-credit must be signed and delivered to the seller's agent before 5 PM to protect deposit.</p>
+										</div>
+									</div>
+								</div>
+
+								<div>
+									<div class="mb-3 flex items-center gap-2">
+										<span class="text-2xs font-bold tracking-[0.14em] text-stone-500 uppercase">Tomorrow &amp; Next 48h</span>
+										<span class="bg-rule h-px flex-1"></span>
+									</div>
+									<div class="space-y-2.5">
+										<div class="rounded-card border-rule hover:bg-warm-50 border bg-white p-3.5 transition">
+											<div class="flex items-start justify-between gap-3">
+												<span class="text-xs font-bold">Appraisal Contingency Expiration</span>
+												<span class="shrink-0 text-xs font-medium text-stone-500">Wed · 5:00 PM</span>
+											</div>
+											<p class="mt-1.5 text-xs text-stone-500">104 Crestview · Waiting on First National appraisal upload.</p>
+										</div>
+										<div class="rounded-card border-rule hover:bg-warm-50 border bg-white p-3.5 transition">
+											<div class="flex items-start justify-between gap-3">
+												<span class="text-xs font-bold">Final Walkthrough &amp; Key Prep</span>
+												<span class="shrink-0 text-xs font-medium text-stone-500">Thu · 10:00 AM</span>
+											</div>
+											<p class="mt-1.5 text-xs text-stone-500">982 Willow Way · Client Marcus Sterling.</p>
+										</div>
+									</div>
+								</div>
+
+								<div>
+									<div class="mb-3 flex items-center gap-2">
+										<span class="text-2xs font-bold tracking-[0.14em] text-stone-500 uppercase">Later This Month</span>
+										<span class="bg-rule h-px flex-1"></span>
+									</div>
+									<div class="rounded-card border-rule bg-warm-50 flex items-center justify-between gap-3 border p-3">
+										<div class="flex items-center gap-3">
+											<div class="figure bg-brand-900 text-warm-50 flex size-9 items-center justify-center rounded-full text-xs">21</div>
+											<div>
+												<h3 class="font-sans text-xs font-semibold">Closing: 428 Meadow Lane</h3>
+												<p class="text-2xs mt-0.5 text-stone-500">$9,400 GCI payout scheduled</p>
+											</div>
+										</div>
+										<span class="border-good-line bg-good-soft text-2xs text-good-ink shrink-0 rounded-full border px-2.5 py-0.5 font-semibold">On Track</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<div id="toast" class="shadow-ink pointer-events-none fixed right-6 bottom-6 z-50 hidden items-center gap-3 rounded-full bg-stone-900 px-4 py-2.5 text-xs font-medium text-stone-100">
+			<i class="fa-solid fa-circle-xmark text-sm text-stone-400"></i>
+			<span id="toast-text">Update saved</span>
+		</div>
+
+		<script>
+			const TASKS = [
+				{ title: "Sign repair credit counter-offer", addr: "428 Meadow Lane", kind: "Signature", tone: "brand", action: "Review", msg: "Opened DocuSign / Review modal" },
+				{ title: "Call David Vance · Pre-approval discussion", addr: "104 Crestview", kind: "Call", tone: "info", action: "Call now", msg: "Calling David Vance" },
+				{ title: "Pick up gate code & disclosures", addr: "742 Evergreen", kind: "Showing Prep", tone: "signal", action: null },
+				{ title: "Check in on Appraisal Status", addr: "104 Crestview", kind: "Follow Up", tone: "quiet", action: null },
+			];
+
+			const STALE = [
+				{ name: "Eleanor & Craig Vance", tag: "6 days silent", note: "Buyer · Budget $950k · Looked at Oakridge last week", btn: "Quick Nudge" },
+				{ name: "Marcus Sterling", tag: "8 days silent", note: "Potential Listing · Est. $1.2M · Requested comparative market analysis", btn: "Send CMA" },
+			];
+
+			const toneClass = {
+				brand: "bg-brand-50 text-brand-700 border-brand-100",
+				info: "bg-stone-100 text-stone-600 border-stone-200",
+				signal: "bg-signal-soft text-signal-ink border-signal-line",
+				quiet: "bg-warm-100 text-stone-500 border-rule",
+			};
+
+			let currentRole = "realtor";
+
+			function renderTasks() {
+				const host = document.getElementById("today-tasks-container");
+				host.innerHTML = "";
+				TASKS.forEach((t) => {
+					const row = document.createElement("div");
+					row.className = "group flex items-start gap-3.5 py-3.5";
+
+					const box = document.createElement("input");
+					box.type = "checkbox";
+					box.className = "mt-0.5 size-4 shrink-0 cursor-pointer";
+					box.setAttribute("aria-label", "Mark " + t.title + " complete");
+
+					const body = document.createElement("div");
+					body.className = "min-w-0 flex-1";
+					const head = document.createElement("div");
+					head.className = "flex flex-wrap items-center gap-2";
+					const title = document.createElement("span");
+					title.className = "text-xs font-bold";
+					title.textContent = t.title;
+					head.appendChild(title);
+					const pill = document.createElement("span");
+					pill.className = "rounded-full border px-2 py-0.5 text-2xs font-semibold tracking-wider uppercase " + toneClass[t.tone];
+					pill.textContent = t.kind;
+					head.appendChild(pill);
+					body.appendChild(head);
+					const note = document.createElement("p");
+					note.className = "mt-1 text-xs text-stone-500";
+					note.textContent = t.addr + " · due " + (t.title.indexOf("Signature") === 0 ? "5:00 PM" : "today");
+					body.appendChild(note);
+					row.appendChild(box);
+					row.appendChild(body);
+
+					if (t.action) {
+						const btn = document.createElement("button");
+						btn.type = "button";
+						btn.className = "shrink-0 rounded-full border border-rule bg-white px-3 py-1 text-xs font-medium text-brand-800 transition hover:border-brand-300 hover:bg-brand-50";
+						btn.textContent = t.action;
+						btn.addEventListener("click", () => showToast(t.msg));
+						row.appendChild(btn);
+					}
+
+					box.addEventListener("change", () => {
+						body.classList.toggle("task-completed", box.checked);
+						updatePendingCount();
+					});
+					host.appendChild(row);
+				});
+			}
+
+			function renderStale() {
+				const host = document.getElementById("stale-wrap");
+				host.innerHTML = "";
+				STALE.forEach((s) => {
+					const row = document.createElement("div");
+					row.className = "flex items-center justify-between gap-3 rounded-card border border-signal-line bg-signal-soft/60 p-3.5";
+					const left = document.createElement("div");
+					const top = document.createElement("div");
+					top.className = "flex flex-wrap items-center gap-2";
+					const name = document.createElement("span");
+					name.className = "text-xs font-bold";
+					name.textContent = s.name;
+					top.appendChild(name);
+					const tag = document.createElement("span");
+					tag.className = "rounded-full bg-signal-line/70 px-2 py-0.5 text-2xs font-semibold text-signal-ink";
+					tag.textContent = s.tag;
+					top.appendChild(tag);
+					left.appendChild(top);
+					const note = document.createElement("p");
+					note.className = "mt-1 text-xs text-stone-600";
+					note.textContent = s.note;
+					left.appendChild(note);
+					const btn = document.createElement("button");
+					btn.type = "button";
+					btn.className = "shrink-0 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-stone-800 shadow-card transition hover:bg-warm-100";
+					btn.textContent = s.btn;
+					btn.addEventListener("click", () => showToast(s.btn + " for " + s.name));
+					row.appendChild(left);
+					row.appendChild(btn);
+					host.appendChild(row);
+				});
+			}
+
+			function updatePendingCount() {
+				const boxes = document.querySelectorAll("#today-tasks-container input[type='checkbox']");
+				let open = 0;
+				boxes.forEach((b) => {
+					if (!b.checked) open++;
+				});
+				const badge = document.getElementById("realtor-tasks-count");
+				const doneMsg = document.getElementById("all-tasks-done-msg");
+				if (open === 0) {
+					badge.textContent = "All clear";
+					badge.className = "rounded-full bg-good-soft px-2.5 py-1 text-xs font-semibold text-good-ink";
+					doneMsg.classList.remove("hidden");
+				} else {
+					badge.textContent = open + " pending";
+					badge.className = "rounded-full bg-warm-100 px-2.5 py-1 text-xs font-semibold text-stone-700";
+					doneMsg.classList.add("hidden");
+				}
+			}
+
+			const onBtn = "rounded-full bg-brand-900 px-4 py-1.5 text-xs font-semibold text-warm-50 shadow-card transition-all";
+			const offBtn = "rounded-full px-4 py-1.5 text-xs font-semibold text-stone-500 transition-all hover:text-stone-800";
+
+			function setWorkspaceRole(role) {
+				currentRole = role;
+				const isRealtor = role === "realtor";
+				document.getElementById("realtor-workspace").classList.toggle("hidden", !isRealtor);
+				document.getElementById("assistant-workspace").classList.toggle("hidden", isRealtor);
+				document.getElementById("role-btn-realtor").className = isRealtor ? onBtn : offBtn;
+				document.getElementById("role-btn-assistant").className = isRealtor ? offBtn : onBtn;
+				showToast(isRealtor ? "Switched to Jayden's view" : "Switched to Janae's operations view");
+			}
+
+			document.getElementById("role-btn-realtor").addEventListener("click", () => setWorkspaceRole("realtor"));
+			document.getElementById("role-btn-assistant").addEventListener("click", () => setWorkspaceRole("assistant"));
+			document.querySelectorAll("[data-stub]").forEach((b) => b.addEventListener("click", () => showToast(b.dataset.stub + " is not part of this prototype")));
+			document.querySelectorAll("[data-msg]").forEach((b) => b.addEventListener("click", () => showToast(b.dataset.msg)));
+
+			let timer;
+			function showToast(msg) {
+				const t = document.getElementById("toast");
+				document.getElementById("toast-text").textContent = msg;
+				t.classList.remove("hidden");
+				t.classList.add("flex", "toast");
+				clearTimeout(timer);
+				timer = setTimeout(() => t.classList.add("hidden"), 2400);
+			}
+
+			renderTasks();
+			renderStale();
+			updatePendingCount();
+		</script>
+	</body>
+</html>

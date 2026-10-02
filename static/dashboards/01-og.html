@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>User-Provided Example</title>
+		<!-- Stock Tailwind CSS v4, browser build -->
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<!-- FontAwesome Icons -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<!-- Chart.js for Visualizations -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<!-- Google Fonts Inter -->
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+		<style type="text/tailwindcss">
+			@theme {
+				--font-sans: "Inter", system-ui, sans-serif;
+
+				/* The only colours added to the stock palette: the brokerage green. */
+				--color-brand-50: #f0fdf4;
+				--color-brand-100: #dcfce7;
+				--color-brand-500: #22c55e;
+				--color-brand-600: #16a34a;
+				--color-brand-700: #15803d;
+				--color-brand-800: #166534;
+				--color-brand-900: #14532d;
+			}
+
+			@layer base {
+				body {
+					font-family: var(--font-sans);
+				}
+
+				::-webkit-scrollbar {
+					width: 6px;
+					height: 6px;
+				}
+				::-webkit-scrollbar-track {
+					background: #f1f5f9;
+				}
+				::-webkit-scrollbar-thumb {
+					background: #cbd5e1;
+					border-radius: 3px;
+				}
+				::-webkit-scrollbar-thumb:hover {
+					background: #94a3b8;
+				}
+			}
+		</style>
+	</head>
+	<body class="flex h-full flex-col overflow-hidden bg-slate-50 text-slate-800">
+		<!-- Top Header Bar -->
+		<header class="z-30 flex shrink-0 items-center justify-between bg-slate-900 px-6 py-3.5 text-white shadow">
+			<div class="flex items-center space-x-3">
+				<div class="bg-brand-600 flex items-center justify-center rounded-xl p-2 text-white shadow-md">
+					<i class="fa-solid fa-house-chimney text-xl"></i>
+				</div>
+				<div>
+					<h1 class="text-lg font-bold tracking-tight">Meadow Lane Realty & Development</h1>
+					<p class="text-xs text-slate-400">Enterprise Real Estate CRM & Operations Suite</p>
+				</div>
+			</div>
+			<div class="flex items-center space-x-4">
+				<button onclick="showToast('Global search is inactive in this demo.')" class="hidden items-center space-x-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-700 md:flex">
+					<i class="fa-solid fa-magnifying-glass text-xs"></i>
+					<span>Quick Search (Ctrl+K)</span>
+				</button>
+				<div class="relative">
+					<button onclick="toggleNotifications()" class="relative rounded-lg p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white">
+						<i class="fa-regular fa-bell text-lg"></i>
+						<span id="notif-badge" class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">3</span>
+					</button>
+					<!-- Notification Dropdown -->
+					<div id="notif-dropdown" class="absolute right-0 z-50 mt-2 hidden w-80 rounded-xl border border-slate-200 bg-white p-3 text-slate-800 shadow-2xl">
+						<div class="mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
+							<span class="text-sm font-bold">Notifications</span>
+							<span class="text-brand-600 cursor-pointer text-xs font-medium hover:underline" onclick="clearNotifications()">Mark all read</span>
+						</div>
+						<div class="max-h-64 space-y-2 overflow-y-auto text-xs">
+							<div class="border-brand-500 rounded-lg border-l-4 bg-slate-50 p-2">
+								<p class="font-semibold text-slate-900">Zillow Premier Lead Ingested</p>
+								<p class="text-slate-600">New inquiry for 742 Evergreen Terrace ($650k)</p>
+								<span class="mt-1 block text-[10px] text-slate-400">2 mins ago</span>
+							</div>
+							<div class="rounded-lg border-l-4 border-blue-500 bg-slate-50 p-2">
+								<p class="font-semibold text-slate-900">Google Business Review</p>
+								<p class="text-slate-600">Sarah Jenkins left a 5-star review!</p>
+								<span class="mt-1 block text-[10px] text-slate-400">15 mins ago</span>
+							</div>
+							<div class="rounded-lg border-l-4 border-amber-500 bg-slate-50 p-2">
+								<p class="font-semibold text-slate-900">Inspection Reminder</p>
+								<p class="text-slate-600">Client Marcus Vance @ 10:00 AM</p>
+								<span class="mt-1 block text-[10px] text-slate-400">1 hour ago</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
+					<img src="https://placehold.co/40x40/16a34a/ffffff?text=JA" alt="Current user" id="dash-user-avatar" class="border-brand-500 h-9 w-9 rounded-full border-2 object-cover" />
+					<div class="text-left">
+						<label for="dashboard-role" class="mb-1 block text-[11px] leading-none font-medium text-slate-400">Viewing as</label>
+						<select id="dashboard-role" onchange="setDashboardRole(this.value)" class="focus:ring-brand-500 rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-sm font-semibold text-white focus:ring-2 focus:outline-none">
+							<option value="assistant">Janae · Assistant</option>
+							<option value="realtor">Jayden · Realtor</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- Tab Navigation Bar (Dummy Buttons) -->
+		<nav class="flex shrink-0 items-center space-x-1 overflow-x-auto border-b border-slate-200 bg-white px-4 shadow-xs">
+			<button class="border-brand-600 text-brand-700 flex items-center space-x-2 border-b-2 px-3.5 py-3 text-xs font-medium whitespace-nowrap transition">
+				<i class="fa-solid fa-chart-pie text-sm"></i>
+				<span>1. Dashboard</span>
+			</button>
+			<button onclick="showToast('Pipeline Kanban is disabled in this view.')" class="flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900">
+				<i class="fa-solid fa-kanban text-sm"></i>
+				<span>2. Pipeline Kanban</span>
+			</button>
+			<button onclick="showToast('Active Clients module is disabled in this view.')" class="flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900">
+				<i class="fa-solid fa-user-check text-sm"></i>
+				<span>3. Active Clients <span class="bg-brand-100 text-brand-800 ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold">4</span></span>
+			</button>
+			<button onclick="showToast('Client Registry is disabled in this view.')" class="flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900">
+				<i class="fa-solid fa-address-book text-sm"></i>
+				<span>4. Client Registry</span>
+			</button>
+			<button onclick="showToast('Calendar module is disabled in this view.')" class="flex items-center space-x-2 border-b-2 border-transparent px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition hover:border-slate-300 hover:text-slate-900">
+				<i class="fa-solid fa-calendar-days text-sm"></i>
+				<span>5. Calendar</span>
+			</button>
+		</nav>
+
+		<!-- Main Content Area -->
+		<main class="flex-1 space-y-6 overflow-y-auto bg-slate-100 p-6">
+			<div class="flex flex-col border-b border-slate-200 pb-2 md:flex-row md:items-center md:justify-between">
+				<div>
+					<h2 class="text-2xl font-bold text-slate-900">Executive Dashboard</h2>
+					<p class="text-sm text-slate-500">Real-time metrics, lead conversions, and brokerage performance for Meadow Lane Realty.</p>
+				</div>
+				<div class="mt-3 flex items-center space-x-3 md:mt-0">
+					<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"> <i class="fa-solid fa-circle mr-1.5 animate-pulse text-[8px] text-emerald-600"></i>Live Data Feed Active </span>
+					<button onclick="refreshDashboardData()" class="flex items-center space-x-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50">
+						<i class="fa-solid fa-rotate"></i>
+						<span>Refresh Metrics</span>
+					</button>
+				</div>
+			</div>
+
+			<!-- Summary Cards Grid -->
+			<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Total Active Clients</p>
+						<h3 class="mt-1 text-3xl font-extrabold text-slate-900">28</h3>
+						<p class="text-brand-600 mt-1 flex items-center text-xs font-semibold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> +12% this month</p>
+					</div>
+					<div class="bg-brand-50 text-brand-600 flex h-12 w-12 items-center justify-center rounded-2xl text-xl shadow-inner">
+						<i class="fa-solid fa-users"></i>
+					</div>
+				</div>
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Under Contract Count</p>
+						<h3 class="mt-1 text-3xl font-extrabold text-slate-900">7</h3>
+						<p class="mt-1 flex items-center text-xs font-semibold text-emerald-600"><i class="fa-solid fa-file-contract mr-1"></i> $4.8M Volume</p>
+					</div>
+					<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-xl text-blue-600 shadow-inner">
+						<i class="fa-solid fa-handshake"></i>
+					</div>
+				</div>
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Monthly Revenue</p>
+						<h3 class="mt-1 text-3xl font-extrabold text-slate-900">$94,500</h3>
+						<p class="text-brand-600 mt-1 flex items-center text-xs font-semibold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> 98% of Q3 Target</p>
+					</div>
+					<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-xl text-amber-600 shadow-inner">
+						<i class="fa-solid fa-wallet"></i>
+					</div>
+				</div>
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Lead Conversion Rate</p>
+						<h3 class="mt-1 text-3xl font-extrabold text-slate-900">34.8%</h3>
+						<p class="text-brand-600 mt-1 flex items-center text-xs font-semibold"><i class="fa-solid fa-bullseye mr-1"></i> Zillow Premier avg: 22%</p>
+					</div>
+					<div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-xl text-purple-600 shadow-inner">
+						<i class="fa-solid fa-chart-line"></i>
+					</div>
+				</div>
+			</div>
+
+			<!-- Secondary Metrics Bar -->
+			<div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold text-slate-500 uppercase">Google Business Rating</p>
+						<div class="mt-1 flex items-center space-x-2">
+							<span class="text-2xl font-bold text-slate-900">4.9</span>
+							<div class="text-sm text-amber-400"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+						</div>
+						<p class="mt-0.5 text-xs text-slate-500">Based on 142 verified reviews</p>
+					</div>
+					<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+						<i class="fa-brands fa-google"></i>
+					</div>
+				</div>
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold text-slate-500 uppercase">Zillow Lead Speed-To-Lead</p>
+						<h3 class="mt-1 text-2xl font-bold text-slate-900">1m 42s</h3>
+						<p class="mt-0.5 text-xs font-semibold text-emerald-600"><i class="fa-solid fa-bolt"></i> Webhook automatic routing active</p>
+					</div>
+					<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+						<i class="fa-solid fa-gauge-high"></i>
+					</div>
+				</div>
+				<div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div>
+						<p class="text-xs font-semibold text-slate-500 uppercase">Active Developments</p>
+						<h3 class="mt-1 text-2xl font-bold text-slate-900">4 Projects</h3>
+						<p class="mt-0.5 text-xs text-slate-500">Meadow Lane Estates Phase II</p>
+					</div>
+					<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+						<i class="fa-solid fa-hard-hat"></i>
+					</div>
+				</div>
+			</div>
+
+			<!-- Dashboard Work Grid: Assistant / Realtor Switcher -->
+			<div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
+				<div class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+					<div class="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h3 id="dash-role-title" class="text-sm font-bold text-slate-900">For your review · 4 waiting</h3>
+						</div>
+						<div class="flex w-fit rounded-xl bg-slate-100 p-1">
+							<button onclick="setDashboardRole('assistant')" id="btn-role-assistant" class="rounded-lg bg-white px-4 py-1.5 text-xs font-bold text-slate-900 shadow-sm">Assistant queue</button>
+							<button onclick="setDashboardRole('realtor')" id="btn-role-realtor" class="rounded-lg px-4 py-1.5 text-xs font-bold text-slate-500">Today's tasks</button>
+						</div>
+					</div>
+
+					<!-- Assistant View -->
+					<div id="dash-review-queue" class="space-y-3 bg-slate-100/70 p-4 sm:p-5">
+						<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs transition open:bg-slate-50 open:inset-ring-1 open:inset-ring-slate-200 hover:bg-slate-50" open>
+							<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+								<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700"><i class="fa-solid fa-user-plus text-xs"></i></span>
+								<span class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+										<span class="text-sm font-bold text-slate-900">New contact proposal · Jamie Rivera</span>
+										<span class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">Auto intake · Zillow</span>
+									</span>
+									<span class="mt-0.5 block text-xs text-slate-600">jamie.rivera@example.com · (555) 018-4420 · 12 Evergreen Terrace</span>
+									<span class="mt-0.5 block text-[11px] text-slate-400">24 min ago · No email match · <span class="text-brand-700 font-semibold">Review</span></span>
+								</span>
+								<button
+									type="button"
+									title="Quick accept"
+									aria-label="Quick accept Jamie Rivera"
+									onclick="
+										event.preventDefault();
+										event.stopPropagation();
+										decideReview(this, 'approved');
+									"
+									class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+									<i class="fa-solid fa-check text-xs"></i>
+								</button>
+							</summary>
+							<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-xs">
+								<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">What to check</p>
+								<div class="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+									<div>
+										<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Source</p>
+										<p class="mt-0.5 text-xs font-medium text-slate-800">Zillow Premier webhook · 9:42 AM</p>
+									</div>
+									<div>
+										<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Duplicate check</p>
+										<p class="mt-0.5 text-xs font-medium text-slate-800">0 email matches · 1 near name, different phone</p>
+									</div>
+									<div>
+										<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Proposed change</p>
+										<p class="mt-0.5 text-xs font-medium text-slate-800">Create contact + New Lead opportunity</p>
+									</div>
+									<div>
+										<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Property</p>
+										<p class="mt-0.5 text-xs font-medium text-slate-800">12 Evergreen Terrace, Los Angeles</p>
+									</div>
+								</div>
+								<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+									<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Confirm contact</button>
+									<button onclick="decideReview(this, 'duplicate')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Link as duplicate</button>
+									<button onclick="decideReview(this, 'rejected')" class="px-3 py-1.5 font-semibold text-slate-500 hover:text-red-600">Reject</button>
+								</div>
+							</div>
+						</details>
+						<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs transition open:bg-slate-50 open:inset-ring-1 open:inset-ring-slate-200 hover:bg-slate-50">
+							<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+								<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700"><i class="fa-solid fa-phone text-xs"></i></span>
+								<span class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+										<span class="text-sm font-bold text-slate-900">Matt Maestra progressed to Contacted</span>
+										<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Suggested transition</span>
+									</span>
+									<span class="mt-0.5 block text-xs text-slate-600">Janae reached out · 6 min call at 8:55 AM · Wants weekend showing</span>
+									<span class="mt-0.5 block text-[11px] text-slate-400">1 hr ago · New Lead since Sep 24 · <span class="text-brand-700 font-semibold">Review</span></span>
+								</span>
+								<button
+									type="button"
+									title="Quick accept"
+									aria-label="Quick accept pipeline move"
+									onclick="
+										event.preventDefault();
+										event.stopPropagation();
+										decideReview(this, 'approved');
+									"
+									class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+									<i class="fa-solid fa-check text-xs"></i>
+								</button>
+							</summary>
+							<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-xs">
+								<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Evidence</p>
+								<p class="text-xs font-medium text-slate-800">Call log + SMS reply "Saturday works".</p>
+								<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+									<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Approve move</button>
+									<button onclick="decideReview(this, 'rejected')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Keep in New Lead</button>
+								</div>
+							</div>
+						</details>
+						<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs transition open:bg-slate-50 open:inset-ring-1 open:inset-ring-slate-200 hover:bg-slate-50">
+							<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+								<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-700"><i class="fa-solid fa-calendar-check text-xs"></i></span>
+								<span class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+										<span class="text-sm font-bold text-slate-900">Eleanor Vance to Showing / Tour</span>
+										<span class="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-800">Tour booked</span>
+									</span>
+									<span class="mt-0.5 block text-xs text-slate-600">Showing moved to Saturday 2 PM · 12 Evergreen Terrace</span>
+									<span class="mt-0.5 block text-[11px] text-slate-400">2 hrs ago · Was Contacted · <span class="text-brand-700 font-semibold">Review</span></span>
+								</span>
+								<button
+									type="button"
+									title="Quick accept"
+									aria-label="Quick accept tour move"
+									onclick="
+										event.preventDefault();
+										event.stopPropagation();
+										decideReview(this, 'approved');
+									"
+									class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+									<i class="fa-solid fa-check text-xs"></i>
+								</button>
+							</summary>
+							<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-xs">
+								<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Evidence</p>
+								<p class="text-xs font-medium text-slate-800">Calendar invite accepted by Eleanor.</p>
+								<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+									<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Approve move</button>
+									<button onclick="decideReview(this, 'rejected')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Reject</button>
+								</div>
+							</div>
+						</details>
+						<details class="group rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs transition open:bg-slate-50 open:inset-ring-1 open:inset-ring-slate-200 hover:bg-slate-50">
+							<summary class="flex cursor-pointer list-none items-start gap-3 [&::-webkit-details-marker]:hidden">
+								<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"><i class="fa-solid fa-pen-to-square text-xs"></i></span>
+								<span class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+										<span class="text-sm font-bold text-slate-900">Marcus Vance phone update</span>
+										<span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Brokerage import</span>
+									</span>
+									<span class="mt-0.5 block text-xs text-slate-600">(555) 234-5678 → (555) 234-9001 · 1 email match</span>
+									<span class="mt-0.5 block text-[11px] text-slate-400">3 hrs ago · No other fields changed · <span class="text-brand-700 font-semibold">Review</span></span>
+								</span>
+								<button
+									type="button"
+									title="Quick accept"
+									aria-label="Quick accept phone update"
+									onclick="
+										event.preventDefault();
+										event.stopPropagation();
+										decideReview(this, 'approved');
+									"
+									class="text-brand-600 hover:bg-brand-600 hover:border-brand-600 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white transition hover:text-white">
+									<i class="fa-solid fa-check text-xs"></i>
+								</button>
+							</summary>
+							<div class="mt-3 ml-10 space-y-3 rounded-xl border border-slate-200 bg-white p-4 text-xs shadow-xs">
+								<p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Source</p>
+								<p class="text-xs font-medium text-slate-800">Brokerage CSV import this morning.</p>
+								<div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
+									<button onclick="decideReview(this, 'approved')" class="bg-brand-600 hover:bg-brand-700 rounded-lg px-3 py-1.5 font-bold text-white">Apply update</button>
+									<button onclick="decideReview(this, 'rejected')" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-100">Keep old number</button>
+								</div>
+							</div>
+						</details>
+					</div>
+
+					<!-- Realtor View -->
+					<div id="dash-task-list" class="hidden space-y-3 bg-slate-100/70 p-4 sm:p-5">
+						<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:bg-slate-50">
+							<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-2">
+									<p class="text-sm font-bold text-slate-900">Call Jamie Rivera · Zillow follow-up</p>
+									<span class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800">High · Due 10:30 AM</span>
+								</div>
+								<p class="mt-1 text-xs text-slate-600">From Janae: "She asked about Evergreen schools. Pre-approval PDF is attached."</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:bg-slate-50">
+							<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-2">
+									<p class="text-sm font-bold text-slate-900">Prep showing notes · 12 Evergreen Terrace</p>
+									<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Today 1:30 PM</span>
+								</div>
+								<p class="mt-1 text-xs text-slate-600">Eleanor moved her tour to 2 PM. Bring disclosure packet.</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:bg-slate-50">
+							<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-2">
+									<p class="text-sm font-bold text-slate-900">Sign inspection amendment · 428 Meadow Lane</p>
+									<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">Due 4 PM</span>
+								</div>
+								<p class="mt-1 text-xs text-slate-600">Marcus approved the credit. Signature is the only blocker to closing prep.</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:bg-slate-50">
+							<input type="checkbox" onchange="completeTask(this)" class="mt-1 h-4 w-4 accent-green-600" aria-label="Mark task complete" />
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-2">
+									<p class="text-sm font-bold text-slate-900">Confirm vendor quote · 142 Construction Blvd</p>
+									<span class="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">Low · Anytime today</span>
+								</div>
+								<p class="mt-1 text-xs text-slate-600">David Miller waits on the framing revision before release of funds.</p>
+							</div>
+						</div>
+					</div>
+					<div class="border-t border-slate-100 bg-slate-50 px-5 py-3">
+						<p id="dash-role-footnote" class="text-[11px] text-slate-500">4 waiting</p>
+					</div>
+				</div>
+
+				<!-- Schedule & Activity -->
+				<div class="min-w-0 space-y-6">
+					<!-- Upcoming Events -->
+					<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+						<div class="mb-4 flex items-center justify-between">
+							<h3 class="text-sm font-bold text-slate-900">Upcoming Brokerage Events</h3>
+							<button onclick="showToast('Calendar module is disabled in this view.')" class="text-brand-600 text-xs font-semibold hover:underline">View Calendar</button>
+						</div>
+						<div class="space-y-3">
+							<div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
+								<div class="flex items-center space-x-3">
+									<div class="bg-brand-100 text-brand-700 flex h-10 w-10 flex-col items-center justify-center rounded-lg text-xs font-bold">
+										<span>SEP</span>
+										<span class="text-sm">26</span>
+									</div>
+									<div>
+										<h4 class="text-sm font-semibold text-slate-900">Closing Walkthrough - 428 Meadow Lane</h4>
+										<p class="text-xs text-slate-500">10:00 AM - With Marcus Vance & Inspector</p>
+									</div>
+								</div>
+								<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">Pending</span>
+							</div>
+							<div class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3">
+								<div class="flex items-center space-x-3">
+									<div class="bg-brand-100 text-brand-700 flex h-10 w-10 flex-col items-center justify-center rounded-lg text-xs font-bold">
+										<span>SEP</span>
+										<span class="text-sm">28</span>
+									</div>
+									<div>
+										<h4 class="text-sm font-semibold text-slate-900">VIP Open House - Oakridge Estates</h4>
+										<p class="text-xs text-slate-500">01:00 PM - 12 Agents Attending</p>
+									</div>
+								</div>
+								<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">Scheduled</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Recent Activities -->
+					<div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+						<div class="mb-4 flex items-center justify-between">
+							<h3 class="text-sm font-bold text-slate-900">Recent Activity Stream</h3>
+							<span class="text-xs text-slate-400">Live Sync</span>
+						</div>
+						<div class="space-y-3 text-xs">
+							<div class="flex items-start space-x-3 border-b border-slate-100 pb-3">
+								<div class="bg-brand-100 text-brand-600 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full">
+									<i class="fa-solid fa-phone text-xs"></i>
+								</div>
+								<div>
+									<p class="font-medium text-slate-800"><span class="font-bold">Sarah Jenkins</span> called client <span class="font-bold">Eleanor Vance</span> regarding closing docs.</p>
+									<span class="text-[10px] text-slate-400">12 minutes ago</span>
+								</div>
+							</div>
+							<div class="flex items-start space-x-3 border-b border-slate-100 pb-3">
+								<div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+									<i class="fa-solid fa-envelope text-xs"></i>
+								</div>
+								<div>
+									<p class="font-medium text-slate-800">Bulk Email Campaign <span class="font-bold">"Fall Luxury Homes"</span> sent to 450 contacts.</p>
+									<span class="text-[10px] text-slate-400">45 minutes ago</span>
+								</div>
+							</div>
+							<div class="flex items-start space-x-3">
+								<div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+									<i class="fa-solid fa-user-plus text-xs"></i>
+								</div>
+								<div>
+									<p class="font-medium text-slate-800">New lead ingested from <span class="font-bold">Zillow Premier Agent</span> API.</p>
+									<span class="text-[10px] text-slate-400">1 hour ago</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Charts Section -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<!-- Revenue Trend Chart -->
+				<div class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div class="mb-4 flex items-center justify-between">
+						<h3 class="text-sm font-bold text-slate-900">Monthly Revenue & Commission (2026)</h3>
+						<span class="text-xs font-medium text-slate-400">Updated Real-Time</span>
+					</div>
+					<div class="relative h-64 flex-1">
+						<canvas id="revenueChart"></canvas>
+					</div>
+				</div>
+				<!-- Lead Sources Breakdown -->
+				<div class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+					<div class="mb-4 flex items-center justify-between">
+						<h3 class="text-sm font-bold text-slate-900">Lead Source Distribution</h3>
+						<span class="text-xs font-medium text-slate-400">Total: 128 Leads</span>
+					</div>
+					<div class="relative flex h-64 flex-1 items-center justify-center">
+						<canvas id="leadsChart"></canvas>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<!-- Notification Toast -->
+		<div id="toast" class="fixed right-6 bottom-6 z-50 flex hidden translate-y-10 transform items-center space-x-3 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-3 text-xs font-semibold text-white opacity-0 shadow-2xl transition-all">
+			<i class="fa-solid fa-circle-check text-brand-500 text-base"></i>
+			<span id="toast-msg">Action completed successfully.</span>
+		</div>
+
+		<!-- Dashboard Logic -->
+		<script>
+			let dashboardRole = "assistant";
+
+			window.addEventListener("DOMContentLoaded", () => {
+				initCharts();
+			});
+
+			function initCharts() {
+				if (typeof Chart === "undefined") return;
+				// Revenue Chart
+				new Chart(document.getElementById("revenueChart").getContext("2d"), {
+					type: "bar",
+					data: {
+						labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
+						datasets: [
+							{
+								label: "Gross Commission ($)",
+								data: [42000, 58000, 64000, 72000, 89000, 95000, 110000, 88000, 94500],
+								backgroundColor: "#16a34a",
+								borderRadius: 8,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: { legend: { display: false } },
+						scales: {
+							y: { beginAtZero: true, grid: { color: "#f1f5f9" } },
+							x: { grid: { display: false } },
+						},
+					},
+				});
+
+				// Leads Chart
+				new Chart(document.getElementById("leadsChart").getContext("2d"), {
+					type: "doughnut",
+					data: {
+						labels: ["Zillow Premier", "Google Business", "Direct Referral", "Social Media", "Website Organic"],
+						datasets: [
+							{
+								data: [45, 25, 18, 12, 28],
+								backgroundColor: ["#16a34a", "#2563eb", "#f59e0b", "#ec4899", "#8b5cf6"],
+								borderWidth: 0,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: {
+							legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+						},
+					},
+				});
+			}
+
+			function setDashboardRole(role) {
+				dashboardRole = role;
+				const isAssistant = role === "assistant";
+				document.getElementById("dash-review-queue").classList.toggle("hidden", !isAssistant);
+				document.getElementById("dash-task-list").classList.toggle("hidden", isAssistant);
+				document.getElementById("btn-role-assistant").className = isAssistant ? "px-4 py-1.5 bg-white shadow-sm text-xs font-bold rounded-lg text-slate-900" : "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500";
+				document.getElementById("btn-role-realtor").className = !isAssistant ? "px-4 py-1.5 bg-white shadow-sm text-xs font-bold rounded-lg text-slate-900" : "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500";
+				document.getElementById("dashboard-role").value = role;
+				document.getElementById("dash-user-avatar").src = isAssistant ? "https://placehold.co/40x40/16a34a/ffffff?text=JA" : "https://placehold.co/40x40/2563eb/ffffff?text=JD";
+
+				const assistantCount = document.querySelectorAll("#dash-review-queue details").length;
+				const realtorCount = document.querySelectorAll("#dash-task-list input:not(:disabled)").length;
+
+				document.getElementById("dash-role-title").innerText = isAssistant ? `For your review · ${assistantCount} waiting` : `Today's tasks · ${realtorCount} open`;
+				document.getElementById("dash-role-footnote").innerText = isAssistant ? `${assistantCount} waiting` : `${realtorCount} open`;
+			}
+
+			function decideReview(btn, decision) {
+				const card = btn.closest("details");
+				const title = card.querySelector("summary .font-bold").innerText;
+				const label = decision === "approved" ? "Approved" : decision === "duplicate" ? "Linked as duplicate" : "Rejected";
+				card.outerHTML = `<div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 shadow-xs"><i class="fa-solid fa-check mr-1.5 text-brand-600"></i>${title} · ${label}.</div>`;
+				setDashboardRole(dashboardRole);
+				showToast(`${label}: ${title}`);
+			}
+
+			function completeTask(checkbox) {
+				const row = checkbox.closest("#dash-task-list > div");
+				const title = row.querySelector(".font-bold").innerText;
+				row.style.opacity = "0.55";
+				row.querySelector(".font-bold").style.textDecoration = "line-through";
+				checkbox.disabled = true;
+				setDashboardRole(dashboardRole);
+				showToast(`Done: ${title}`);
+			}
+
+			function refreshDashboardData() {
+				showToast("Dashboard metrics re-synced successfully.");
+			}
+
+			function toggleNotifications() {
+				document.getElementById("notif-dropdown").classList.toggle("hidden");
+			}
+
+			function clearNotifications() {
+				document.getElementById("notif-badge").style.display = "none";
+				showToast("All notifications marked as read.");
+				toggleNotifications();
+			}
+
+			function showToast(msg) {
+				const toast = document.getElementById("toast");
+				document.getElementById("toast-msg").innerText = msg;
+				toast.classList.remove("hidden", "translate-y-10", "opacity-0");
+				setTimeout(() => {
+					toast.classList.add("translate-y-10", "opacity-0");
+					setTimeout(() => toast.classList.add("hidden"), 300);
+				}, 2800);
+			}
+		</script>
+	</body>
+</html>
