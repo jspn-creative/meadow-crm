@@ -7,30 +7,34 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
-
-# OS
-.DS_Store
-Thumbs.db
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.vitest/
+skills-lock.json
 
 # Env
 .env
 .env.*
 !.env.example
 !.env.test
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.DS_Store
+Thumbs.db
+.zed/
 
-# Vite
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
+# Workspace
 !.vscode/
 !.vscode/settings.json
 !.vscode/extensions.json
-
-# Harnesses/AI
 .claude
 .agents
 .opencode
 .cursor
 .impeccable
-.vitest/
+docs
+.scratch
 .openchamber
 .delta
+openspec
