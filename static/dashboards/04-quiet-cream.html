@@ -19,23 +19,34 @@
 				--font-sans: "Inter", system-ui, sans-serif;
 				--font-display: "Newsreader", Georgia, serif;
 
-				/* The only colours added to the stock palette: the warm cream the page
-           fades out of, its hairlines, and the moss green the numbers use.
-           Everything else on this page is stock Tailwind. */
+				/* Warm neutrals with muted blue, ochre, lavender, sage, and clay accents. */
 				--color-paper: #f2efe3;
 				--color-paper-pill: #e6e0cd;
 				--color-canvas: #fdfcf9;
 				--color-hairline: #e9e4d6;
-				--color-muted: #8b8375;
+				--color-muted: #756d60;
 				--color-field: #4c7a2f;
 				--color-field-deep: #3a6122;
+				--color-info-soft: #e7eef0;
+				--color-info: #456775;
+				--color-pending-soft: #f3ead6;
+				--color-pending: #806126;
+				--color-tour-soft: #eee9f1;
+				--color-tour: #715c83;
+				--color-success-soft: #e8eddf;
+				--color-success: #50683d;
+				--color-urgent-soft: #f4e5df;
+				--color-urgent: #98543f;
 
 				/* Tracked kickers sit at 11px, half a step below the stock 12px. */
 				--text-2xs: 0.6875rem;
 
-				/* One elevation. Cards get this and a hairline, never a heavy border. */
-				--shadow-card: 0 1px 10px rgb(27 26 23 / 0.1), 0 12px 28px -18px rgb(27 26 23 / 0.22);
+				/* Cards use hairlines only; elevation belongs to the main panel and overlays. */
+				--shadow-card: none;
+				--shadow-shell: 0 4px 20px -8px rgb(27 26 23 / 0.12);
+				--shadow-tab: 0 1px 2px rgb(27 26 23 / 0.08);
 				--shadow-panel: 0 28px 64px -32px rgb(27 26 23 / 0.4);
+				--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 			}
 
 			@layer base {
@@ -47,6 +58,52 @@
 					font-family: var(--font-sans);
 					-webkit-font-smoothing: antialiased;
 					text-rendering: optimizeLegibility;
+				}
+
+				/* Shared control feedback stays consistent across the prototype. */
+				button,
+				summary,
+				input[type="checkbox"] {
+					@apply cursor-pointer;
+
+					&:focus-visible {
+						@apply outline-field outline-2 outline-offset-2;
+					}
+
+					&:disabled {
+						@apply cursor-default;
+					}
+				}
+
+				button {
+					transition:
+						color 120ms ease,
+						background-color 120ms ease,
+						border-color 120ms ease,
+						transform 140ms var(--ease-out);
+
+					&:active:not(:disabled) {
+						transform: scale(0.97);
+					}
+
+					@media (hover: hover) and (pointer: fine) {
+						&:hover:not(:disabled) {
+							filter: brightness(0.96);
+						}
+					}
+				}
+
+				summary {
+					@media (hover: hover) and (pointer: fine) {
+						&:hover {
+							@apply bg-paper/50;
+						}
+					}
+				}
+
+				::selection {
+					background: var(--color-success-soft);
+					color: var(--color-field-deep);
 				}
 
 				::-webkit-scrollbar {
@@ -65,6 +122,33 @@
 				::-webkit-scrollbar-thumb:hover {
 					background: var(--color-muted);
 					background-clip: content-box;
+				}
+			}
+
+			/* Utilities own layout; this layer overrides their broad transition defaults. */
+			@layer utilities {
+				:root[data-input="keyboard"] button {
+					transition: none;
+
+					&:active {
+						transform: none;
+					}
+				}
+
+				button[class] {
+					transition-property: color, background-color, border-color, transform;
+					transition-duration: 120ms;
+					transition-timing-function: var(--ease-out);
+				}
+
+				@media (prefers-reduced-motion: reduce) {
+					button[class] {
+						transition-property: color, background-color, border-color;
+
+						&:active {
+							transform: none;
+						}
+					}
 				}
 			}
 
@@ -87,17 +171,10 @@
 				height: 0;
 			}
 
-			/* Small screens only: the greeting gives its height back to the content
-         once the panel has scrolled, since it has already done its job of
-         orienting you. Collapsing height rather than just fading keeps the
-         layout shift honest — nothing below it jumps at the end of the ease. */
+			/* On small screens, collapse the greeting immediately instead of animating layout on every scroll. */
 			.aside-greeting {
 				max-height: 6rem;
 				overflow: hidden;
-				transition:
-					max-height 280ms ease,
-					opacity 280ms ease,
-					margin-top 280ms ease;
 
 				.aside[data-collapsed="true"] & {
 					max-height: 0;
@@ -114,12 +191,8 @@
 				}
 			}
 
-			/* The section pills tighten up alongside the greeting, so once it is gone
-         the nav is the only thing left between the wordmark and the panel. Same
-         easing, so the two recede as one movement rather than in sequence. */
+			/* Section pills collapse with the greeting, without a separate layout animation. */
 			.aside-nav {
-				transition: margin-top 280ms ease;
-
 				.aside[data-collapsed="true"] & {
 					margin-top: 1rem;
 				}
@@ -128,6 +201,203 @@
 					.aside[data-collapsed="true"] & {
 						margin-top: 2rem;
 					}
+				}
+			}
+		</style>
+		<style>
+			:root {
+				--widget-gap: 20px;
+				--hover-lift: 5px;
+				--motion-duration: 360ms;
+				--wash-strength: 65%;
+			}
+
+			#panel-overview {
+				& > * + *,
+				& #queue > div > * + * {
+					margin-top: var(--widget-gap);
+				}
+
+				& > .grid,
+				& #queue {
+					gap: var(--widget-gap);
+					transition: gap var(--motion-duration) var(--ease-out);
+
+					@media (prefers-reduced-motion: reduce) {
+						transition: none;
+					}
+				}
+			}
+
+			/* A translucent gradient layer fades in without replacing the cream surfaces. */
+			[data-interactive] {
+				position: relative;
+				isolation: isolate;
+				--item-hue: var(--color-success-soft);
+				transition:
+					transform var(--motion-duration) var(--ease-out),
+					box-shadow var(--motion-duration) var(--ease-out);
+
+				@media (prefers-reduced-motion: reduce) {
+					transition: none;
+					&[data-interactive="score"]:hover {
+						transform: none;
+					}
+				}
+
+				&::before {
+					content: "";
+					position: absolute;
+					inset: 0;
+					z-index: -1;
+					border-radius: inherit;
+					pointer-events: none;
+					background: linear-gradient(135deg, color-mix(in srgb, var(--item-hue) var(--wash-strength), white), rgb(255 255 255 / 0) 85%);
+					opacity: 0;
+					transition: opacity var(--motion-duration) ease;
+				}
+
+				&:focus-within::before {
+					opacity: 1;
+				}
+
+				@media (hover: hover) and (pointer: fine) {
+					&:hover::before {
+						opacity: 1;
+					}
+
+					&[data-interactive="score"]:hover {
+						transform: translateY(calc(-1 * var(--hover-lift))) scale(1.018);
+						box-shadow: 0 10px 22px -16px rgb(64 59 43 / 0.3);
+
+						@media (prefers-reduced-motion: reduce) {
+							transform: none;
+						}
+					}
+
+					&:hover > span:first-child i {
+						transform: rotate(-10deg) scale(1.15);
+
+						@media (prefers-reduced-motion: reduce) {
+							transform: none;
+						}
+					}
+				}
+			}
+
+			#dash-review-queue details {
+				& summary:hover {
+					background: transparent;
+				}
+
+				&::details-content {
+					block-size: 0;
+					opacity: 0;
+					overflow: clip;
+					interpolate-size: allow-keywords;
+					transition:
+						block-size var(--motion-duration) var(--ease-out),
+						opacity 180ms ease,
+						content-visibility var(--motion-duration) allow-discrete;
+
+					@media (prefers-reduced-motion: reduce) {
+						transition: none;
+					}
+				}
+
+				&[open]::details-content {
+					block-size: auto;
+					opacity: 1;
+				}
+			}
+
+			[data-name-letter] {
+				display: inline-block;
+				white-space: pre;
+				transition:
+					transform 300ms var(--ease-out),
+					color 300ms ease;
+				transition-delay: calc(var(--letter-index) * 18ms);
+
+				@media (prefers-reduced-motion: reduce) {
+					transition: none;
+				}
+			}
+
+			[data-animated-name] {
+				@media (hover: hover) and (pointer: fine) {
+					&:hover [data-name-letter] {
+						transform: translateY(-3px) rotate(-3deg);
+						color: var(--color-field);
+					}
+				}
+
+				@media (prefers-reduced-motion: reduce) {
+					&:hover [data-name-letter] {
+						transform: none;
+					}
+				}
+			}
+
+			[data-interactive] i {
+				transition: transform var(--motion-duration) var(--ease-out);
+			}
+
+			#detail-dialog {
+				border: 0;
+				padding: 0;
+				margin: auto;
+				width: min(640px, calc(100vw - 32px));
+				max-height: 85vh;
+				border-radius: 24px;
+				background: var(--color-canvas);
+				color: var(--color-stone-900);
+				box-shadow: var(--shadow-panel);
+				view-transition-name: work-detail;
+
+				&::backdrop {
+					background: rgb(43 40 31 / 0.25);
+					backdrop-filter: blur(4px);
+				}
+			}
+
+			::view-transition-group(work-detail) {
+				animation-duration: var(--motion-duration);
+				animation-timing-function: var(--ease-out);
+			}
+
+			::view-transition-old(root),
+			::view-transition-new(root) {
+				animation: none;
+			}
+
+			#motion-controls {
+				& input[type="range"] {
+					accent-color: var(--color-field);
+					width: 100%;
+					cursor: ew-resize;
+				}
+			}
+
+			#tuning-body {
+				transition:
+					opacity 200ms ease,
+					transform 240ms var(--ease-out),
+					display 240ms allow-discrete;
+
+				@starting-style {
+					opacity: 0;
+					transform: translateY(8px);
+				}
+
+				@media (prefers-reduced-motion: reduce) {
+					transition: none;
+				}
+			}
+
+			::view-transition-group(*) {
+				@media (prefers-reduced-motion: reduce) {
+					animation-duration: 0s;
 				}
 			}
 		</style>
@@ -321,18 +591,24 @@
          than white: one that reaches white gives the lower half of the frame
          nothing to show, and the border reads as a gap rather than as the page.
          The panel is anchored to the right edge, so only the left corners round. -->
-		<main class="shadow-card mb-3 ml-3 min-h-0 flex-1 overflow-y-auto rounded-l-2xl bg-white/70 lg:mt-3 lg:mb-3 lg:ml-3 lg:rounded-l-3xl">
+		<main class="shadow-shell mb-3 ml-3 min-h-0 flex-1 overflow-y-auto rounded-l-2xl bg-white/70 lg:mt-3 lg:mb-3 lg:ml-3 lg:rounded-l-3xl">
 			<!-- Title bar -->
 			<div class="flex items-center justify-between gap-4 px-5 pt-8 pb-6 sm:px-8 lg:px-10">
 				<h2 class="font-display text-3xl tracking-tight text-balance">Dashboard <span class="text-muted">/ Overview</span></h2>
 
 				<div class="relative shrink-0">
-					<button type="button" onclick="toggleNotifications()" aria-label="Notifications" class="border-hairline text-muted focus-visible:outline-field relative flex size-9 items-center justify-center rounded-full border bg-white transition hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2">
+					<button
+						type="button"
+						onclick="toggleNotifications()"
+						aria-label="Notifications"
+						aria-expanded="false"
+						aria-controls="notif-dropdown"
+						class="border-hairline text-muted focus-visible:outline-field relative flex size-9 items-center justify-center rounded-full border bg-white transition hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2">
 						<i class="fa-regular fa-bell text-sm" aria-hidden="true"></i>
-						<span id="notif-badge" class="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-semibold text-white">3</span>
+						<span id="notif-badge" class="bg-urgent absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full text-[9px] font-semibold text-white">3</span>
 					</button>
 
-					<div id="notif-dropdown" class="border-hairline shadow-panel absolute right-0 z-50 mt-3 hidden w-80 rounded-2xl border bg-white p-4">
+					<div id="notif-dropdown" class="border-hairline shadow-panel absolute right-0 z-50 mt-3 hidden w-80 origin-top-right rounded-2xl border bg-white p-4">
 						<div class="border-hairline flex items-center justify-between border-b pb-3">
 							<span class="text-sm font-medium">Notifications</span>
 							<button type="button" onclick="clearNotifications()" class="text-field hover:text-field-deep text-xs font-medium transition hover:underline">Mark all read</button>
@@ -343,12 +619,12 @@
 								<p class="text-muted mt-0.5 text-xs">New inquiry for 742 Evergreen Terrace ($650k)</p>
 								<span class="text-2xs text-muted mt-1 block">2 minutes ago</span>
 							</li>
-							<li class="border-l-2 border-sky-400 pl-3">
+							<li class="border-info border-l-2 pl-3">
 								<p class="text-xs font-medium">Google Business review</p>
 								<p class="text-muted mt-0.5 text-xs">Sarah Jenkins left a 5-star review</p>
 								<span class="text-2xs text-muted mt-1 block">15 minutes ago</span>
 							</li>
-							<li class="border-l-2 border-amber-400 pl-3">
+							<li class="border-pending border-l-2 pl-3">
 								<p class="text-xs font-medium">Inspection reminder</p>
 								<p class="text-muted mt-0.5 text-xs">Marcus Vance at 10:00 AM</p>
 								<span class="text-2xs text-muted mt-1 block">1 hour ago</span>
@@ -401,8 +677,8 @@
 							<h3 id="dash-role-title" class="font-display text-xl tracking-tight">For your review · 4 waiting</h3>
 
 							<div role="tablist" aria-label="Queue or tasks" class="bg-paper flex w-fit gap-1 rounded-full p-1">
-								<button type="button" role="tab" id="btn-role-assistant" aria-controls="dash-review-queue" aria-selected="true" onclick="setDashboardRole('assistant')" class="aria-selected:shadow-card rounded-full px-4 py-1.5 text-xs font-medium text-stone-900 transition aria-selected:bg-white">Assistant queue</button>
-								<button type="button" role="tab" id="btn-role-realtor" aria-controls="dash-task-list" aria-selected="false" onclick="setDashboardRole('realtor')" class="text-muted aria-selected:shadow-card rounded-full px-4 py-1.5 text-xs font-medium transition aria-selected:bg-white aria-selected:text-stone-900">
+								<button type="button" role="tab" id="btn-role-assistant" aria-controls="dash-review-queue" aria-selected="true" onclick="setDashboardRole('assistant')" class="aria-selected:shadow-tab rounded-full px-4 py-1.5 text-xs font-medium text-stone-900 transition aria-selected:bg-white">Assistant queue</button>
+								<button type="button" role="tab" id="btn-role-realtor" aria-controls="dash-task-list" aria-selected="false" onclick="setDashboardRole('realtor')" class="text-muted aria-selected:shadow-tab rounded-full px-4 py-1.5 text-xs font-medium transition aria-selected:bg-white aria-selected:text-stone-900">
 									Today's tasks
 								</button>
 							</div>
@@ -412,11 +688,11 @@
 						<div id="dash-review-queue" role="tabpanel" class="flex-1 space-y-3 p-6">
 							<details class="group border-hairline bg-canvas open:bg-paper/50 rounded-xl border" open>
 								<summary class="flex cursor-pointer list-none items-start gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
-									<span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700"><i class="fa-solid fa-user-plus text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-info-soft text-info mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-user-plus text-[10px]" aria-hidden="true"></i></span>
 									<span class="min-w-0 flex-1">
 										<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 											<span class="text-sm font-medium">New contact proposal · Jamie Rivera</span>
-											<span class="text-2xs rounded-md bg-sky-100 px-1.5 py-0.5 font-medium text-sky-800">Auto intake · Zillow</span>
+											<span class="text-2xs bg-info-soft text-info rounded-md px-1.5 py-0.5 font-medium">Auto intake · Zillow</span>
 										</span>
 										<span class="text-muted mt-1 block text-xs">jamie.rivera@example.com · (555) 018-4420 · 12 Evergreen Terrace</span>
 										<span class="text-2xs text-muted mt-1 block">24 min ago · no email match</span>
@@ -457,18 +733,18 @@
 									<div class="border-hairline mt-4 flex flex-wrap items-center gap-2 border-t pt-3">
 										<button type="button" onclick="decideReview(this, 'approved')" class="hover:bg-field focus-visible:outline-field rounded-full bg-stone-900 px-4 py-1.5 text-xs font-medium text-white transition focus-visible:outline-2 focus-visible:outline-offset-2">Confirm contact</button>
 										<button type="button" onclick="decideReview(this, 'duplicate')" class="border-hairline hover:bg-paper focus-visible:outline-field rounded-full border px-4 py-1.5 text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2">Link as duplicate</button>
-										<button type="button" onclick="decideReview(this, 'rejected')" class="text-muted px-4 py-1.5 text-xs font-medium transition hover:text-rose-700">Reject</button>
+										<button type="button" onclick="decideReview(this, 'rejected')" class="text-muted hover:text-urgent px-4 py-1.5 text-xs font-medium transition">Reject</button>
 									</div>
 								</div>
 							</details>
 
 							<details class="group border-hairline bg-canvas open:bg-paper/50 rounded-xl border">
 								<summary class="flex cursor-pointer list-none items-start gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
-									<span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700"><i class="fa-solid fa-phone text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-pending-soft text-pending mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-phone text-[10px]" aria-hidden="true"></i></span>
 									<span class="min-w-0 flex-1">
 										<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 											<span class="text-sm font-medium">Matt Maestra progressed to Contacted</span>
-											<span class="text-2xs rounded-md bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Suggested transition</span>
+											<span class="text-2xs bg-pending-soft text-pending rounded-md px-1.5 py-0.5 font-medium">Suggested transition</span>
 										</span>
 										<span class="text-muted mt-1 block text-xs">Janae reached out · 6 min call at 8:55 AM · wants a weekend showing</span>
 										<span class="text-2xs text-muted mt-1 block">1 hr ago · New Lead since Sep 24</span>
@@ -498,11 +774,11 @@
 
 							<details class="group border-hairline bg-canvas open:bg-paper/50 rounded-xl border">
 								<summary class="flex cursor-pointer list-none items-start gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
-									<span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700"><i class="fa-solid fa-calendar-check text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-tour-soft text-tour mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-calendar-check text-[10px]" aria-hidden="true"></i></span>
 									<span class="min-w-0 flex-1">
 										<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 											<span class="text-sm font-medium">Eleanor Vance to Showing / Tour</span>
-											<span class="text-2xs rounded-md bg-violet-100 px-1.5 py-0.5 font-medium text-violet-800">Tour booked</span>
+											<span class="text-2xs bg-tour-soft text-tour rounded-md px-1.5 py-0.5 font-medium">Tour booked</span>
 										</span>
 										<span class="text-muted mt-1 block text-xs">Showing moved to Saturday 2 PM · 12 Evergreen Terrace</span>
 										<span class="text-2xs text-muted mt-1 block">2 hrs ago · was Contacted</span>
@@ -532,11 +808,11 @@
 
 							<details class="group border-hairline bg-canvas open:bg-paper/50 rounded-xl border">
 								<summary class="flex cursor-pointer list-none items-start gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
-									<span class="bg-paper-pill text-field-deep mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-pen-to-square text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-success-soft text-success mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-pen-to-square text-[10px]" aria-hidden="true"></i></span>
 									<span class="min-w-0 flex-1">
 										<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 											<span class="text-sm font-medium">Marcus Vance phone update</span>
-											<span class="bg-paper text-2xs text-field-deep rounded-md px-1.5 py-0.5 font-medium">Brokerage import</span>
+											<span class="bg-success-soft text-2xs text-success rounded-md px-1.5 py-0.5 font-medium">Brokerage import</span>
 										</span>
 										<span class="text-muted mt-1 block text-xs">(555) 234-5678 → (555) 234-9001 · 1 email match</span>
 										<span class="text-2xs text-muted mt-1 block">3 hrs ago · no other fields changed</span>
@@ -572,7 +848,7 @@
 								<div class="min-w-0 flex-1">
 									<div class="flex flex-wrap items-center gap-2">
 										<p class="text-sm font-medium">Call Jamie Rivera · Zillow follow-up</p>
-										<span class="text-2xs rounded-md bg-rose-100 px-1.5 py-0.5 font-medium text-rose-800">High · due 10:30 AM</span>
+										<span class="text-2xs bg-urgent-soft text-urgent rounded-md px-1.5 py-0.5 font-medium">High · due 10:30 AM</span>
 									</div>
 									<p class="text-muted mt-1 text-xs leading-5">From Janae: “She asked about Evergreen schools. Pre-approval PDF is attached.”</p>
 								</div>
@@ -583,7 +859,7 @@
 								<div class="min-w-0 flex-1">
 									<div class="flex flex-wrap items-center gap-2">
 										<p class="text-sm font-medium">Prep showing notes · 12 Evergreen Terrace</p>
-										<span class="text-2xs rounded-md bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Today 1:30 PM</span>
+										<span class="text-2xs bg-pending-soft text-pending rounded-md px-1.5 py-0.5 font-medium">Today 1:30 PM</span>
 									</div>
 									<p class="text-muted mt-1 text-xs leading-5">Eleanor moved her tour to 2 PM. Bring the disclosure packet.</p>
 								</div>
@@ -594,7 +870,7 @@
 								<div class="min-w-0 flex-1">
 									<div class="flex flex-wrap items-center gap-2">
 										<p class="text-sm font-medium">Sign inspection amendment · 428 Meadow Lane</p>
-										<span class="text-2xs rounded-md bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">Due 4 PM</span>
+										<span class="text-2xs bg-pending-soft text-pending rounded-md px-1.5 py-0.5 font-medium">Due 4 PM</span>
 									</div>
 									<p class="text-muted mt-1 text-xs leading-5">Marcus approved the credit. Signature is the only blocker to closing prep.</p>
 								</div>
@@ -635,7 +911,7 @@
 											<p class="text-2xs text-muted mt-0.5">10:00 AM · with Marcus Vance &amp; inspector</p>
 										</div>
 									</div>
-									<span class="text-2xs shrink-0 rounded-md bg-amber-100 px-2 py-0.5 font-medium text-amber-800">Pending</span>
+									<span class="text-2xs bg-pending-soft text-pending shrink-0 rounded-md px-2 py-0.5 font-medium">Pending</span>
 								</li>
 								<li class="flex items-center justify-between gap-3">
 									<div class="flex items-center gap-3">
@@ -648,7 +924,7 @@
 											<p class="text-2xs text-muted mt-0.5">1:00 PM · 12 agents attending</p>
 										</div>
 									</div>
-									<span class="bg-paper text-2xs text-field-deep shrink-0 rounded-md px-2 py-0.5 font-medium">Scheduled</span>
+									<span class="bg-success-soft text-2xs text-success shrink-0 rounded-md px-2 py-0.5 font-medium">Scheduled</span>
 								</li>
 							</ul>
 						</section>
@@ -661,15 +937,15 @@
 
 							<ul class="mt-5 space-y-4">
 								<li class="flex items-start gap-3">
-									<span class="bg-paper text-field-deep mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-phone text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-success-soft text-success mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-phone text-[10px]" aria-hidden="true"></i></span>
 									<p class="text-xs leading-5"><span class="font-medium">Sarah Jenkins</span> called client <span class="font-medium">Eleanor Vance</span> regarding closing docs.<span class="text-2xs text-muted mt-0.5 block">12 minutes ago</span></p>
 								</li>
 								<li class="flex items-start gap-3">
-									<span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700"><i class="fa-solid fa-envelope text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-info-soft text-info mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-envelope text-[10px]" aria-hidden="true"></i></span>
 									<p class="text-xs leading-5">Bulk campaign “Fall Luxury Homes” sent to 450 contacts.<span class="text-2xs text-muted mt-0.5 block">45 minutes ago</span></p>
 								</li>
 								<li class="flex items-start gap-3">
-									<span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700"><i class="fa-solid fa-user-plus text-[10px]" aria-hidden="true"></i></span>
+									<span class="bg-tour-soft text-tour mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-user-plus text-[10px]" aria-hidden="true"></i></span>
 									<p class="text-xs leading-5">New lead ingested from the <span class="font-medium">Zillow Premier Agent</span> API.<span class="text-2xs text-muted mt-0.5 block">1 hour ago</span></p>
 								</li>
 							</ul>
@@ -713,7 +989,7 @@
 							<p class="text-2xs text-muted font-semibold tracking-[0.14em] uppercase">Google rating</p>
 							<p class="mt-1.5 flex items-baseline gap-2">
 								<span class="font-display text-2xl tracking-tight">4.9</span>
-								<span class="text-[9px] text-amber-400" aria-label="5 out of 5 stars">★★★★★</span>
+								<span class="text-pending text-[9px]" aria-label="5 out of 5 stars">★★★★★</span>
 							</p>
 							<p class="text-2xs text-muted mt-1">142 verified reviews</p>
 						</div>
@@ -722,11 +998,11 @@
 
 					<article class="border-hairline shadow-card flex items-center justify-between gap-4 rounded-2xl border bg-white p-5">
 						<div>
-							<p class="text-2xs text-muted font-semibold tracking-[0.14em] uppercase">Speed to lead</p>
-							<p class="font-display mt-1.5 text-2xl tracking-tight">1m 42s</p>
-							<p class="text-2xs text-muted mt-1">Webhook routing active</p>
+							<p class="text-2xs text-muted font-semibold tracking-[0.14em] uppercase">Estate referrals</p>
+							<p class="font-display mt-1.5 text-2xl tracking-tight">15</p>
+							<p class="text-2xs text-success mt-1 flex items-center gap-1.5 font-medium"><i class="fa-solid fa-arrow-trend-up text-[9px]" aria-hidden="true"></i> +3 this month</p>
 						</div>
-						<span class="bg-paper text-muted flex size-9 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-bolt text-xs" aria-hidden="true"></i></span>
+						<span class="bg-success-soft text-success flex size-9 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-handshake text-xs" aria-hidden="true"></i></span>
 					</article>
 
 					<article class="border-hairline shadow-card flex items-center justify-between gap-4 rounded-2xl border bg-white p-5">
@@ -770,19 +1046,62 @@
 		</main>
 
 		<!-- Toast -->
-		<div id="toast" role="status" class="shadow-panel fixed right-8 bottom-8 z-50 hidden items-center gap-3 rounded-full bg-stone-900 px-5 py-3 text-xs font-medium text-white transition duration-300">
-			<i id="toast-icon" class="fa-solid fa-circle-check text-field" aria-hidden="true"></i>
+		<dialog id="detail-dialog" aria-labelledby="detail-title">
+			<div class="border-hairline flex items-start justify-between gap-5 border-b p-6">
+				<div>
+					<p class="text-2xs text-muted mb-2 tracking-widest uppercase">Work details</p>
+					<h2 id="detail-title" class="font-display text-2xl leading-tight"></h2>
+				</div>
+				<button type="button" onclick="closeWorkDetail()" aria-label="Close details" class="bg-paper hover:bg-paper-pill flex size-9 shrink-0 items-center justify-center rounded-full"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+			</div>
+			<div id="detail-body" class="space-y-4 p-6 text-sm leading-relaxed"></div>
+			<div class="border-hairline text-muted border-t px-6 py-4 text-xs">Prototype preview · changes are not saved</div>
+		</dialog>
+
+		<aside id="motion-controls" class="border-hairline bg-canvas shadow-panel fixed right-5 bottom-5 z-40 w-64 rounded-2xl border p-4" aria-label="Prototype tuning">
+			<div class="flex items-center justify-between gap-3">
+				<button type="button" id="tuning-toggle" aria-expanded="false" aria-controls="tuning-body" class="flex items-center gap-2 text-xs font-medium"><i class="fa-solid fa-sliders text-field" aria-hidden="true"></i> Play with the feel</button
+				><button type="button" onclick="replayEntrances()" class="text-field text-xs hover:underline">Replay</button>
+			</div>
+			<div id="tuning-body" class="mt-4 hidden space-y-3 text-xs">
+				<label class="block">Widget spacing <output id="gap-value" class="text-muted float-right">20px</output><input type="range" min="12" max="40" value="20" data-dial="gap" class="mt-2" /></label>
+				<label class="block">Hover lift <output id="lift-value" class="text-muted float-right">5px</output><input type="range" min="0" max="12" value="5" data-dial="lift" class="mt-2" /></label>
+				<label class="block">Motion duration <output id="duration-value" class="text-muted float-right">360ms</output><input type="range" min="120" max="700" step="20" value="360" data-dial="duration" class="mt-2" /></label>
+				<label class="block">Hover color <output id="wash-value" class="text-muted float-right">65%</output><input type="range" min="0" max="100" value="65" data-dial="wash" class="mt-2" /></label>
+				<label class="flex items-center justify-between">Entrance animations <input id="entrance-toggle" type="checkbox" aria-label="Entrance animations" checked class="accent-field" /></label>
+				<button type="button" id="tuning-reset" class="text-muted hover:text-field">Reset defaults</button>
+			</div>
+		</aside>
+		<div id="toast" role="status" class="shadow-panel fixed right-8 bottom-8 z-50 hidden items-center gap-3 rounded-full bg-stone-900 px-5 py-3 text-xs font-medium text-white">
+			<i id="toast-icon" class="fa-solid fa-circle-check text-success-soft" aria-hidden="true"></i>
 			<span id="toast-msg">Action completed successfully.</span>
 		</div>
 
 		<script>
 			let dashboardRole = "assistant";
 			let toastTimer;
+			let toastAnimation;
+			let notificationAnimation;
+			const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+			const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
+			const canAnimate = () => !reducedMotion.matches && document.documentElement.dataset.input !== "keyboard";
+
+			document.addEventListener(
+				"pointerdown",
+				() => {
+					document.documentElement.dataset.input = "pointer";
+				},
+				{ passive: true },
+			);
+			document.addEventListener("keydown", () => {
+				document.documentElement.dataset.input = "keyboard";
+			});
 
 			window.addEventListener("DOMContentLoaded", () => {
 				initCharts();
 				setDashboardRole("assistant");
 				initGreetingCollapse();
+				initPlayfulInteractions();
 			});
 
 			/* Small screens: hand the greeting's height back once the panel scrolls.
@@ -803,12 +1122,204 @@
 				);
 			}
 
+			let detailSource;
+			let detailTrigger;
+			let workTransition;
+			const entranceAnimations = new Set();
+
+			function animateNames() {
+				const names = document.querySelectorAll("[data-side-name], #greeting, #queue .font-medium");
+				names.forEach((name) => {
+					if (name.children.length || !/Janae|Jayden|Jamie|Matt|Eleanor|Marcus|Sarah|David/.test(name.textContent)) return;
+					const text = name.textContent;
+					name.dataset.animatedName = "";
+					name.setAttribute("aria-label", text);
+					name.textContent = "";
+					let index = 0;
+					text.split(/(\s+)/).forEach((word) => {
+						if (/^\s+$/.test(word)) {
+							name.append(document.createTextNode(word));
+							return;
+						}
+						const wrapper = document.createElement("span");
+						wrapper.style.whiteSpace = "nowrap";
+						wrapper.setAttribute("aria-hidden", "true");
+						for (const letter of word) {
+							const span = document.createElement("span");
+							span.dataset.nameLetter = "";
+							span.style.setProperty("--letter-index", index++);
+							span.textContent = letter;
+							wrapper.append(span);
+							if (canAnimate())
+								span.animate(
+									[
+										{ opacity: 0, transform: "translateY(5px)" },
+										{ opacity: 1, transform: "translateY(0)" },
+									],
+									{ duration: 280, delay: Math.min(index * 16, 320), easing: easeOut, fill: "backwards" },
+								);
+						}
+						name.append(wrapper);
+					});
+				});
+			}
+
+			function replayEntrances() {
+				entranceAnimations.forEach((animation) => animation.cancel());
+				entranceAnimations.clear();
+				if (reducedMotion.matches || !document.getElementById("entrance-toggle").checked) return;
+				document.querySelectorAll("#panel-overview > .grid > article, #queue > section, #queue > div > section, #panel-overview > article, #charts > section").forEach((card, index) => {
+					const animation = card.animate(
+						[
+							{ opacity: 0, transform: "translateY(18px) scale(0.97)" },
+							{ opacity: 1, transform: "translateY(0) scale(1)" },
+						],
+						{ duration: Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue("--motion-duration")) + 120, delay: index * 45, easing: easeOut, fill: "backwards" },
+					);
+					entranceAnimations.add(animation);
+					animation.finished.then(() => entranceAnimations.delete(animation)).catch(() => {});
+				});
+			}
+
+			function initPlayfulInteractions() {
+				document.querySelectorAll("#panel-overview > .grid > article").forEach((card) => {
+					card.dataset.interactive = "score";
+				});
+				const rows = document.querySelectorAll("#dash-review-queue details, #dash-task-list > div, #queue > div > section:last-child li");
+				rows.forEach((row) => {
+					row.dataset.interactive = "row";
+					row.style.borderRadius = "12px";
+					const icon = row.querySelector("summary > span:first-child, :scope > span:first-child");
+					if (icon) row.style.setProperty("--item-hue", getComputedStyle(icon).backgroundColor);
+					if (row.matches("li")) {
+						row.classList.add("p-2", "-mx-2");
+						return;
+					}
+					const button = document.createElement("button");
+					button.type = "button";
+					button.className = "text-2xs text-muted hover:text-field shrink-0 rounded-full border border-hairline bg-white px-2.5 py-1.5";
+					button.textContent = "Details ↗";
+					button.setAttribute("aria-haspopup", "dialog");
+					button.addEventListener("click", (event) => {
+						event.preventDefault();
+						event.stopPropagation();
+						openWorkDetail(row, button);
+					});
+					const summary = row.querySelector("summary");
+					if (summary) summary.querySelector(".min-w-0").append(button);
+					else row.querySelector(".min-w-0").append(button);
+				});
+				animateNames();
+				document.getElementById("tuning-toggle").addEventListener("click", (event) => {
+					const body = document.getElementById("tuning-body");
+					body.classList.toggle("hidden");
+					event.currentTarget.setAttribute("aria-expanded", String(!body.classList.contains("hidden")));
+				});
+				const dials = { gap: ["--widget-gap", "px"], lift: ["--hover-lift", "px"], duration: ["--motion-duration", "ms"], wash: ["--wash-strength", "%"] };
+				function updateDial(input) {
+					const [property, unit] = dials[input.dataset.dial];
+					document.documentElement.style.setProperty(property, input.value + unit);
+					document.getElementById(input.dataset.dial + "-value").value = input.value + unit;
+				}
+				document.querySelectorAll("[data-dial]").forEach((input) => input.addEventListener("input", () => updateDial(input)));
+				document.getElementById("tuning-reset").addEventListener("click", () => {
+					document.querySelectorAll("[data-dial]").forEach((input) => {
+						input.value = input.defaultValue;
+						updateDial(input);
+					});
+					document.getElementById("entrance-toggle").checked = true;
+				});
+				document.getElementById("entrance-toggle").addEventListener("change", replayEntrances);
+				const dialog = document.getElementById("detail-dialog");
+				dialog.addEventListener("cancel", (event) => {
+					event.preventDefault();
+					closeWorkDetail();
+				});
+				dialog.addEventListener("click", (event) => {
+					if (event.target === dialog) {
+						const bounds = dialog.getBoundingClientRect();
+						if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeWorkDetail();
+					}
+				});
+				replayEntrances();
+			}
+
+			function openWorkDetail(row, trigger) {
+				const dialog = document.getElementById("detail-dialog");
+				if (dialog.open) return;
+				detailSource = row;
+				detailTrigger = trigger;
+				const title = row.querySelector(".text-sm").textContent;
+				document.getElementById("detail-title").textContent = title;
+				const body = document.getElementById("detail-body");
+				body.replaceChildren();
+				const content = row.querySelector(":scope > div") || row.querySelector(".min-w-0");
+				const clone = content.cloneNode(true);
+				clone.querySelectorAll("button, input, [id]").forEach((el) => el.remove());
+				clone.className = "space-y-4";
+				body.append(clone);
+				const actions = row.querySelectorAll(':scope > div button:not([aria-haspopup]), input[type="checkbox"]');
+				if (actions.length) {
+					const footer = document.createElement("div");
+					footer.className = "flex flex-wrap gap-2 pt-4";
+					actions.forEach((original) => {
+						const action = document.createElement("button");
+						action.type = "button";
+						action.className = "rounded-full bg-stone-900 px-4 py-2 text-xs font-medium text-white hover:bg-field disabled:opacity-50";
+						action.textContent = original.matches("input") ? "Mark complete" : original.textContent;
+						action.disabled = original.disabled;
+						action.onclick = () => {
+							closeWorkDetail();
+							original.click();
+						};
+						footer.append(action);
+					});
+					body.append(footer);
+				}
+				const open = () => {
+					row.style.viewTransitionName = "";
+					dialog.showModal();
+				};
+				workTransition?.skipTransition();
+				if (document.startViewTransition && canAnimate()) {
+					row.style.viewTransitionName = "work-detail";
+					workTransition = document.startViewTransition(open);
+					workTransition.ready.catch(() => {});
+				} else open();
+			}
+
+			function closeWorkDetail() {
+				const dialog = document.getElementById("detail-dialog");
+				if (!dialog.open) return;
+				workTransition?.skipTransition();
+				const source = detailSource;
+				const trigger = detailTrigger;
+				const close = () => {
+					dialog.close();
+					if (source?.isConnected) source.style.viewTransitionName = "work-detail";
+					if (trigger?.isConnected) trigger.focus();
+				};
+				if (document.startViewTransition && canAnimate()) {
+					workTransition = document.startViewTransition(close);
+					workTransition.ready.catch(() => {});
+					workTransition.finished
+						.finally(() => {
+							if (source) source.style.viewTransitionName = "";
+						})
+						.catch(() => {});
+				} else {
+					close();
+					if (source) source.style.viewTransitionName = "";
+				}
+			}
+
 			function initCharts() {
 				if (typeof Chart === "undefined") return;
 
 				Chart.defaults.font.family = '"Inter", system-ui, sans-serif';
 				Chart.defaults.font.size = 11;
-				Chart.defaults.color = "#8b8375";
+				Chart.defaults.color = "#756d60";
+				Chart.defaults.animation = reducedMotion.matches ? false : { duration: 220, easing: "easeOutCubic" };
 
 				const grid = "#eeeade";
 
@@ -862,7 +1373,7 @@
 						datasets: [
 							{
 								data: [45, 25, 18, 12, 28],
-								backgroundColor: ["#4c7a2f", "#7dd3fc", "#c4b5fd", "#fcd34d", "#d6d3d1"],
+								backgroundColor: ["#4c7a2f", "#8eaab4", "#aa97ba", "#c5a05b", "#b7b0a0"],
 								borderWidth: 0,
 							},
 						],
@@ -912,6 +1423,7 @@
 				document.querySelectorAll("[data-side-name]").forEach((el) => (el.innerText = agent.name));
 				document.querySelectorAll("[data-side-role]").forEach((el) => (el.innerText = agent.role));
 				document.getElementById("greeting").innerText = `Good morning, ${agent.name.split(" ")[0]}.`;
+				if (document.getElementById("greeting").hasAttribute("data-animated-name")) animateNames();
 
 				const waiting = document.querySelectorAll("#dash-review-queue details").length;
 				const open = document.querySelectorAll("#dash-task-list input:not(:disabled)").length;
@@ -940,7 +1452,26 @@
 			}
 
 			function toggleNotifications() {
-				document.getElementById("notif-dropdown").classList.toggle("hidden");
+				const dropdown = document.getElementById("notif-dropdown");
+				setNotificationsOpen(dropdown.classList.contains("hidden"));
+			}
+
+			function setNotificationsOpen(open, restoreFocus = false) {
+				const dropdown = document.getElementById("notif-dropdown");
+				const trigger = document.querySelector('[aria-controls="notif-dropdown"]');
+				notificationAnimation?.cancel();
+				dropdown.classList.toggle("hidden", !open);
+				trigger.setAttribute("aria-expanded", String(open));
+				if (open && canAnimate()) {
+					notificationAnimation = dropdown.animate(
+						[
+							{ opacity: 0, transform: "translateY(-4px) scale(0.97)" },
+							{ opacity: 1, transform: "translateY(0) scale(1)" },
+						],
+						{ duration: 180, easing: easeOut },
+					);
+				}
+				if (restoreFocus) trigger.focus();
 			}
 
 			/* The background motif is a switch, not a setting: marking the tray read
@@ -967,39 +1498,61 @@
          (a review decided, an agent swapped), and an x for the dead ends, which
          read as refusals rather than confirmations. */
 			const TOAST_ICON = {
-				done: ["fa-circle-check", "text-field"],
+				done: ["fa-circle-check", "text-success-soft"],
 				blocked: ["fa-circle-xmark", "text-stone-400"],
 			};
 
 			function showToast(msg, variant = "done") {
 				const toast = document.getElementById("toast");
+				const wasHidden = toast.classList.contains("hidden");
+				clearTimeout(toastTimer);
+				toastAnimation?.cancel();
 				const [glyph, tone] = TOAST_ICON[variant] ?? TOAST_ICON.done;
 				const icon = document.getElementById("toast-icon");
 				icon.className = "fa-solid " + glyph + " " + tone;
 				document.getElementById("toast-msg").innerText = msg;
 				toast.classList.remove("hidden");
-				toast.style.opacity = "0";
-				toast.style.transform = "translateY(12px)";
-				requestAnimationFrame(() => {
-					toast.style.opacity = "1";
-					toast.style.transform = "translateY(0)";
-				});
-				clearTimeout(toastTimer);
+				toast.classList.add("flex");
+				if (wasHidden && canAnimate()) {
+					toastAnimation = toast.animate(
+						[
+							{ opacity: 0, transform: "translateY(25%)" },
+							{ opacity: 1, transform: "translateY(0)" },
+						],
+						{ duration: 200, easing: easeOut },
+					);
+				}
 				toastTimer = setTimeout(() => {
-					toast.style.opacity = "0";
-					toast.style.transform = "translateY(12px)";
-					setTimeout(() => toast.classList.add("hidden"), 300);
+					if (!canAnimate()) {
+						toast.classList.add("hidden");
+						toast.classList.remove("flex");
+						return;
+					}
+					toastAnimation = toast.animate(
+						[
+							{ opacity: 1, transform: "translateY(0)" },
+							{ opacity: 0, transform: "translateY(25%)" },
+						],
+						{ duration: 140, easing: easeOut, fill: "forwards" },
+					);
+					toastAnimation.finished
+						.then(() => {
+							toast.classList.add("hidden");
+							toast.classList.remove("flex");
+							toastAnimation.cancel();
+						})
+						.catch(() => {});
 				}, 2800);
 			}
 
 			document.addEventListener("click", (event) => {
 				const dropdown = document.getElementById("notif-dropdown");
 				const inside = dropdown.contains(event.target) || event.target.closest('[onclick*="toggleNotifications"]');
-				if (!dropdown.classList.contains("hidden") && !inside) dropdown.classList.add("hidden");
+				if (!dropdown.classList.contains("hidden") && !inside) setNotificationsOpen(false);
 			});
 
 			document.addEventListener("keydown", (event) => {
-				if (event.key === "Escape") document.getElementById("notif-dropdown").classList.add("hidden");
+				if (event.key === "Escape" && !document.getElementById("notif-dropdown").classList.contains("hidden")) setNotificationsOpen(false, true);
 			});
 		</script>
 	</body>

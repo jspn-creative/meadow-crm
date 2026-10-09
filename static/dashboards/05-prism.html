@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Meadow CRM · Prism dashboard</title>
+		<!-- Stock Tailwind CSS v4, browser build -->
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<!-- FontAwesome Icons -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<!-- Chart.js for Visualizations -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500;550;600;650;700;750;800&display=swap" rel="stylesheet" />
+		<style type="text/tailwindcss">
+			/* static, not the default: the canvas palette reads these tokens at runtime, so they must all be emitted even when no utility references them. */
+			@theme static {
+				--font-sans: "Geist", system-ui, sans-serif;
+
+				--color-brand-50: #effbf6;
+				--color-brand-100: #d8f5e9;
+				--color-brand-500: #21b887;
+				--color-brand-600: #07815b;
+				--color-brand-700: #096747;
+				--color-brand-800: #105039;
+				--color-brand-900: #14382c;
+
+				--color-slate-50: #fafbfb;
+				--color-slate-100: #f3f5f5;
+				--color-slate-200: #e4e9e7;
+				--color-slate-300: #cdd6d2;
+				--color-slate-400: #6e7d77;
+				--color-slate-500: #62716b;
+				--color-slate-600: #4e5e56;
+				--color-slate-700: #35483e;
+				--color-slate-800: #23372d;
+				--color-slate-900: #13291f;
+				--color-canvas: #eff4f1;
+
+				--color-blue-100: #e0ebff;
+				--color-blue-500: #648df7;
+				--color-blue-600: #3b66d4;
+				--color-blue-800: #294587;
+
+				--color-purple-100: #ede2ff;
+				--color-purple-400: #ac79e9;
+				--color-purple-500: #7e57d6;
+				--color-purple-600: #8951d0;
+				--color-purple-800: #623395;
+
+				--color-pink-400: #ee99b5;
+
+				--color-amber-100: #fff0d6;
+				--color-amber-400: #f4b446;
+				--color-amber-600: #a8650a;
+				--color-amber-700: #92560d;
+				--color-amber-800: #76450f;
+
+				--color-red-100: #fdeceb;
+				--color-red-500: #d8402f;
+				--color-red-700: #93201a;
+
+				/* Elevation is declared once: cards carry a border, floating things carry a shadow. */
+				--shadow-pop: 0 16px 40px -12px rgb(19 41 31 / 0.22), 0 2px 6px -2px rgb(19 41 31 / 0.08);
+
+				--radius-xl: 0.75rem;
+				--radius-2xl: 1rem;
+			}
+
+			/* Hue is shared by each metric surface and its enamel icon. */
+			@utility prism-surface {
+				background: linear-gradient(115deg, color-mix(in oklch, var(--prism) 11%, white), color-mix(in oklch, var(--prism) 5%, white) 72%, white);
+				/* Mixed toward the hairline, not toward white: at 7% into white the border landed on the same value as the fill and vanished. */
+				border-color: color-mix(in oklch, var(--prism) 18%, var(--color-slate-200));
+			}
+
+			@utility enamel {
+				background: linear-gradient(145deg, color-mix(in oklch, currentColor 22%, white), color-mix(in oklch, currentColor 6%, white) 72%, white);
+				box-shadow:
+					inset 0 0 0 1px color-mix(in oklch, currentColor 22%, transparent),
+					inset 0 1px 0 rgb(255 255 255 / 0.85),
+					0 1px 2px rgb(19 41 31 / 0.06),
+					0 5px 12px -4px color-mix(in oklch, currentColor 22%, transparent);
+			}
+
+			@layer components {
+				/* One badge system instead of six ad-hoc class strings. Tones are hue-paired so every pairing clears 4.5:1. */
+				.badge {
+					display: inline-flex;
+					align-items: center;
+					gap: 4px;
+					border-radius: 9999px;
+					padding: 2px 9px;
+					font-size: 11px;
+					font-weight: 600;
+					line-height: 1.5;
+					white-space: nowrap;
+					&[data-tone="brand"] {
+						background: var(--color-brand-100);
+						color: var(--color-brand-800);
+					}
+					&[data-tone="info"] {
+						background: var(--color-blue-100);
+						color: var(--color-blue-800);
+					}
+					&[data-tone="grape"] {
+						background: var(--color-purple-100);
+						color: var(--color-purple-800);
+					}
+					&[data-tone="warn"] {
+						background: var(--color-amber-100);
+						color: var(--color-amber-800);
+					}
+					&[data-tone="alert"] {
+						background: var(--color-red-100);
+						color: var(--color-red-700);
+					}
+					&[data-tone="muted"] {
+						background: var(--color-slate-100);
+						color: var(--color-slate-700);
+					}
+				}
+
+				/* Micro-label for field names and figure captions. */
+				.mlabel {
+					font-size: 11px;
+					font-weight: 600;
+					letter-spacing: 0.04em;
+					text-transform: uppercase;
+					color: var(--color-slate-500);
+				}
+
+				.btn {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					gap: 6px;
+					border: 1px solid transparent;
+					border-radius: 0.625rem;
+					padding: 6px 12px;
+					font-size: 12px;
+					font-weight: 600;
+					line-height: 1.4;
+					white-space: nowrap;
+					transition:
+						background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+						border-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+						color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+					&[data-variant="primary"] {
+						background: var(--color-brand-600);
+						color: #fff;
+						&:hover {
+							background: var(--color-brand-700);
+						}
+					}
+					&[data-variant="secondary"] {
+						background: #fff;
+						border-color: var(--color-slate-300);
+						color: var(--color-slate-700);
+						&:hover {
+							background: var(--color-slate-50);
+							border-color: var(--color-slate-400);
+						}
+					}
+					&[data-variant="ghost"] {
+						color: var(--color-slate-600);
+						&:hover {
+							background: var(--color-slate-100);
+							color: var(--color-slate-900);
+						}
+					}
+					&[data-variant="critical"] {
+						color: var(--color-slate-500);
+						&:hover {
+							background: var(--color-red-100);
+							color: var(--color-red-700);
+						}
+					}
+					&[data-size="sm"] {
+						padding: 4px 10px;
+						font-size: 11px;
+					}
+				}
+
+				/* Segmented role switch. State lives entirely on aria-selected so no class strings are swapped from JS. */
+				.segmented {
+					display: inline-flex;
+					gap: 2px;
+					padding: 3px;
+					border-radius: var(--radius-xl);
+					background: var(--color-slate-100);
+
+					& > [role="tab"] {
+						border: 1px solid transparent;
+						border-radius: 0.5rem;
+						padding: 5px 12px;
+						font-size: 11px;
+						font-weight: 600;
+						line-height: 1.4;
+						color: var(--color-slate-500);
+						transition:
+							color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+							background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+							border-color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+
+						&:hover {
+							color: var(--color-slate-800);
+						}
+						&[aria-selected="true"] {
+							background: #fff;
+							border-color: var(--color-slate-200);
+							color: var(--color-brand-700);
+						}
+					}
+				}
+
+				/* Monogram disc. Its own hue, because enamel keys off currentColor and white text would wash the plate out. */
+				.monogram {
+					display: flex;
+					height: 2.25rem;
+					width: 2.25rem;
+					flex: none;
+					align-items: center;
+					justify-content: center;
+					border-radius: 9999px;
+					background: linear-gradient(145deg, color-mix(in oklch, var(--mono) 88%, white), var(--mono) 72%);
+					box-shadow:
+						inset 0 1px 0 rgb(255 255 255 / 0.28),
+						inset 0 0 0 1px color-mix(in oklch, var(--mono) 62%, transparent);
+					color: #fff;
+					font-size: 12px;
+					font-weight: 600;
+					letter-spacing: 0.02em;
+				}
+
+				.datechip {
+					display: flex;
+					width: 2.75rem;
+					height: 2.75rem;
+					flex: none;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+					border: 1px solid var(--color-slate-200);
+					border-radius: var(--radius-xl);
+					background: #fff;
+
+					& > span:first-child {
+						font-size: 11px;
+						font-weight: 600;
+						letter-spacing: 0.06em;
+						text-transform: uppercase;
+						color: var(--color-slate-500);
+					}
+					& > span:last-child {
+						margin-top: 1px;
+						font-size: 15px;
+						font-weight: 600;
+						line-height: 1;
+						color: var(--color-slate-900);
+					}
+				}
+
+				/* Disclosure state lives on the <details>, so the cue is written here rather than left to a variant the build may drop. */
+				.row-chevron {
+					transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+				}
+				.group\/row[open] > summary .row-chevron {
+					transform: rotate(180deg);
+				}
+
+				/* Activity timeline: one hairline between beats, drawn from the dot's own box. Each beat but the last takes up the card's slack, so the connector stays continuous instead of leaving a void above the footer. */
+				.tl-item {
+					position: relative;
+					padding-bottom: 1rem;
+					padding-left: 2.75rem;
+
+					&:not(:last-child) {
+						flex: 1 1 auto;
+					}
+					&:not(:last-child)::after {
+						content: "";
+						position: absolute;
+						left: 1rem;
+						top: 2.375rem;
+						bottom: 0;
+						width: 1px;
+						background: var(--color-slate-200);
+					}
+				}
+
+				.tl-dot {
+					position: absolute;
+					left: 0;
+					top: 2px;
+					display: flex;
+					height: 2rem;
+					width: 2rem;
+					align-items: center;
+					justify-content: center;
+					border-radius: 9999px;
+				}
+
+				/* Ranked lead-source list: the readable half of the doughnut. */
+				.legend-row {
+					display: grid;
+					grid-template-columns: 0.5rem 1fr auto 2.75rem;
+					align-items: center;
+					gap: 0.625rem;
+					padding: 5px 0;
+					border-top: 1px solid var(--color-slate-100);
+				}
+
+				[data-task][data-complete] {
+					opacity: 0.5;
+				}
+				[data-task][data-complete] [data-task-title] {
+					text-decoration: line-through;
+					text-decoration-color: var(--color-slate-300);
+					text-decoration-thickness: 1px;
+				}
+			}
+
+			@layer base {
+				body {
+					font-family: var(--font-sans);
+					font-variant-numeric: tabular-nums;
+					-webkit-font-smoothing: antialiased;
+				}
+				h1,
+				h2,
+				h3,
+				h4 {
+					text-wrap: balance;
+				}
+				p {
+					text-wrap: pretty;
+				}
+
+				button,
+				summary,
+				select,
+				label[for] {
+					cursor: pointer;
+					&:focus-visible {
+						outline: 2px solid var(--color-brand-600);
+						outline-offset: 2px;
+					}
+				}
+				button {
+					&:disabled {
+						cursor: default;
+					}
+				}
+				/* The dark header needs the light end of the brand ramp to clear 3:1 against slate-900. */
+				header :focus-visible {
+					outline-color: var(--color-brand-500);
+				}
+
+				::selection {
+					background: var(--color-brand-100);
+					color: var(--color-brand-900);
+				}
+
+				* {
+					scrollbar-width: thin;
+					scrollbar-color: var(--color-slate-300) var(--color-slate-100);
+				}
+				::-webkit-scrollbar {
+					width: 8px;
+					height: 8px;
+				}
+				::-webkit-scrollbar-track {
+					background: var(--color-slate-100);
+				}
+				::-webkit-scrollbar-thumb {
+					background: var(--color-slate-300);
+					border-radius: 9999px;
+					border: 2px solid var(--color-slate-100);
+
+					&:hover {
+						background: var(--color-slate-400);
+					}
+				}
+
+				@media (prefers-reduced-motion: reduce) {
+					*,
+					::before,
+					::after {
+						animation: none !important;
+						transition: none !important;
+					}
+				}
+			}
+		</style>
+	</head>
+	<body class="bg-canvas flex h-full flex-col overflow-hidden text-slate-800">
+		<!-- Top Header Bar -->
+		<header class="z-30 flex min-h-[76px] shrink-0 items-center justify-between gap-6 bg-slate-900 px-8 py-3.5 text-white">
+			<div class="flex min-w-0 items-center gap-3">
+				<div class="from-brand-500/40 to-brand-500/10 text-brand-100 flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-linear-to-br">
+					<i class="fa-solid fa-house-chimney text-lg" aria-hidden="true"></i>
+				</div>
+				<div class="min-w-0">
+					<h1 class="truncate text-[15px] font-semibold tracking-tight">Meadow Lane <span class="font-normal text-white/60">Realty &amp; Development</span></h1>
+					<p class="mt-1 truncate text-[11px] text-white/55">Your people. Your properties. One place.</p>
+				</div>
+			</div>
+
+			<div class="flex shrink-0 items-center gap-3">
+				<button onclick="showToast('Global search is inactive in this demo.', 'neutral')" class="hidden min-w-56 items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/70 transition-colors duration-150 hover:bg-white/10 hover:text-white md:flex">
+					<i class="fa-solid fa-magnifying-glass text-xs" aria-hidden="true"></i>
+					<span>Search anything...</span>
+					<kbd class="ml-auto rounded border border-white/20 px-1.5 py-0.5 font-sans text-[11px] text-white/75">⌘ K</kbd>
+				</button>
+
+				<div class="relative">
+					<button onclick="toggleNotifications()" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="notif-dropdown" id="notification-toggle" class="relative flex size-10 items-center justify-center rounded-xl text-white/70 transition-colors duration-150 hover:bg-white/10 hover:text-white">
+						<i class="fa-regular fa-bell text-lg" aria-hidden="true"></i>
+						<span id="notif-badge" aria-hidden="true" class="absolute top-0.5 right-0 flex size-[18px] items-center justify-center rounded-full bg-red-500 text-[11px] leading-none font-bold text-white ring-2 ring-slate-900">3</span>
+					</button>
+
+					<!-- Notification Dropdown -->
+					<div id="notif-dropdown" role="region" aria-labelledby="notif-heading" class="shadow-pop absolute right-0 z-50 mt-2 hidden w-80 rounded-2xl bg-white p-2 text-slate-800">
+						<div class="flex items-center justify-between gap-3 px-2 pt-1.5 pb-2.5">
+							<h2 id="notif-heading" class="text-[13px] font-semibold tracking-tight text-slate-900">Notifications <span class="ml-1 font-normal text-slate-500" id="notif-count">3 unread</span></h2>
+							<button onclick="clearNotifications()" class="text-brand-700 hover:bg-brand-100 rounded-md px-1.5 py-1 text-[11px] font-semibold transition-colors duration-150">Mark all read</button>
+						</div>
+						<ul class="max-h-72 divide-y divide-slate-100 overflow-y-auto border-t border-slate-100">
+							<li class="flex gap-3 px-2 py-3">
+								<span class="bg-brand-500 mt-1.5 size-1.5 shrink-0 rounded-full" aria-hidden="true"></span>
+								<div class="min-w-0">
+									<p class="text-xs font-semibold text-slate-900">Zillow Premier lead ingested</p>
+									<p class="mt-0.5 text-[11px] text-slate-600">New inquiry for 742 Evergreen Terrace ($650k)</p>
+									<span class="mt-1 block text-[11px] text-slate-500">2 mins ago</span>
+								</div>
+							</li>
+							<li class="flex gap-3 px-2 py-3">
+								<span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-500" aria-hidden="true"></span>
+								<div class="min-w-0">
+									<p class="text-xs font-semibold text-slate-900">Google Business review</p>
+									<p class="mt-0.5 text-[11px] text-slate-600">Sarah Jenkins left a 5-star review</p>
+									<span class="mt-1 block text-[11px] text-slate-500">15 mins ago</span>
+								</div>
+							</li>
+							<li class="flex gap-3 px-2 py-3">
+								<span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden="true"></span>
+								<div class="min-w-0">
+									<p class="text-xs font-semibold text-slate-900">Inspection reminder</p>
+									<p class="mt-0.5 text-[11px] text-slate-600">Client Marcus Vance at 10:00 AM</p>
+									<span class="mt-1 block text-[11px] text-slate-500">1 hour ago</span>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<button
+					onclick="setDashboardRole(dashboardRole === 'assistant' ? 'realtor' : 'assistant')"
+					id="user-switch"
+					aria-label="Switch to Jayden, realtor"
+					class="group flex shrink-0 items-center gap-2.5 rounded-xl border border-transparent py-1 pr-2 pl-1.5 transition-colors duration-150 hover:border-white/15 hover:bg-white/5">
+					<!-- Monogram, not a photo: the demo has no real people and should not borrow a stranger's face. -->
+					<span id="dash-user-avatar" aria-hidden="true" class="monogram" style="--mono: var(--color-brand-500)">JN</span>
+					<span class="text-left">
+						<span id="dash-user-name" class="block text-[13px] leading-tight font-semibold">Janae</span>
+						<span id="dash-user-role" class="mt-0.5 block text-[11px] leading-tight text-white/55">Assistant</span>
+					</span>
+					<i class="fa-solid fa-arrow-right-arrow-left ml-0.5 text-[11px] text-white/40 transition-colors duration-150 group-hover:text-white/70" aria-hidden="true"></i>
+				</button>
+			</div>
+		</header>
+
+		<!-- Module Navigation -->
+		<nav aria-label="Modules" class="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-slate-200 bg-white px-8">
+			<button aria-current="page" class="text-brand-700 after:bg-brand-600 relative flex items-center gap-2 px-3.5 py-3 text-xs font-semibold whitespace-nowrap after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full">
+				<i class="fa-solid fa-chart-pie text-[13px]" aria-hidden="true"></i>
+				<span>Dashboard</span>
+			</button>
+			<button
+				onclick="showToast('Inbox is disabled in this view.', 'neutral')"
+				class="relative flex items-center gap-2 px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition-colors duration-150 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-slate-900 hover:after:bg-slate-300">
+				<i class="fa-solid fa-inbox text-[13px]" aria-hidden="true"></i>
+				<span>Inbox</span>
+				<span id="nav-inbox-count" class="ml-0.5 rounded-full bg-red-100 px-1.5 py-px text-[11px] leading-4 font-semibold text-red-700">7</span>
+			</button>
+			<button
+				onclick="showToast('Pipeline Kanban is disabled in this view.', 'neutral')"
+				class="relative flex items-center gap-2 px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition-colors duration-150 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-slate-900 hover:after:bg-slate-300">
+				<i class="fa-solid fa-table-columns text-[13px]" aria-hidden="true"></i>
+				<span>Pipeline</span>
+			</button>
+			<button
+				onclick="showToast('Client Registry is disabled in this view.', 'neutral')"
+				class="relative flex items-center gap-2 px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition-colors duration-150 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-slate-900 hover:after:bg-slate-300">
+				<i class="fa-solid fa-address-book text-[13px]" aria-hidden="true"></i>
+				<span>Clients</span>
+			</button>
+			<button
+				onclick="showToast('Calendar is disabled in this view.', 'neutral')"
+				class="relative flex items-center gap-2 px-3.5 py-3 text-xs font-medium whitespace-nowrap text-slate-600 transition-colors duration-150 after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-transparent hover:text-slate-900 hover:after:bg-slate-300">
+				<i class="fa-solid fa-calendar-days text-[13px]" aria-hidden="true"></i>
+				<span>Calendar</span>
+			</button>
+		</nav>
+
+		<!-- Main Content Area -->
+		<main class="flex-1 [scrollbar-gutter:stable] space-y-6 overflow-y-auto px-8 pt-7 pb-10">
+			<div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+				<div class="min-w-0">
+					<h2 class="text-[27px] font-semibold tracking-[-0.03em] text-slate-900">Executive dashboard<span class="text-brand-500">.</span></h2>
+					<p class="mt-1.5 text-[13px] text-slate-500">A clear view of your business, and what needs you next.</p>
+				</div>
+				<div class="flex shrink-0 items-center gap-2.5">
+					<span class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600">Demo data · September 2026</span>
+					<button onclick="refreshDashboardData()" id="dash-refresh" class="btn" data-variant="secondary">
+						<i class="fa-solid fa-rotate text-[11px]" aria-hidden="true"></i>
+						<span>Refresh</span>
+					</button>
+				</div>
+			</div>
+
+			<!-- Primary tier: four prism metrics, then a connected strip of three quieter ones -->
+			<div class="space-y-3">
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="prism-surface flex items-start justify-between gap-4 rounded-2xl border p-5 [--prism:#21b887]">
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Clients</p>
+							<p class="mt-2 text-[32px] leading-none font-semibold tracking-[-0.03em] text-slate-900">28</p>
+							<p class="text-brand-700 mt-2.5 flex items-center gap-1 text-xs font-semibold"><i class="fa-solid fa-arrow-trend-up text-[11px]" aria-hidden="true"></i> +12% this month</p>
+						</div>
+						<div class="enamel text-brand-600 flex size-11 shrink-0 items-center justify-center rounded-full text-[17px]">
+							<i class="fa-solid fa-users" aria-hidden="true"></i>
+						</div>
+					</div>
+
+					<div class="prism-surface flex items-start justify-between gap-4 rounded-2xl border p-5 [--prism:#648df7]">
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Under contract</p>
+							<p class="mt-2 text-[32px] leading-none font-semibold tracking-[-0.03em] text-slate-900">7</p>
+							<p class="mt-2.5 text-xs font-medium text-slate-600"><span class="font-semibold text-slate-900">$4.8M</span> volume</p>
+						</div>
+						<div class="enamel flex size-11 shrink-0 items-center justify-center rounded-full text-[17px] text-blue-600">
+							<i class="fa-solid fa-handshake" aria-hidden="true"></i>
+						</div>
+					</div>
+
+					<div class="prism-surface flex items-start justify-between gap-4 rounded-2xl border p-5 [--prism:#f4b446]">
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Monthly revenue</p>
+							<p class="mt-2 text-[32px] leading-none font-semibold tracking-[-0.03em] text-slate-900">$94,500</p>
+							<p class="mt-2.5 flex items-center gap-1 text-xs font-semibold text-amber-700"><i class="fa-solid fa-arrow-trend-down text-[11px]" aria-hidden="true"></i> 2% under Q3 target</p>
+						</div>
+						<div class="enamel flex size-11 shrink-0 items-center justify-center rounded-full text-[17px] text-amber-600">
+							<i class="fa-solid fa-wallet" aria-hidden="true"></i>
+						</div>
+					</div>
+
+					<div class="prism-surface flex items-start justify-between gap-4 rounded-2xl border p-5 [--prism:#ac79e9]">
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Lead conversion</p>
+							<p class="mt-2 text-[32px] leading-none font-semibold tracking-[-0.03em] text-slate-900">34.8%</p>
+							<!-- The benchmark is the content here, so it gets a hairline track rather than a decorative icon. -->
+							<div class="mt-3 flex items-center gap-2" role="img" aria-label="Lead conversion 34.8 percent against a Zillow Premier average of 22 percent.">
+								<div class="relative h-[3px] w-full overflow-hidden rounded-full bg-slate-200">
+									<div class="absolute inset-y-0 left-0 w-[34.8%] rounded-full bg-purple-500"></div>
+									<div class="absolute inset-y-[-3px] left-[22%] w-px bg-slate-400"></div>
+								</div>
+								<span class="shrink-0 text-[11px] text-slate-500">vs 22%</span>
+							</div>
+						</div>
+						<div class="enamel flex size-11 shrink-0 items-center justify-center rounded-full text-[17px] text-purple-600">
+							<i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+						</div>
+					</div>
+				</div>
+
+				<!-- Secondary tier reads as a footnote to the four above: one surface, hairline dividers, no competing cards. -->
+				<div class="grid grid-cols-1 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white md:grid-cols-3 md:divide-x md:divide-y-0" role="group" aria-label="Channel and delivery metrics">
+					<div class="flex items-center gap-3.5 p-4 pr-5">
+						<div class="enamel flex size-9 shrink-0 items-center justify-center rounded-full text-[15px] text-amber-600">
+							<i class="fa-solid fa-star" aria-hidden="true"></i>
+						</div>
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Google Business rating</p>
+							<p class="mt-1 flex items-baseline gap-1.5">
+								<span class="text-lg leading-none font-semibold tracking-[-0.02em] text-slate-900">4.9</span>
+								<span class="text-[11px] text-slate-500">of 5 · 142 reviews</span>
+							</p>
+						</div>
+					</div>
+					<div class="flex items-center gap-3.5 p-4 pr-5">
+						<div class="enamel flex size-9 shrink-0 items-center justify-center rounded-full text-[15px] text-blue-600">
+							<i class="fa-solid fa-bolt" aria-hidden="true"></i>
+						</div>
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Speed to lead</p>
+							<p class="mt-1 flex items-baseline gap-1.5">
+								<span class="text-lg leading-none font-semibold tracking-[-0.02em] text-slate-900">1m 42s</span>
+								<span class="text-[11px] text-slate-500">routed automatically</span>
+							</p>
+						</div>
+					</div>
+					<div class="flex items-center gap-3.5 p-4 pr-5">
+						<div class="enamel text-brand-600 flex size-9 shrink-0 items-center justify-center rounded-full text-[15px]">
+							<i class="fa-solid fa-hard-hat" aria-hidden="true"></i>
+						</div>
+						<div class="min-w-0 flex-1">
+							<p class="mlabel">Active developments</p>
+							<p class="mt-1 flex items-baseline gap-1.5">
+								<span class="text-lg leading-none font-semibold tracking-[-0.02em] text-slate-900">4</span>
+								<span class="truncate text-[11px] text-slate-500">latest: Meadow Lane Estates II</span>
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Work grid -->
+			<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+				<!-- Review queue / task list. One control drives the state; the header follows it. -->
+				<section class="min-w-0 self-start overflow-hidden rounded-2xl border border-slate-200 bg-white">
+					<div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+						<div class="flex min-w-0 items-center gap-2.5">
+							<h3 id="dash-panel-title" class="truncate text-[15px] font-semibold tracking-tight text-slate-900">Review queue</h3>
+							<span id="dash-panel-count" class="badge shrink-0" data-tone="brand">4 waiting</span>
+						</div>
+						<div class="segmented shrink-0" role="tablist" aria-label="Dashboard view">
+							<button role="tab" id="tab-assistant" aria-selected="true" aria-controls="panel-assistant" tabindex="0" onclick="setDashboardRole('assistant')">Assistant queue</button>
+							<button role="tab" id="tab-realtor" aria-selected="false" aria-controls="panel-realtor" tabindex="-1" onclick="setDashboardRole('realtor')">Today's tasks</button>
+						</div>
+					</div>
+
+					<!-- Assistant panel -->
+					<div id="panel-assistant" role="tabpanel" aria-labelledby="tab-assistant" tabindex="0">
+						<div id="dash-review-queue" class="divide-y divide-slate-100">
+							<details class="group/row" open>
+								<summary class="flex cursor-pointer list-none items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+									<span class="enamel mt-px flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] text-blue-600"><i class="fa-solid fa-user-plus" aria-hidden="true"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+											<span data-review-title class="text-sm font-semibold text-slate-900">New contact proposal · Jamie Rivera</span>
+											<span class="badge" data-tone="info">Auto intake · Zillow</span>
+										</span>
+										<span class="mt-1.5 block text-xs text-slate-600">jamie.rivera@example.com · (555) 018-4420 · 12 Evergreen Terrace</span>
+										<span class="mt-1 block text-[11px] text-slate-500">24 min ago · no email match</span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept Jamie Rivera"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="bg-brand-50 text-brand-700 hover:bg-brand-600 mt-px flex size-7 shrink-0 items-center justify-center rounded-full transition-colors duration-150 hover:text-white">
+										<i class="fa-solid fa-check text-[11px]" aria-hidden="true"></i>
+									</button>
+									<i class="row-chevron fa-solid fa-chevron-down mt-2 shrink-0 text-[11px] text-slate-400" aria-hidden="true"></i>
+								</summary>
+								<!-- Open region is full-bleed and tinted, not a nested card. -->
+								<div class="bg-slate-100 pr-5 pb-4">
+									<div class="ml-16 grid gap-x-6 gap-y-3 pt-1 sm:grid-cols-2">
+										<div>
+											<p class="mlabel">Source</p>
+											<p class="mt-1 text-xs font-medium text-slate-800">Zillow Premier webhook · 9:42 AM</p>
+										</div>
+										<div>
+											<p class="mlabel">Duplicate check</p>
+											<p class="mt-1 text-xs font-medium text-slate-800">0 email matches · 1 near name, different phone</p>
+										</div>
+										<div>
+											<p class="mlabel">Proposed change</p>
+											<p class="mt-1 text-xs font-medium text-slate-800">Create contact + new lead opportunity</p>
+										</div>
+										<div>
+											<p class="mlabel">Property</p>
+											<p class="mt-1 text-xs font-medium text-slate-800">12 Evergreen Terrace, Los Angeles</p>
+										</div>
+									</div>
+									<div class="mt-3.5 ml-16 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+										<button onclick="decideReview(this, 'approved')" class="btn" data-size="sm" data-variant="primary">Confirm contact</button>
+										<button onclick="decideReview(this, 'duplicate')" class="btn" data-size="sm" data-variant="secondary">Link as duplicate</button>
+										<button onclick="decideReview(this, 'rejected')" class="btn" data-size="sm" data-variant="critical">Reject</button>
+									</div>
+								</div>
+							</details>
+
+							<details class="group/row">
+								<summary class="flex cursor-pointer list-none items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+									<span class="enamel mt-px flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] text-amber-600"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+											<span data-review-title class="text-sm font-semibold text-slate-900">Matt Maestra progressed to contacted</span>
+											<span class="badge" data-tone="warn">Suggested transition</span>
+										</span>
+										<span class="mt-1.5 block text-xs text-slate-600">Janae reached out · 6 min call at 8:55 AM · wants a weekend showing</span>
+										<span class="mt-1 block text-[11px] text-slate-500">1 hr ago · new lead since Sep 24</span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept pipeline move"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="bg-brand-50 text-brand-700 hover:bg-brand-600 mt-px flex size-7 shrink-0 items-center justify-center rounded-full transition-colors duration-150 hover:text-white">
+										<i class="fa-solid fa-check text-[11px]" aria-hidden="true"></i>
+									</button>
+									<i class="row-chevron fa-solid fa-chevron-down mt-2 shrink-0 text-[11px] text-slate-400" aria-hidden="true"></i>
+								</summary>
+								<div class="bg-slate-100 pr-5 pb-4">
+									<div class="ml-16 pt-1">
+										<p class="mlabel">Evidence</p>
+										<p class="mt-1 text-xs font-medium text-slate-800">Call log plus SMS reply, “Saturday works”.</p>
+									</div>
+									<div class="mt-3.5 ml-16 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+										<button onclick="decideReview(this, 'approved')" class="btn" data-size="sm" data-variant="primary">Approve move</button>
+										<button onclick="decideReview(this, 'rejected')" class="btn" data-size="sm" data-variant="secondary">Keep in new lead</button>
+									</div>
+								</div>
+							</details>
+
+							<details class="group/row">
+								<summary class="flex cursor-pointer list-none items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+									<span class="enamel mt-px flex size-8 shrink-0 items-center justify-center rounded-full text-[13px] text-purple-600"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+											<span data-review-title class="text-sm font-semibold text-slate-900">Eleanor Vance to showing / tour</span>
+											<span class="badge" data-tone="grape">Tour booked</span>
+										</span>
+										<span class="mt-1.5 block text-xs text-slate-600">Showing moved to Saturday 2 PM · 12 Evergreen Terrace</span>
+										<span class="mt-1 block text-[11px] text-slate-500">2 hrs ago · was contacted</span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept tour move"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="bg-brand-50 text-brand-700 hover:bg-brand-600 mt-px flex size-7 shrink-0 items-center justify-center rounded-full transition-colors duration-150 hover:text-white">
+										<i class="fa-solid fa-check text-[11px]" aria-hidden="true"></i>
+									</button>
+									<i class="row-chevron fa-solid fa-chevron-down mt-2 shrink-0 text-[11px] text-slate-400" aria-hidden="true"></i>
+								</summary>
+								<div class="bg-slate-100 pr-5 pb-4">
+									<div class="ml-16 pt-1">
+										<p class="mlabel">Evidence</p>
+										<p class="mt-1 text-xs font-medium text-slate-800">Calendar invite accepted by Eleanor.</p>
+									</div>
+									<div class="mt-3.5 ml-16 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+										<button onclick="decideReview(this, 'approved')" class="btn" data-size="sm" data-variant="primary">Approve move</button>
+										<button onclick="decideReview(this, 'rejected')" class="btn" data-size="sm" data-variant="critical">Reject</button>
+									</div>
+								</div>
+							</details>
+
+							<details class="group/row">
+								<summary class="flex cursor-pointer list-none items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+									<span class="enamel text-brand-600 mt-px flex size-8 shrink-0 items-center justify-center rounded-full text-[13px]"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></span>
+									<span class="min-w-0 flex-1">
+										<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+											<span data-review-title class="text-sm font-semibold text-slate-900">Marcus Vance phone update</span>
+											<span class="badge" data-tone="brand">Brokerage import</span>
+										</span>
+										<span class="mt-1.5 block text-xs text-slate-600">(555) 234-5678 → (555) 234-9001 · 1 email match</span>
+										<span class="mt-1 block text-[11px] text-slate-500">3 hrs ago · no other fields changed</span>
+									</span>
+									<button
+										type="button"
+										title="Quick accept"
+										aria-label="Quick accept phone update"
+										onclick="
+											event.preventDefault();
+											event.stopPropagation();
+											decideReview(this, 'approved');
+										"
+										class="bg-brand-50 text-brand-700 hover:bg-brand-600 mt-px flex size-7 shrink-0 items-center justify-center rounded-full transition-colors duration-150 hover:text-white">
+										<i class="fa-solid fa-check text-[11px]" aria-hidden="true"></i>
+									</button>
+									<i class="row-chevron fa-solid fa-chevron-down mt-2 shrink-0 text-[11px] text-slate-400" aria-hidden="true"></i>
+								</summary>
+								<div class="bg-slate-100 pr-5 pb-4">
+									<div class="ml-16 pt-1">
+										<p class="mlabel">Source</p>
+										<p class="mt-1 text-xs font-medium text-slate-800">Brokerage CSV import this morning.</p>
+									</div>
+									<div class="mt-3.5 ml-16 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+										<button onclick="decideReview(this, 'approved')" class="btn" data-size="sm" data-variant="primary">Apply update</button>
+										<button onclick="decideReview(this, 'rejected')" class="btn" data-size="sm" data-variant="secondary">Keep old number</button>
+									</div>
+								</div>
+							</details>
+						</div>
+
+						<div id="dash-review-empty" class="hidden flex-col items-center px-5 py-12 text-center">
+							<div class="enamel text-brand-600 flex size-11 items-center justify-center rounded-full text-[17px]">
+								<i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+							</div>
+							<p class="mt-3.5 text-sm font-semibold text-slate-900">Review queue is clear</p>
+							<p class="mt-1 max-w-64 text-xs text-slate-500">Nothing is waiting on a decision. New intake lands here automatically.</p>
+						</div>
+					</div>
+
+					<!-- Realtor panel -->
+					<div id="panel-realtor" role="tabpanel" aria-labelledby="tab-realtor" tabindex="0" hidden>
+						<div id="dash-task-list" class="divide-y divide-slate-100">
+							<div data-task class="flex items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50">
+								<input type="checkbox" id="task-1" onchange="completeTask(this)" class="accent-brand-600 mt-0.5 size-[18px] shrink-0" />
+								<label for="task-1" class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+										<span data-task-title class="text-sm font-semibold text-slate-900">Call Jamie Rivera · Zillow follow-up</span>
+										<span class="badge" data-tone="alert">High · due 10:30 AM</span>
+									</span>
+									<span class="mt-1.5 block text-xs text-slate-600">From Janae: “She asked about Evergreen schools. Pre-approval PDF is attached.”</span>
+								</label>
+							</div>
+							<div data-task class="flex items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50">
+								<input type="checkbox" id="task-2" onchange="completeTask(this)" class="accent-brand-600 mt-0.5 size-[18px] shrink-0" />
+								<label for="task-2" class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+										<span data-task-title class="text-sm font-semibold text-slate-900">Prep showing notes · 12 Evergreen Terrace</span>
+										<span class="badge" data-tone="warn">Today 1:30 PM</span>
+									</span>
+									<span class="mt-1.5 block text-xs text-slate-600">Eleanor moved her tour to 2 PM. Bring the disclosure packet.</span>
+								</label>
+							</div>
+							<div data-task class="flex items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50">
+								<input type="checkbox" id="task-3" onchange="completeTask(this)" class="accent-brand-600 mt-0.5 size-[18px] shrink-0" />
+								<label for="task-3" class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+										<span data-task-title class="text-sm font-semibold text-slate-900">Sign inspection amendment · 428 Meadow Lane</span>
+										<span class="badge" data-tone="warn">Due 4 PM</span>
+									</span>
+									<span class="mt-1.5 block text-xs text-slate-600">Marcus approved the credit. Signature is the only blocker to closing prep.</span>
+								</label>
+							</div>
+							<div data-task class="flex items-start gap-3 px-5 py-4 transition-colors duration-150 hover:bg-slate-50">
+								<input type="checkbox" id="task-4" onchange="completeTask(this)" class="accent-brand-600 mt-0.5 size-[18px] shrink-0" />
+								<label for="task-4" class="min-w-0 flex-1">
+									<span class="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+										<span data-task-title class="text-sm font-semibold text-slate-900">Confirm vendor quote · 142 Construction Blvd</span>
+										<span class="badge" data-tone="muted">Low · anytime today</span>
+									</span>
+									<span class="mt-1.5 block text-xs text-slate-600">David Miller waits on the framing revision before release of funds.</span>
+								</label>
+							</div>
+						</div>
+
+						<div id="dash-task-empty" class="hidden flex-col items-center px-5 py-12 text-center">
+							<div class="enamel text-brand-600 flex size-11 items-center justify-center rounded-full text-[17px]">
+								<i class="fa-solid fa-mug-hot" aria-hidden="true"></i>
+							</div>
+							<p class="mt-3.5 text-sm font-semibold text-slate-900">Nothing left today</p>
+							<p class="mt-1 max-w-64 text-xs text-slate-500">Every assigned task is done. Janae will add more as intake comes in.</p>
+						</div>
+					</div>
+
+					<div class="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-5 py-2.5">
+						<p id="dash-role-footnote" class="text-[11px] text-slate-500">4 waiting · oldest 3 hrs</p>
+						<button onclick="showToast('Inbox is disabled in this view.', 'neutral')" class="text-brand-700 hover:text-brand-900 text-[11px] font-semibold transition-colors duration-150 hover:underline hover:underline-offset-2">Open inbox</button>
+					</div>
+				</section>
+
+				<!-- Schedule and activity -->
+				<div class="flex min-w-0 flex-col gap-5">
+					<section class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+						<div class="flex items-center justify-between gap-4 px-5 pt-5 pb-3">
+							<h3 class="text-[15px] font-semibold tracking-tight text-slate-900">Upcoming brokerage events</h3>
+							<span class="shrink-0 text-[11px] text-slate-500">2 upcoming</span>
+						</div>
+						<div class="divide-y divide-slate-100 border-t border-slate-100">
+							<div class="flex items-center gap-4 px-5 py-4">
+								<div class="datechip"><span>Sep</span><span>26</span></div>
+								<div class="min-w-0 flex-1">
+									<p class="truncate text-sm font-semibold text-slate-900">Closing walkthrough · 428 Meadow Lane</p>
+									<p class="mt-1 text-xs text-slate-500">10:00 AM · with Marcus Vance and inspector</p>
+								</div>
+								<span class="badge shrink-0" data-tone="warn">Pending</span>
+							</div>
+							<div class="flex items-center gap-4 px-5 py-4">
+								<div class="datechip"><span>Sep</span><span>28</span></div>
+								<div class="min-w-0 flex-1">
+									<p class="truncate text-sm font-semibold text-slate-900">VIP open house · Oakridge Estates</p>
+									<p class="mt-1 text-xs text-slate-500">1:00 PM · 12 agents attending</p>
+								</div>
+								<span class="badge shrink-0" data-tone="brand">Scheduled</span>
+							</div>
+						</div>
+						<div class="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-5 py-2.5">
+							<p class="text-[11px] text-slate-500">Next 7 days</p>
+							<button onclick="showToast('Calendar is disabled in this view.', 'neutral')" class="text-brand-700 hover:text-brand-900 text-[11px] font-semibold transition-colors duration-150 hover:underline hover:underline-offset-2">View calendar</button>
+						</div>
+					</section>
+
+					<section class="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
+						<div class="flex items-center justify-between gap-4 px-5 pt-5 pb-4">
+							<h3 class="text-[15px] font-semibold tracking-tight text-slate-900">Recent activity</h3>
+							<span class="shrink-0 text-[11px] text-slate-500">Today</span>
+						</div>
+						<div class="flex flex-1 flex-col px-5">
+							<div class="tl-item">
+								<div class="tl-dot enamel text-brand-600"><i class="fa-solid fa-phone text-xs" aria-hidden="true"></i></div>
+								<p class="text-xs text-slate-700"><span class="font-semibold text-slate-900">Sarah Jenkins</span> called client <span class="font-semibold text-slate-900">Eleanor Vance</span> regarding closing docs.</p>
+								<span class="mt-1 block text-[11px] text-slate-500">12 minutes ago</span>
+							</div>
+							<div class="tl-item">
+								<div class="tl-dot enamel text-blue-600"><i class="fa-solid fa-envelope text-xs" aria-hidden="true"></i></div>
+								<p class="text-xs text-slate-700">Bulk email campaign <span class="font-semibold text-slate-900">“Fall Luxury Homes”</span> sent to 450 contacts.</p>
+								<span class="mt-1 block text-[11px] text-slate-500">45 minutes ago</span>
+							</div>
+							<div class="tl-item">
+								<div class="tl-dot enamel text-purple-600"><i class="fa-solid fa-user-plus text-xs" aria-hidden="true"></i></div>
+								<p class="text-xs text-slate-700">New lead ingested from <span class="font-semibold text-slate-900">Zillow Premier Agent</span> API.</p>
+								<span class="mt-1 block text-[11px] text-slate-500">1 hour ago</span>
+							</div>
+							<div class="tl-item">
+								<div class="tl-dot enamel text-amber-600"><i class="fa-solid fa-file-invoice-dollar text-xs" aria-hidden="true"></i></div>
+								<p class="text-xs text-slate-700">Quote sent to <span class="font-semibold text-slate-900">David Miller</span> for the framing revision.</p>
+								<span class="mt-1 block text-[11px] text-slate-500">2 hours ago</span>
+							</div>
+						</div>
+						<div class="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50 px-5 py-2.5">
+							<p class="text-[11px] text-slate-500">4 of 47 this week</p>
+							<button onclick="showToast('Activity log is disabled in this view.', 'neutral')" class="text-brand-700 hover:text-brand-900 text-[11px] font-semibold transition-colors duration-150 hover:underline hover:underline-offset-2">View all activity</button>
+						</div>
+					</section>
+				</div>
+			</div>
+
+			<!-- Charts -->
+			<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+				<figure class="flex flex-col rounded-2xl border border-slate-200 bg-white">
+					<figcaption class="flex items-center justify-between gap-4 px-5 pt-5 pb-3">
+						<h3 class="text-[15px] font-semibold tracking-tight text-slate-900">Monthly revenue &amp; commission</h3>
+						<span class="shrink-0 text-[11px] text-slate-500">Jan–Sep 2026</span>
+					</figcaption>
+					<div class="h-64 px-5 pb-5">
+						<canvas id="revenueChart" role="img" aria-label="Gross commission by month, January to September 2026, rising from $42,000 in January to a July peak of $110,000 and $94,500 in September."></canvas>
+					</div>
+				</figure>
+
+				<figure class="flex flex-col rounded-2xl border border-slate-200 bg-white">
+					<figcaption class="flex items-center justify-between gap-4 px-5 pt-5 pb-3">
+						<h3 class="text-[15px] font-semibold tracking-tight text-slate-900">Lead source distribution</h3>
+						<span class="shrink-0 text-[11px] text-slate-500">128 leads</span>
+					</figcaption>
+					<div class="flex flex-1 items-center gap-6 px-5 pb-5">
+						<div class="size-[178px] shrink-0">
+							<canvas id="leadsChart" aria-hidden="true"></canvas>
+						</div>
+						<ul id="leadsLegend" class="min-w-0 flex-1 text-xs"></ul>
+					</div>
+				</figure>
+			</div>
+		</main>
+
+		<!-- Notification Toast -->
+		<!-- Starts invisible, not just transparent: an opacity-0 element still swallows clicks over this corner of the page. -->
+		<div id="toast" role="status" aria-live="polite" class="shadow-pop invisible fixed right-6 bottom-6 z-50 flex max-w-sm translate-y-3 items-center gap-3 rounded-xl bg-slate-900 px-4 py-3 text-xs font-medium text-white opacity-0 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]">
+			<i id="toast-icon" class="fa-solid fa-circle-check text-brand-500 text-[15px]" aria-hidden="true"></i>
+			<span id="toast-msg">Action completed successfully.</span>
+		</div>
+
+		<script>
+			/* ---------- Charts ---------- */
+
+			const LEAD_SOURCES = [
+				{ label: "Zillow Premier", value: 45, hue: "brand-500" },
+				{ label: "Website organic", value: 28, hue: "purple-400" },
+				{ label: "Google Business", value: 25, hue: "blue-500" },
+				{ label: "Direct referral", value: 18, hue: "amber-400" },
+				{ label: "Social media", value: 12, hue: "pink-400" },
+			];
+
+			function initCharts() {
+				if (typeof Chart === "undefined") return;
+				const root = getComputedStyle(document.documentElement);
+				/* The chart palette is read from the theme, so a swatch can never drift away from the card tints. */
+				const token = (name) => root.getPropertyValue(`--color-${name}`).trim();
+				const sources = LEAD_SOURCES.map((source) => ({ ...source, color: token(source.hue) }));
+				const styles = getComputedStyle(document.body);
+				Chart.defaults.font.family = styles.fontFamily;
+				Chart.defaults.color = token("slate-500");
+				Chart.defaults.font.size = 11;
+				Chart.defaults.maintainAspectRatio = false;
+				Chart.defaults.animation = false;
+
+				const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+				const commission = [42000, 58000, 64000, 72000, 89000, 95000, 110000, 88000, 94500];
+
+				new Chart(document.getElementById("revenueChart"), {
+					type: "bar",
+					data: {
+						labels: months,
+						datasets: [
+							{
+								label: "Gross commission",
+								data: commission,
+								backgroundColor: months.map((_, index) => (index === months.length - 1 ? token("brand-600") : token("brand-500") + "57")),
+								hoverBackgroundColor: months.map((_, index) => (index === months.length - 1 ? token("brand-700") : token("brand-500") + "85")),
+								borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 2, bottomRight: 2 },
+								maxBarThickness: 44,
+							},
+						],
+					},
+					options: {
+						plugins: {
+							legend: { display: false },
+							tooltip: {
+								backgroundColor: token("slate-900"),
+								padding: 12,
+								cornerRadius: 8,
+								displayColors: false,
+								callbacks: { label: (item) => `$${item.parsed.y.toLocaleString("en-US")}` },
+							},
+						},
+						scales: {
+							y: {
+								beginAtZero: true,
+								suggestedMax: 120000,
+								border: { display: false },
+								grid: { color: token("slate-200"), drawTicks: false },
+								ticks: { padding: 10, stepSize: 30000, callback: (value) => `$${value / 1000}k` },
+							},
+							x: { border: { display: false }, grid: { display: false }, ticks: { padding: 6 } },
+						},
+					},
+				});
+
+				new Chart(document.getElementById("leadsChart"), {
+					type: "doughnut",
+					data: {
+						labels: sources.map((source) => source.label),
+						datasets: [{ data: sources.map((source) => source.value), backgroundColor: sources.map((source) => source.color), borderWidth: 3, borderColor: "#ffffff", hoverOffset: 4 }],
+					},
+					options: {
+						cutout: "72%",
+						plugins: {
+							legend: { display: false },
+							tooltip: {
+								backgroundColor: token("slate-900"),
+								padding: 12,
+								cornerRadius: 8,
+								displayColors: false,
+								callbacks: { label: (item) => `${item.parsed} leads · ${Math.round((item.parsed / 128) * 100)}%` },
+							},
+						},
+					},
+				});
+
+				renderLeadLegend(sources);
+			}
+
+			/* The doughnut carries shape, the legend carries the numbers. Anything that needs a value is in text. */
+			function renderLeadLegend(sources) {
+				const total = sources.reduce((sum, source) => sum + source.value, 0);
+				document.getElementById("leadsLegend").innerHTML = sources
+					.map(
+						(source) => `<li class="legend-row">
+						<span class="size-2 rounded-full" style="background:${source.color}"></span>
+						<span class="min-w-0 truncate text-slate-700">${source.label}</span>
+						<span class="font-medium text-slate-900">${source.value}</span>
+						<span class="text-right text-slate-500">${Math.round((source.value / total) * 100)}%</span>
+					</li>`,
+					)
+					.join("");
+			}
+
+			/* ---------- Role switch ---------- */
+
+			const USERS = {
+				assistant: { name: "Janae", role: "Assistant", initials: "JN", hue: "var(--color-brand-500)" },
+				realtor: { name: "Jayden", role: "Realtor", initials: "JV", hue: "var(--color-blue-500)" },
+			};
+
+			let dashboardRole = "assistant";
+
+			function setDashboardRole(role) {
+				dashboardRole = role;
+				const isAssistant = role === "assistant";
+
+				document.getElementById("tab-assistant").setAttribute("aria-selected", String(isAssistant));
+				document.getElementById("tab-realtor").setAttribute("aria-selected", String(!isAssistant));
+				document.getElementById("tab-assistant").tabIndex = isAssistant ? 0 : -1;
+				document.getElementById("tab-realtor").tabIndex = isAssistant ? -1 : 0;
+				document.getElementById("panel-assistant").hidden = !isAssistant;
+				document.getElementById("panel-realtor").hidden = isAssistant;
+
+				const user = USERS[role];
+				document.getElementById("dash-user-avatar").textContent = user.initials;
+				document.getElementById("dash-user-avatar").style.setProperty("--mono", user.hue);
+				document.getElementById("dash-user-name").textContent = user.name;
+				document.getElementById("dash-user-role").textContent = user.role;
+				const next = isAssistant ? USERS.realtor : USERS.assistant;
+				document.getElementById("user-switch").setAttribute("aria-label", `Switch to ${next.name}, ${next.role.toLowerCase()}`);
+
+				const waiting = openReviewCount();
+				const open = openTaskCount();
+				document.getElementById("dash-panel-title").textContent = isAssistant ? "Review queue" : "Today's tasks";
+				const count = document.getElementById("dash-panel-count");
+				count.textContent = isAssistant ? `${waiting} waiting` : `${open} open`;
+				count.dataset.tone = isAssistant ? "brand" : open === 0 ? "muted" : "warn";
+				document.getElementById("dash-role-footnote").textContent = isAssistant ? (waiting === 0 ? "Nothing waiting on a decision" : `${waiting} waiting · oldest 3 hrs`) : open === 0 ? "Every assigned task is done" : `${open} open · 1 due this morning`;
+			}
+
+			function openReviewCount() {
+				return document.querySelectorAll("#dash-review-queue details").length;
+			}
+
+			function openTaskCount() {
+				return document.querySelectorAll("#dash-task-list [data-task]:not([data-complete])").length;
+			}
+
+			function decideReview(btn, decision) {
+				const card = btn.closest("details");
+				const title = card.querySelector("[data-review-title]").textContent.trim();
+				const label = decision === "approved" ? "Approved" : decision === "duplicate" ? "Linked as duplicate" : "Rejected";
+
+				/* A decision leaves a receipt in place rather than deleting the row, so the panel still reads as a log. */
+				const receipt = document.createElement("div");
+				receipt.className = "flex items-start gap-3 px-5 py-4";
+				const mark = document.createElement("span");
+				mark.className = "mt-px flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400";
+				const markIcon = document.createElement("i");
+				markIcon.className = "fa-solid fa-check text-[13px]";
+				markIcon.setAttribute("aria-hidden", "true");
+				mark.append(markIcon);
+
+				const body = document.createElement("span");
+				body.className = "min-w-0 flex-1";
+				const doneTitle = document.createElement("span");
+				doneTitle.className = "block text-sm font-medium text-slate-500 line-through decoration-slate-300";
+				doneTitle.textContent = title;
+				const doneMeta = document.createElement("span");
+				doneMeta.className = "mt-1 block text-[11px] text-slate-500";
+				doneMeta.textContent = `${label} · just now`;
+				body.append(doneTitle, doneMeta);
+				receipt.append(mark, body);
+				card.replaceWith(receipt);
+
+				const waiting = openReviewCount();
+				document.getElementById("nav-inbox-count").textContent = waiting + 3;
+				document.getElementById("dash-review-queue").classList.toggle("hidden", waiting === 0);
+				document.getElementById("dash-review-empty").classList.toggle("hidden", waiting !== 0);
+				document.getElementById("dash-review-empty").classList.toggle("flex", waiting === 0);
+
+				setDashboardRole(dashboardRole);
+				showToast(`${label}: ${title}`, decision === "rejected" ? "negative" : "positive");
+			}
+
+			function completeTask(checkbox) {
+				const row = checkbox.closest("[data-task]");
+				const title = row.querySelector("[data-task-title]").textContent.trim();
+				row.dataset.complete = "true";
+				checkbox.disabled = true;
+
+				const open = openTaskCount();
+				document.getElementById("dash-task-list").classList.toggle("hidden", open === 0);
+				document.getElementById("dash-task-empty").classList.toggle("hidden", open !== 0);
+				document.getElementById("dash-task-empty").classList.toggle("flex", open === 0);
+
+				setDashboardRole(dashboardRole);
+				showToast(`Done: ${title}`, "positive");
+			}
+
+			async function refreshDashboardData() {
+				const button = document.getElementById("dash-refresh");
+				const icon = button.querySelector("i");
+				button.disabled = true;
+				icon.classList.add("animate-spin");
+				await new Promise((resolve) => setTimeout(resolve, 850));
+				icon.classList.remove("animate-spin");
+				button.disabled = false;
+				showToast("Demo data refreshed · sample metrics unchanged", "neutral");
+			}
+
+			/* ---------- Notifications ---------- */
+
+			function toggleNotifications() {
+				const dropdown = document.getElementById("notif-dropdown");
+				const isOpen = dropdown.classList.toggle("hidden") === false;
+				document.getElementById("notification-toggle").setAttribute("aria-expanded", String(isOpen));
+			}
+
+			function closeNotifications() {
+				document.getElementById("notif-dropdown").classList.add("hidden");
+				document.getElementById("notification-toggle").setAttribute("aria-expanded", "false");
+			}
+
+			function clearNotifications() {
+				document.getElementById("notif-badge").classList.add("hidden");
+				document.getElementById("notif-count").textContent = "All read";
+				document.getElementById("notification-toggle").setAttribute("aria-label", "Notifications, none unread");
+				closeNotifications();
+				showToast("All notifications marked as read.", "neutral");
+			}
+
+			/* ---------- Toast ---------- */
+
+			const TOAST_TONES = {
+				positive: { icon: "fa-circle-check", tone: "text-brand-500" },
+				neutral: { icon: "fa-circle-info", tone: "text-slate-400" },
+				negative: { icon: "fa-circle-exclamation", tone: "text-red-500" },
+			};
+
+			let toastTimer;
+			let toastHideTimer;
+
+			function showToast(message, tone = "positive") {
+				clearTimeout(toastTimer);
+				clearTimeout(toastHideTimer);
+				const toast = document.getElementById("toast");
+				const icon = document.getElementById("toast-icon");
+				const preset = TOAST_TONES[tone] ?? TOAST_TONES.positive;
+				icon.className = `fa-solid ${preset.icon} text-[15px] ${preset.tone}`;
+				document.getElementById("toast-msg").textContent = message;
+				toast.classList.remove("invisible", "translate-y-3", "opacity-0");
+				toastTimer = setTimeout(() => {
+					toast.classList.add("translate-y-3", "opacity-0");
+					toastHideTimer = setTimeout(() => toast.classList.add("invisible"), 200);
+				}, 3200);
+			}
+
+			/* ---------- Wiring ---------- */
+
+			window.addEventListener("DOMContentLoaded", initCharts);
+
+			document.addEventListener("keydown", (event) => {
+				if (event.key === "Escape") {
+					const toggle = document.getElementById("notification-toggle");
+					if (document.getElementById("notif-dropdown").classList.contains("hidden") === false) {
+						closeNotifications();
+						toggle.focus();
+					}
+				}
+			});
+
+			document.addEventListener("click", (event) => {
+				if (!event.target.closest("#notification-toggle") && !event.target.closest("#notif-dropdown")) closeNotifications();
+			});
+
+			/* Roving focus across the two tabs, the pattern a tablist is supposed to have. */
+			document.querySelector("[role='tablist']").addEventListener("keydown", (event) => {
+				if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+				event.preventDefault();
+				const next = dashboardRole === "assistant" ? "realtor" : "assistant";
+				setDashboardRole(next);
+				document.getElementById(next === "assistant" ? "tab-assistant" : "tab-realtor").focus();
+			});
+		</script>
+	</body>
+</html>
