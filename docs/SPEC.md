@@ -1,168 +1,46 @@
-# Meadow CRM — Product Spec
+# Meadow CRM — MVP
 
-The MVP specification for the CRM used by Meadow Lane Realty & Development: a solo realtor working with an assistant. It describes what the app is, what it does, and what it deliberately does not do. The seed checklist content lives in [checklists.md](./checklists.md); domain vocabulary lives in [CONTEXT.md](./CONTEXT.md).
+One U.S. business, Meadow Lane Realty & Development, with a realtor and an assistant sharing all records and full access, plus a support admin who acts through either business identity. Currency is USD only. Build a straightforward one-off CRM that works on desktop and phones. Domain terms live in [CONTEXT.md](./CONTEXT.md); checklist seed content lives in [checklists.md](./checklists.md). OpenSpec changes hold implementation plans and testable acceptance criteria, not a second product brief.
 
-This document is requirements. The vocabulary it uses is defined in [CONTEXT.md](./CONTEXT.md), which is the single source for terms like `Client`, `Stage`, and `Archive`. When the two disagree on a definition, CONTEXT wins and this document is wrong.
+## Design boundary
 
-## Product direction
+Start with the main view, sidebar, and reusable primitives in Svelte 5. [Quiet Cream](../static/dashboards/04-quiet-cream.html) is the chosen visual starting point: warm neutrals, restrained accents, serif display headings, and a quiet sidebar/main-panel composition. Its widgets, charts, controls, sample data, and role switcher are not requirements. Neither it nor any other example defines current or future functionality. Specific screen layouts and interactions remain open to iteration with the user.
 
-- A working CRM, not a visual prototype. Every feature described here ships as real, usable behavior.
-- One business, two users — the realtor and the assistant — sharing a single set of clients, opportunities, and tasks.
-- The client registry and the pipeline are the core of the app. Everything else presents that same data rather than owning a copy.
-- Modularity means built-in modules that the business can switch off. Who a user may do is a separate concern from which modules exist.
-- Scope is settled. Where something is genuinely unknown it appears in [Open questions](#open-questions) rather than being designed around.
+## Core records and behavior
 
-## Records
+| Record | Content and rules |
+| --- | --- |
+| Client | Name, contact details, address, lead source, notes, tags, created/updated timestamps, archive state. Exists independently of opportunities. |
+| Opportunity | Title, one of four types, one of four stages, optional timeline/property address/budget, one or more clients, notes, references, checklist, archive state. Clients and opportunities have a many-to-many relationship. |
+| Checklist item | A step in an opportunity's per-stage checklist, independent of Tasks. Visited stages inherit type/stage defaults automatically; completion/dates retain linkage, while one structural edit detaches the whole stage's structure. Each stage retains its own work. |
+| Task | Work assigned to the realtor, created/managed by either user; title, optional due date, completion state, optional client or opportunity reference. Can stand alone. Assistants do not hold assigned tasks in this MVP. |
+| Reference | A labeled link to a CRM record or external URL/document; no document upload or dependency behavior. |
 
-### Client
+- One board for all types: **Buyer**, **Seller**, **Estate Sale**, **Construction**. Types select card accents and offered checklist templates, not separate pipelines. Estate Sale tracks a referral relationship; Construction includes the realtor's personal side work.
+- Fixed stages in order: **New lead**, **Active lead**, **Under contract**, **Closed**. Create at the actual stage, skip stages, or move backwards. Closed means completed engagement; outstanding checklist work may remain. First entry inherits the current type/stage defaults; returning restores that stage's retained work. Stage changes record history without completion gates.
+- Resetting an opportunity checklist clears all customization, completion, and dates for that stage and relinks fresh defaults; former work remains only in history. Use a secondary action with explicit stage/loss confirmation. Type changes preserve visited stages and their template sources until individually rebased through the same reset behavior; unvisited stages automatically use the new type.
+- Optional timeline: **1-3 mo**, **3-6 mo**, **6+ mo**. Show, filter, and sort it; no implied expiration date, automated prompt, or health judgment.
+- Clients own tags; opportunities display the read-only union of their clients' tags. Start with **sphere**, **nurture**, **referral**. Nurture is only a label; referral means referred to the business, not a source of referrals.
+- Archive clients and opportunities independently, retain fields, notes, links, and history, and allow restoration through explicit archived views. Never show archived opportunities on the board or archived clients in the default registry. No hard delete in this MVP.
+- Incomplete checklist items/tasks with a due date before today in the business timezone are overdue. Undated, due-today, completed, removed, and archived-opportunity checklist items are not overdue. Checklist attention defaults to all visited stages, with a business setting for current-stage-only; unvisited stages contribute nothing.
 
-A person recorded in the CRM, independent of any engagement. Fields: name, contact details, address, lead source, notes, tags, and a created/updated timestamp. A client can take part in many opportunities, and one opportunity can involve many clients.
+## MVP surfaces
 
-### Opportunity
+| Surface | Required behavior |
+| --- | --- |
+| Dashboard | One shared landing view for both users: assigned/open and overdue realtor tasks when Tasks is enabled, overdue checklist work, and a short pipeline summary. Everything links to the underlying records. No separate assistant dashboard or calendar widget. |
+| Pipeline | Four-stage board; type, timeline, and inherited-tag filters; timeline sorting; opportunity create/edit/detail; explicit stage movement; checklist progress and derived overdue indicators. Provide a touch/keyboard alternative to drag-and-drop. |
+| Client registry | Sortable table, instant keyword search across name/contact/address/notes/tags; tag, lead source, opportunity-count, and archive filters; bulk tag/archive; client detail side panel and linked opportunities. URL-backed views restore search/filter/sort/page state. Selection is current-page-only and clears on view changes; bulk changes succeed for all selected clients or none. Adapt to phone use. |
+| Tasks | Optional business-wide module, enabled for initial delivery. Create/edit, assign to realtor, date, complete/reopen, and link to client/opportunity. Disabling hides surfaces and task projections without deleting tasks or affecting checklists. |
+| Inbox | Core flat projection of overdue checklist items and, when enabled, overdue tasks. Open the source record. Checklist entries offer a prefilled task form without leaving the inbox; existing task entries open that task instead of creating duplicates. No independently maintained queue. |
+| Settings | Business-wide General (name, timezone, date format, Tasks enabled; fixed USD), Pipeline (16 checklist templates and checklist attention scope), Client registry (tags: add/rename/recolor/retire). Both users can edit. No per-user settings. |
 
-A prospective engagement, and the unit the pipeline tracks. Fields: title, type, stage, timeline, property address (optional — a buyer may have no home selected yet), budget or target price (optional), associated clients, notes, references, checklist, and an archived flag.
+Retired tags are unavailable for new application but remain on existing clients unless explicitly stripped. Tags in use cannot be deleted outright. Template edits update linked stage structures while preserving matching progress; customized lists stay independent. Reset this template restores the selected seed structure; Reset all templates is a separately labeled secondary action. Both require impact confirmation, preserve progress for still-present linked items, and leave customized lists untouched; restored removed steps start incomplete and undated. Opportunity checklist reset is the separate full-stage progress-clearing action described above. Every surface reflects the same persisted records; safe small edits provide optimistic pending feedback, and failed or stale saves preserve confirmed data and recoverable drafts.
 
-The title is what the business calls the work: `Miller home search` until a property is picked, then the address. A property is not required.
+## Delivery and exclusions
 
-### Supporting records
+Deliver the visual Svelte shell and only the controls needed for review, using clearly labeled fictional fixtures or empty states. Then prove local persistence/auth compatibility and a client → opportunity → checklist → dashboard slice before expanding workflows. Cloudflare D1 is the shared storage target. Add real app-managed login late for two separately provisioned equal business users plus a support admin with server-verified impersonation and actual/effective-user history; protect access before storing real client information. Production changes require separate approval.
 
-Tasks, events, references, and checklist items are defined in [CONTEXT.md](./CONTEXT.md) and described in the module sections below.
+Not in this MVP: Calendar/Google integration, Phone, review queue, nurture reminders, timeline-expiry prompts, pause/follow-up automation, automatic post-close actions, hard delete, import tooling, document storage, reporting/revenue/commission tracking, marketing attribution, role gating, multi-tenancy, onboarding/billing, stage/type editors, workflow builders, health/probability/temperature fields, or automatic stage transitions. Example screens do not add these to the roadmap.
 
-## Pipeline
-
-One shared board. Every opportunity is on it, regardless of type; type is a filter and a visual distinction, not a separate pipeline.
-
-The stages, types, timeline values, and tags are defined in [CONTEXT.md](./CONTEXT.md). This section is how they behave.
-
-### Stages
-
-- Stages are labels for progress, not gates. Opportunities are created at their real stage, skip stages when they are already past them, and move backwards when reality changes.
-- A contract that falls through with the client still engaged returns the same opportunity to Active lead. When the client is gone, archive the opportunity and keep the history.
-- A stage change records a decision. It does not create, enforce, or end a legal agreement, and it never applies, resets, or duplicates checklist items.
-- Closed means the engagement completed, not that post-close work is finished. Outstanding items can remain on a closed opportunity.
-
-### Opportunity types
-
-Four types, fixed at launch: **Buyer**, **Seller**, **Estate Sale**, and **Construction**. The type drives the card color and which default checklist template is offered; it does not change the stages or create separate boards.
-
-An engagement that does not fit cleanly is recorded against the closest of the four, with a note. Adding a fifth type is a settings change, not a schema redesign.
-
-The four types do not weigh the same. An Estate Sale opportunity is a referral relationship, and gets little benefit from the kanban stages; most of them will sit in one stage for their whole life, which is fine. A Construction opportunity stays on the same board as everything else, because the owner wants his side work visible alongside the rest.
-
-### Timeline
-
-Every opportunity carries an optional timeline. It records the client's stated horizon and is shown on the card, used as a board filter and sort, and used to prompt follow-up when a 1-3 mo opportunity sits in New lead. It never blocks a stage change and never implies a health judgment.
-
-### Tags
-
-Clients are tagged. An opportunity **inherits** the union of the tags of its associated clients and shows them read-only; tags are edited on the client, not on the opportunity. Removing a tag from a client updates every opportunity that inherited it.
-
-The vocabulary starts with sphere, nurture, and referral, and is extensible in settings. Their meanings are in [CONTEXT.md](./CONTEXT.md).
-
-### Archive
-
-Clients and opportunities can be archived. Archiving hides a record from the default views without touching its data: it keeps every field, every note, every link to the other record type, and its full history. Archived records are reachable through an explicit archived filter, can be restored, and are never shown on the pipeline board or in the default client list.
-
-Archiving is how dead work leaves the board. A seller who withdraws, a buyer who goes elsewhere, a project that dies: archive the opportunity with a closing note, keep the clients, and start a new opportunity later if the client comes back. Closed stays reserved for engagements that actually completed.
-
-## Client registry
-
-The searchable, comprehensive list of every client the business knows.
-
-- A dense table view with sortable columns, opening a client in a side panel rather than a modal.
-- Instant keyword search across name, contact details, address, notes, and tags.
-- Filters for tags, lead source, opportunity count, and archived state; a visible toggle that includes or excludes archived clients.
-- Bulk select to apply tags or archive several clients at once.
-- Each client shows its opportunities inline, so the registry doubles as a way into the pipeline.
-- Archiving a client does not archive their opportunities, and archiving an opportunity does not archive the client. Both are independent, reversible actions.
-
-## Modules
-
-### Pipeline (core, always on)
-
-The kanban board, opportunity records, checklists, tags, and the timeline. This is the app. Its settings hold the checklist templates.
-
-### Client registry (core, always on)
-
-The registry described above.
-
-### Tasks (optional)
-
-Work the assistant records and assigns to the realtor. A task can reference a client, opportunity, or event, or stand on its own. The realtor sees their assigned and overdue tasks on the dashboard next to upcoming events. Assistants do not hold tasks of their own in the MVP. Checklists are not tasks and remain available when this module is off.
-
-### Inbox (core, always on)
-
-One flat list of what needs a decision or a reply, drawn from every enabled module: overdue checklist items and tasks, clients tagged nurture that have gone quiet, opportunities whose timeline has run out, and anything waiting in the review queue. It is a view over existing records, never a queue of its own, and each entry opens the record that produced it.
-
-Any inbox item converts to a task in one click: a single action turns the item into a small task form for the realtor, prefilled from what the item knows, without leaving the inbox.
-
-### Calendar (optional, needs discovery)
-
-A module for appointments and events, expected to integrate with Google Calendar. Nothing about its scope is decided — what the module does, how it treats connected calendars, and whether it replaces or defers to Google all need discovery before it is specified. There is no research doc for it yet.
-
-### Dashboard (core, always on)
-
-The landing view. The realtor's dashboard leads with assigned and overdue tasks, today's events, and a short pipeline summary. What the assistant opens the app to do is undecided; see open question 9. Every widget is a view over existing records, not a copy of them.
-
-### Phone (later milestone)
-
-Call logging and outbound calling, on its own milestone with its own research. See [research/phone-module.md](./research/phone-module.md).
-
-### Review queue (later milestone)
-
-A human decision point for incoming and automatically suggested records, arriving with the phone module or any other automated intake. Until something automated produces records, there is nothing for it to hold.
-
-## Settings
-
-One settings page, business-wide, structured into a **General** section and one section per module. No feature is ever configured in two places.
-
-- **General:** business name, timezone, currency, date format, and which modules are enabled or disabled.
-- **Pipeline module:** the default checklist template for every combination of opportunity type and stage, editable inline with add, rename, reorder, and delete. See [checklists.md](./checklists.md).
-- **Client registry module:** the tag vocabulary, which lives here because clients own the tags — add, rename, recolor, and retire. A tag in use cannot be deleted outright; retiring it stops future use and offers to strip it from existing records.
-- **Per-module configuration:** each optional module owns its own settings section.
-
-Anyone can see and edit settings, and checklist template changes are global — a template edited by one user changes it for everyone.
-
-Anything that would need a migration, a permission model, or a workflow builder is out of settings and needs its own spec.
-
-## Milestones
-
-1. **Core CRM** — clients, opportunities, pipeline, checklists, tags, tasks, inbox, dashboard, settings. This spec.
-2. **Phone** — call logging and calling, preceded by its own research.
-3. **Later candidates** — the calendar module once it has had its own discovery, review requests and reputation workflows, Google Business Profile, nurture campaigns, reporting. None are committed; each needs its own research and spec.
-
-## Out of scope for the MVP
-
-- A pipeline or stage editor, and any workflow builder. Stages and types are fixed; templates and configuration live in settings.
-- A lead temperature, health, or probability field. Attention comes from real dates and real overdue work, not from a maintained status.
-- A second outcome for dead deals beyond archive.
-- Multi-tenancy, self-serve onboarding for other businesses, and a billing model.
-- Executive reporting, revenue tracking, and marketing attribution. The app has no website or ad spend to attribute.
-- Document upload. References link to documents; they do not store them.
-- Automated stage transitions. A stage changes because a person moved it.
-
-## Settled decisions
-
-Short record of choices already made, so they are not relitigated while implementing.
-
-- **One shared board with four fixed stages**, rather than separate buyer and seller pipelines or six descriptive stages. Four stages cover the real work; anything more precise is a checklist, not a column.
-- **Archiving is the only exit from the board** other than Closed, replacing a separate "ended without completion" status. One mechanism instead of three overlapping ones.
-- **Types are a dimension, not a pipeline.** Four types color the cards and select a checklist; they never fork the board.
-- **Checklists are core and separate from tasks.** A checklist is the deal's own steps, copied from a template; a task is work the assistant assigns to the realtor. Keeping them apart means the pipeline never depends on the Tasks module being on.
-- **Templates are copied, not linked.** Editing a template in settings never rewrites the checklist of an opportunity already in progress.
-- **Opportunities inherit client tags rather than owning them.** There is one place to change a relationship label, and the board reflects it immediately.
-- **Urgency is a three-value timeline, not a date or a probability.** Enough structure to sort and prompt, not enough to be maintained wrongly.
-
-## Open questions
-
-Gaps to resolve with the business before or during the work they touch. Answered items keep their question and record the current direction beneath it; those answers are already reflected in the body of this spec.
-
-1. **Pause.** Waiting on a lender, an appraisal, or a repair agreement is normal and should not move an opportunity backwards. Should an opportunity be pausable with a follow-up date, or is the timeline plus checklist enough to cover waiting? — *Unanswered.*
-2. **Lead source.** Should where a client came from (referral partner, open house, sign, website, walk-in) be a field, a tag, or free text on the client? — *Answered: a field on the client.* Lead source is a metadata field in the client record, not a tag and not free text in notes. It is set when the client is created and is filterable in the registry.
-3. **Referral direction.** Does the referral tag mean "this client was referred to us", "this client refers others", or both? If the second, a referral link between two clients may be needed. — *Answered: referred to us.* The referral tag records that the client came to the business through a referral. It does not mark a client as a source of referrals, and no referral link between clients is needed. Whether the referring party is itself recorded is still undecided.
-4. **Nurture cadence.** Does the nurture tag imply an expected follow-up rhythm the CRM should prompt, or is it purely a label for now? — *Answered: purely a label for now.* Nothing follows from the nurture tag automatically; the inbox surfaces quiet nurture clients, and that is all.
-5. **Settings access.** Both users can see settings, or only the realtor can change them? And are checklist templates global or editable per user? — *Answered: anyone can see and edit, and templates are global.* Both users have full access to every settings section, and a checklist template edited by either user changes for everyone. There are no per-user template overrides.
-6. **Archive versus delete.** Is there any case for a hard delete (a duplicate, a test record, a data-import error), and who may do it? — *Unanswered.*
-7. **Closed and post-close work.** Should anything be automatic after closing — a review request, a retention reminder — or is that left to the checklist and the assistant entirely? — *Unanswered.*
-8. **Phone boundary.** Which of calling, logging, recording, transcription, and routing actually matters, and does the realtor bring an existing number and provider? See the research brief. — *Unanswered.*
-9. **The assistant's dashboard.** Assistants assign tasks and keep records tidy, but nothing is specified for what the assistant opens the app to do. Is it the same set of widgets, a different set, or no dashboard at all? — *Unanswered.*
+Future discovery is uncommitted: whether waiting needs a pause mechanism; whether deletion is ever appropriate; whether referring parties should be recorded; whether any follow-up or post-close automation is wanted; and whether Calendar or Phone earns a milestone. Phone questions are kept in [research/phone-module.md](./research/phone-module.md). Resolve new scope with the business before specifying it.

@@ -1,24 +1,3 @@
-<!-- OPENSPEC:START -->
-
-# OpenSpec Instructions
-
-These instructions are for AI assistants working in this project.
-
-Always open `@/openspec/AGENTS.md` when the request:
-
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
-
-Use `@/openspec/AGENTS.md` to learn:
-
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->
 
 # AGENTS
 
@@ -42,7 +21,7 @@ This project uses Vite+ (`vp`). Run everything through `vp`, and follow whatever
 
 Cloudflare work goes through `cf`, Cloudflare's CLI, which is installed globally (currently v1.0.0-beta.5). It covers the entire Cloudflare API — 3,000+ operations across Workers, D1, R2, KV, DNS, Access, Tunnels, and the rest. Use it instead of `wrangler`; Wrangler is in maintenance-only support and Cloudflare is steering agents to `cf`.
 
-**This app targets Cloudflare.** It deploys through `@sveltejs/adapter-cloudflare`, so `cf` is the tool for the Cloudflare side of the work: provisioning and inspecting D1, R2, KV, Queues, Vectorize, Workers AI, and Hyperdrive as the app grows, plus DNS, Access, cache purges, and observability. Assume you will need it rather than treating it as incidental.
+**This app targets Cloudflare.** The prototype currently uses `@sveltejs/adapter-static`; the working product targets `@sveltejs/adapter-cloudflare`. Use `cf` for Cloudflare provisioning, bindings, deployment, and inspection, and verify the actual adapter/config path before deploying.
 
 What `cf` must not do is silently take over the build. `vp` owns dev, build, and check, and `cf` is Vite-based, so a plain `cf deploy` would build through its own pipeline and pull in the Cloudflare Vite plugin, fighting `vp` and the `vite-plus-core` pin in `package.json` `overrides`. Avoid `cf init`, `cf migrate`, and `cf dev` for the same reason — they restructure project config, and the adapter stays wired in `vite.config.ts`. If the build remains with `vp`, ship with `cf deploy --prebuilt`, which uploads existing build output instead of rebuilding. Establish which path applies before the first deploy: making the adapter read the new `cf` config is known pending work, and it is a real blocker, not a formality.
 
@@ -71,11 +50,11 @@ When a request is ambiguous between "change the app" and "change something on Cl
 
 Tailwind CSS v4, wired via `@tailwindcss/vite` and `@import "tailwindcss"` in `src/routes/layout.css`. Follow whatever Tailwind guidance is already loaded in your context, in full, before editing any styling.
 
-`layout.css` also holds this project's `:root` design tokens, base element resets, and shared primitives: card, btn / btn-lg / btn-primary / btn-secondary / btn-danger, icon-btn, field base, kicker, notice, display.
+`layout.css` currently contains only the Tailwind import. Define the product's design tokens and base resets there during implementation, with reusable Svelte components for shared controls; do not assume primitives already exist.
 
 ## Documentation
 
-Everything lives under `docs/`, and the set is deliberately small. Read before building:
+Product requirements live under `docs/`; `PRODUCT.md` is a short design-context summary, and OpenSpec changes hold implementation plans and acceptance criteria. Read before building:
 
 - `docs/SPEC.md`: what the MVP is, the record model, the pipeline, modules, settings, out of scope, settled decisions, and open questions. The primary document.
 - `docs/CONTEXT.md`: the glossary. Use its terms for domain concepts; it defines `Client`, `Opportunity`, `Stage`, `Timeline`, `Tag`, `Archive`, and the rest.
@@ -87,4 +66,4 @@ If the work contradicts `docs/SPEC.md`, say so before implementing it. If it con
 
 ## Domain vocabulary
 
-`docs/CONTEXT.md` is the glossary and the single source of the project's business language. When naming a domain concept, use the term it defines. See `docs/agents/domain.md` for how to introduce a new one.
+`docs/CONTEXT.md` is the glossary and the single source of the project's business language. When naming or proposing a new domain concept, follow its terminology guidance.

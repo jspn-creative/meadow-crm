@@ -7,6 +7,7 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+/.cloudflare
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vitest/
@@ -33,8 +34,9 @@ Thumbs.db
 .opencode
 .cursor
 .impeccable
-docs
+!docs
+docs/examples
 .scratch
 .openchamber
 .delta
-openspec
+!openspec

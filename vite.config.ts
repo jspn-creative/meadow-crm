@@ -1,5 +1,5 @@
 import tailwindcss from "@tailwindcss/vite";
-import adapter from "@sveltejs/adapter-auto";
+import adapter from "@sveltejs/adapter-static";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";

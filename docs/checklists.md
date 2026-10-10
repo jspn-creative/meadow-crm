@@ -1,16 +1,6 @@
 # Default checklists
 
-The 16 default checklist templates that ship with the app: one for every combination of opportunity type and stage. They are the seed content for the checklist settings of the **Pipeline** module, edited from within that module's own section of settings. Settings are organized into a **General** section and one section per module, so these live under Pipeline rather than in a settings area of their own.
-
-They are a starting point, not a procedure. Every item is optional, every list is meant to be cut down to what the business actually does, and no stage change depends on an item being complete.
-
-## How templates work
-
-- A template is copied onto an opportunity when the user explicitly applies it from the opportunity's checklist. Moving an opportunity to a new stage never applies, clears, or duplicates a template.
-- Applying copies. Later edits to a template in settings do not touch checklists already in progress, and an opportunity that has been through two stages keeps both sets of items.
-- Items can be completed, given a due date, renamed, and removed on the opportunity. A dated item that passes its date is what the card shows as overdue; nothing about that is manual.
-- An opportunity with no checklist is normal and fine. The board works without one.
-- Templates are reset to the defaults in settings, which replaces the template content only — never the checklists on live opportunities.
+Seed content for the 16 editable Pipeline templates (four types × four stages), automatically inherited on first entry to a stage. These are editable guidance, not enforced procedures or completion gates. Inheritance, customization, and deliberate resets follow [SPEC.md](./SPEC.md); preserve this content when implementing the seed data.
 
 ## Buyer
 
@@ -181,4 +171,4 @@ Work the owner takes on personally for a client, as a side line rather than thro
 - Items are written as single short actions in the imperative. Keep them that way; a long sentence becomes a task nobody completes.
 - Financing, appraisal, and disclosure items apply to some clients only. Leave them in — an unchecked item the business skips is cheaper than a missing item it needed.
 - The Closed lists are the most likely to be cut down. Post-close work that nobody does should not sit on every closed deal.
-- Adding a tag, type, or stage later means adding its templates here too, so the settings matrix is never missing a cell.
+- A future change to types or stages must keep the template matrix complete; tags do not select templates.

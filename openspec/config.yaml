@@ -1,0 +1,35 @@
+schema: spec-driven
+
+context: |
+  This is a small, one-off CRM for a U.S. business using USD. Favor straightforward implementations and focused checks proportionate to two business users; avoid speculative SaaS infrastructure or process overhead.
+  Read docs/SPEC.md for product scope, docs/CONTEXT.md for domain vocabulary, and docs/checklists.md when planning checklist behavior. Keep product documentation there rather than duplicating it in every artifact.
+  Visual references establish visual direction only; their widgets, sample data, and interactions do not authorize features. Distinguish approved decisions, recommendations, and unresolved questions.
+  When an approved change supersedes documented behavior, identify the conflict explicitly and schedule reconciliation before implementing the affected behavior; never infer approval from a contradictory artifact alone.
+
+rules:
+  proposal:
+    - Explain the user outcome, affected capabilities, and explicit scope boundaries; separate required delivery from optional experiments and follow-ups.
+    - Identify superseded product decisions and unresolved questions that could change scope or acceptance.
+  specs:
+    - Specify observable behavior and testable WHEN/THEN scenarios; keep library choices and implementation mechanisms in design.
+    - For affected workflows, cover relevant empty, invalid, failed, concurrent, and restored states as well as the happy path; state what is retained and what changes.
+    - Define shared calculations and relationship rules once, reference them across surfaces, and make date boundaries, archive effects, and disabled-module behavior explicit where relevant.
+    - Resolve user-visible ambiguities such as bulk selection scope, partial success, reset scope, and source-record navigation rather than leaving incompatible outcomes equally compliant.
+  design:
+    - Explain consequential decisions, alternatives, and trade-offs; distinguish verified runtime capabilities from assumptions that need a spike.
+    - For shared-data changes, identify state ownership, mutation boundaries, conflict and retry behavior, dependent-view refresh, and recovery of unsaved edits.
+    - Give each experiment a bounded budget, acceptance criteria, fallback, and decision point before dependent implementation; avoid speculative infrastructure.
+    - Describe keyboard, touch, focus, interrupted navigation, and reduced-motion behavior for affected interactions.
+  tasks:
+    - Order work by actual dependencies and deliver reviewable vertical slices; distinguish fixture-backed previews from persisted end-to-end workflows.
+    - Give each task an observable completion check tied to a requirement; prioritize meaningful integration and failure-path checks over implementation-mirroring tests.
+    - Include documentation reconciliation and unresolved decision checkpoints before affected work, and separate local acceptance from operational delivery when their scope differs.
+
+operations:
+  apply:
+    guidance:
+      - Resolve blocking contradictions before the affected task and record approved decisions in the existing artifacts rather than creating parallel planning documents.
+      - Mark tasks complete only after their stated checks; report verified outcomes, remaining blockers, and experiment decisions concisely.
+  archive:
+    guidance:
+      - Archive only on explicit request after reviewing acceptance evidence, reconciling product documentation, and identifying incomplete requirements or deferred follow-ups.
