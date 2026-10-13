@@ -8,7 +8,7 @@ Web; desktop and mobile browsers, not a native app.
 
 ## Users
 
-One realtor and one assistant at Meadow Lane Realty & Development, with equal access to shared records. The assistant keeps work organized and assigns tasks to the realtor. Both use one dashboard in the initial MVP.
+One realtor and one assistant at Meadow Lane Realty & Development, with equal access to shared records, plus a separately provisioned support admin acting through either business identity. The assistant keeps work organized and assigns tasks to the realtor. Both business users use one dashboard in the initial MVP.
 
 ## Product Purpose
 

@@ -7,12 +7,12 @@ Give both users a consistent, phone-usable workspace without treating visual exa
 ## ADDED Requirements
 
 ### Requirement: Shared navigation
-The workspace SHALL provide Dashboard, Pipeline, Registry, Inbox, Settings, and Tasks when enabled, with an identifiable current location. Quiet Cream SHALL guide visual styling only; Active Clients, Calendar, and example widgets MUST NOT become implemented modules through this change.
+The sidebar SHALL provide exactly Dashboard, Pipeline, and Registry, with an identifiable current location. Tasks and the attention view SHALL be capabilities reached through Dashboard and linked records, never sidebar destinations or modules. Settings SHALL be reached through the workspace account menu. Quiet Cream SHALL guide visual styling only; Active Clients, Calendar, and example widgets MUST NOT become additional modules through this change. Calendar is intended for MVP delivery but requires a scoped implementation-plan update; this shell includes only its requested dashboard empty state.
 
 #### Scenario: Initial shell review
 - **WHEN** the user reviews the first interface milestone
-- **THEN** the main view and sidebar use the Quiet Cream direction, DM Sans UI text, and Newsreader display text with working navigation and clearly identified fictional development data or empty states
-- **AND** Calendar, Phone, review queues, commission tools, and example-derived features are absent
+- **THEN** the main view and sidebar use the Quiet Cream direction, DM Sans UI text, and Newsreader display text with working navigation and fictional development data or empty states; fixture provenance stays in code/documentation rather than repeated workspace warnings
+- **AND** Phone, review queues, and commission tools are absent; Recent activity and Upcoming events use the user-requested dashboard empty states without claiming connected data sources
 
 #### Scenario: Tasks disabled
 - **WHEN** Tasks is disabled business-wide

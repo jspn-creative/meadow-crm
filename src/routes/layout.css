@@ -1,1 +1,411 @@
 @import "tailwindcss";
+
+@theme {
+	--font-sans: "DM Sans", system-ui, sans-serif;
+	--font-display: "Newsreader", Georgia, serif;
+	--color-paper: #f2efe3;
+	--color-paper-pill: #e6e0cd;
+	--color-canvas: #fdfcf9;
+	--color-hairline: #e9e4d6;
+	--color-muted: #756d60;
+	--color-ink: #1c1917;
+	--color-field: #4c7a2f;
+	--color-field-deep: #3a6122;
+	--color-info-soft: #e7eef0;
+	--color-info: #456775;
+	--color-pending-soft: #f3ead6;
+	--color-pending: #806126;
+	--color-tour-soft: #eee9f1;
+	--color-tour: #715c83;
+	--color-success-soft: #e8eddf;
+	--color-success: #50683d;
+	--color-urgent-soft: #f4e5df;
+	--color-urgent: #98543f;
+	--text-2xs: 0.6875rem;
+	--shadow-shell: 0 4px 20px -8px rgb(27 26 23 / 0.12);
+	--shadow-panel: 0 28px 64px -32px rgb(27 26 23 / 0.4);
+	--ease-shell: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+	html {
+		@apply bg-canvas text-ink h-full;
+		color-scheme: light;
+	}
+	body {
+		@apply h-full font-sans text-sm antialiased;
+		text-rendering: optimizeLegibility;
+	}
+	button,
+	input,
+	select,
+	textarea {
+		font: inherit;
+		accent-color: var(--color-field);
+		caret-color: var(--color-field-deep);
+	}
+	a,
+	button,
+	input,
+	select,
+	textarea,
+	summary {
+		&:focus-visible {
+			@apply outline-field outline-2 outline-offset-2;
+		}
+	}
+	button {
+		@apply cursor-pointer;
+		&:disabled {
+			@apply cursor-not-allowed;
+		}
+	}
+	::selection {
+		background: var(--color-success-soft);
+		color: var(--color-field-deep);
+	}
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-paper-pill) transparent;
+	}
+}
+
+@layer components {
+	.control {
+		@apply border-hairline text-ink inline-flex min-h-11 items-center justify-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium;
+		transition:
+			background-color 120ms ease,
+			color 120ms ease,
+			transform 140ms var(--ease-shell);
+		&[data-variant="primary"] {
+			@apply bg-ink border-transparent text-white;
+		}
+		&[data-icon] {
+			@apply size-11 shrink-0 p-0;
+		}
+		&:disabled {
+			@apply opacity-50;
+		}
+		&[aria-busy="true"] {
+			@apply cursor-wait;
+		}
+		&:active:not(:disabled) {
+			transform: scale(0.97);
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:disabled) {
+				@apply bg-paper;
+			}
+			&[data-variant="primary"]:hover:not(:disabled) {
+				@apply bg-field text-white;
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+			&:active:not(:disabled) {
+				transform: none;
+			}
+		}
+	}
+	.field {
+		@apply border-hairline text-ink min-h-11 w-full rounded-xl border bg-white px-3 py-2;
+		&::placeholder {
+			@apply text-muted;
+		}
+		&:disabled {
+			@apply bg-paper cursor-not-allowed opacity-60;
+		}
+		&[aria-invalid="true"] {
+			@apply border-urgent;
+		}
+	}
+}
+
+/* Quiet Cream's translucent interaction wash preserves the underlying surface. */
+[data-interactive] {
+	position: relative;
+	isolation: isolate;
+	--item-hue: var(--color-success-soft);
+	transition:
+		transform 360ms var(--ease-shell),
+		box-shadow 360ms var(--ease-shell);
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		pointer-events: none;
+		background: linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--item-hue) 65%, white),
+			transparent 85%
+		);
+		opacity: 0;
+		transition: opacity 360ms ease;
+	}
+	&:focus-visible::before {
+		opacity: 1;
+	}
+	@media (hover: hover) and (pointer: fine) {
+		&:hover::before {
+			opacity: 1;
+		}
+		&[data-interactive="score"]:hover {
+			transform: translateY(-5px) scale(1.018);
+			box-shadow: 0 10px 22px -16px rgb(64 59 43 / 0.3);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+		&::before {
+			transition: none;
+		}
+		&[data-interactive="score"]:hover {
+			transform: none;
+		}
+	}
+}
+
+/* These surfaces stay mounted while the route content changes. */
+.workspace {
+	@apply from-paper to-canvas relative isolate flex h-dvh flex-col overflow-hidden bg-linear-to-b;
+	--rail-width: 16rem;
+	view-transition-name: cream-surface;
+	&[data-login="true"] {
+		--rail-width: 50%;
+	}
+	&[data-collapsed="true"] {
+		--rail-width: 5rem;
+	}
+	@media (min-width: 64rem) {
+		@apply flex-row;
+	}
+	.rail {
+		@apply relative z-10 flex shrink-0 flex-col px-6 py-4;
+		@media (min-width: 64rem) {
+			@apply h-full px-6 py-7;
+			width: var(--rail-width);
+			transition:
+				width 360ms var(--ease-shell),
+				padding 360ms var(--ease-shell);
+		}
+	}
+	.main-surface {
+		@apply shadow-shell relative mb-3 ml-3 min-h-0 min-w-0 flex-1 overflow-y-auto rounded-l-2xl bg-white/70;
+		view-transition-name: white-surface;
+		@media (min-width: 64rem) {
+			@apply mt-3 rounded-l-3xl;
+		}
+	}
+	&[data-collapsed="true"] .rail {
+		@media (min-width: 64rem) {
+			@apply px-3;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.rail {
+			transition: none;
+		}
+	}
+}
+
+.workspace {
+	.nav-destination {
+		@apply overflow-hidden;
+		transition:
+			padding 360ms var(--ease-shell),
+			gap 360ms var(--ease-shell),
+			background-color 160ms ease,
+			color 160ms ease;
+	}
+	.nav-label,
+	.brand-label,
+	.account-label {
+		transition: opacity 160ms ease;
+	}
+	@media (min-width: 64rem) {
+		&[data-collapsed="true"] {
+			.nav-destination {
+				padding-inline: 1.21875rem;
+				gap: 0;
+			}
+			.nav-label,
+			.brand-label,
+			.account-label {
+				opacity: 0;
+				pointer-events: none;
+			}
+			.brand-label,
+			.account-label {
+				width: 0;
+			}
+			.user-chip > button {
+				gap: 0;
+			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.nav-destination,
+		.nav-label,
+		.brand-label,
+		.account-label {
+			transition: none;
+		}
+	}
+}
+
+.user-chip {
+	@apply relative;
+	.account-menu {
+		@apply invisible absolute bottom-full left-0 z-30 mb-2 min-w-44 opacity-0;
+		transform: translateY(4px);
+		transition:
+			opacity 160ms ease,
+			transform 200ms var(--ease-shell),
+			visibility 160ms ease;
+		&::after {
+			content: "";
+			position: absolute;
+			inset: 100% 0 -0.5rem;
+		}
+	}
+	&[data-open="true"],
+	&:has(> button:focus-visible),
+	&:has(.account-menu :focus-visible) {
+		.account-menu {
+			@apply visible opacity-100;
+			transform: none;
+		}
+	}
+	@media (hover: hover) and (pointer: fine) {
+		&:hover .account-menu {
+			@apply visible opacity-100;
+			transform: none;
+		}
+	}
+	&[data-compact="true"] {
+		.account-label {
+			@apply hidden;
+		}
+		.account-menu {
+			@apply top-full right-0 bottom-auto left-auto mt-2 mb-0;
+			&::after {
+				inset: -0.5rem 0 100%;
+			}
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.account-menu {
+			transition: none;
+			transform: none;
+		}
+	}
+}
+
+.dashboard-content {
+	animation: none;
+	& > section,
+	& > div > section {
+		animation: widget-enter 560ms var(--ease-shell) backwards;
+	}
+	& > div:nth-child(2) > section:first-child {
+		animation-delay: 70ms;
+	}
+	& > div:nth-child(2) > section:last-child {
+		animation-delay: 120ms;
+	}
+	& > div:nth-child(3) > section:first-child {
+		animation-delay: 170ms;
+	}
+	& > div:nth-child(3) > section:last-child {
+		animation-delay: 220ms;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		& > section,
+		& > div > section {
+			animation: none;
+		}
+	}
+}
+
+@keyframes widget-enter {
+	from {
+		opacity: 0.6;
+		translate: 0 14px;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}
+
+.workspace-title {
+	animation: title-enter 480ms var(--ease-shell);
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
+@keyframes title-enter {
+	from {
+		opacity: 0.6;
+		filter: blur(2px);
+		translate: 0 5px;
+	}
+	to {
+		opacity: 1;
+		filter: blur(0);
+		translate: 0 0;
+	}
+}
+
+.surface-content {
+	@apply px-5 py-8 sm:px-8 lg:px-10;
+	animation: surface-enter 300ms var(--ease-shell);
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
+.field {
+	transition: background-color 160ms ease;
+	@starting-style {
+		background-color: var(--color-paper);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+@keyframes surface-enter {
+	from {
+		opacity: 0.6;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.motif {
+	mask-image:
+		radial-gradient(100% 100% at 50% 50%, black 0%, rgb(0 0 0 / 0.55) 55%, transparent 92%),
+		linear-gradient(to bottom, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.1) 90%, rgb(0 0 0 / 0.8));
+	mask-composite: intersect;
+}
+
+::view-transition-group(cream-surface),
+::view-transition-group(white-surface) {
+	animation-duration: 400ms;
+	animation-timing-function: var(--ease-shell);
+	@media (prefers-reduced-motion: reduce) {
+		animation-duration: 0s;
+	}
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+}

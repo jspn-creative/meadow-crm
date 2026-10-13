@@ -11,6 +11,8 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vitest/
+/test-results/
+/playwright-report/
 skills-lock.json
 
 # Env

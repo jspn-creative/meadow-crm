@@ -1,9 +1,9 @@
 
 # AGENTS
 
-## Rapid prototyping mode
+## Implementation scope
 
-This repo is in rapid prototyping mode based out of [static/example.html](static/example.html). Unless otherwise specified, direct requests to and limit changes to that HTML file.
+The approved `build-core-crm-mvp` change moves implementation into the Svelte app. Follow its tasks and acceptance criteria when applying that change; do not limit product implementation to [static/example.html](static/example.html). Static HTML files remain visual references and should stay unchanged unless explicitly requested. Remove gallery-only routes/modules/links during the planned runtime task, not the static references themselves.
 
 ## Git
 
@@ -23,7 +23,9 @@ Cloudflare work goes through `cf`, Cloudflare's CLI, which is installed globally
 
 **This app targets Cloudflare.** The prototype currently uses `@sveltejs/adapter-static`; the working product targets `@sveltejs/adapter-cloudflare`. Use `cf` for Cloudflare provisioning, bindings, deployment, and inspection, and verify the actual adapter/config path before deploying.
 
-What `cf` must not do is silently take over the build. `vp` owns dev, build, and check, and `cf` is Vite-based, so a plain `cf deploy` would build through its own pipeline and pull in the Cloudflare Vite plugin, fighting `vp` and the `vite-plus-core` pin in `package.json` `overrides`. Avoid `cf init`, `cf migrate`, and `cf dev` for the same reason — they restructure project config, and the adapter stays wired in `vite.config.ts`. If the build remains with `vp`, ship with `cf deploy --prebuilt`, which uploads existing build output instead of rebuilding. Establish which path applies before the first deploy: making the adapter read the new `cf` config is known pending work, and it is a real blocker, not a formality.
+What `cf` must not do is silently take over the build. `vp` owns dev, build, and check, and `cf` is Vite-based, so a plain `cf deploy` would build through its own pipeline and pull in the Cloudflare Vite plugin, fighting `vp` and the `vite-plus-core` pin in `package.json` `overrides`. Avoid `cf init`, `cf migrate`, and `cf dev` for the same reason — they restructure project config, and the adapter stays wired in `vite.config.ts`. For a separately approved deployment, verify the prebuilt output/config path before using `cf deploy --prebuilt`; do not make a `cf` config migration a prerequisite for local MVP implementation.
+
+The `build-core-crm-mvp` change covers local implementation and acceptance only. Use the Cloudflare adapter's required Wrangler configuration for its local D1 runtime; this config dependency does not authorize switching deployment tooling to the Wrangler CLI. Do not introduce `cloudflare.config.ts`, a competing config, provisioning, deployment, live migrations, or git integration as part of this change. The operational guidance below applies only to separately requested Cloudflare work.
 
 **Deployment sequence: manual first, git integration second.** The first deploy is done by hand via `cf`, and git integration is attached to the already-deployed site afterwards. This is deliberate — a pipeline that builds on every push surfaces requirements as a run of failed builds, and the first several almost always fail while bindings, routes, and compatibility dates get settled. A manual deploy surfaces the same requirements immediately, with the error in front of you. Do not propose wiring up git integration as the first step, and do not treat early deploy failures as a reason to reach for CI.
 
@@ -50,7 +52,7 @@ When a request is ambiguous between "change the app" and "change something on Cl
 
 Tailwind CSS v4, wired via `@tailwindcss/vite` and `@import "tailwindcss"` in `src/routes/layout.css`. Follow whatever Tailwind guidance is already loaded in your context, in full, before editing any styling.
 
-`layout.css` currently contains only the Tailwind import. Define the product's design tokens and base resets there during implementation, with reusable Svelte components for shared controls; do not assume primitives already exist.
+`layout.css` currently contains only the Tailwind import. Define the product's design tokens, base resets, and CSS-first shared native control classes there during implementation. Start buttons and fields as native elements; create reusable Svelte components only when current behavior or repeated composition needs them, not as up-front scaffolding. Dashboard cards belong to that surface rather than becoming mandatory containers everywhere. Do not assume primitives already exist.
 
 ## Documentation
 

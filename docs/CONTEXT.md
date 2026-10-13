@@ -6,7 +6,7 @@ Use these terms consistently. This file defines business language; [SPEC.md](./S
 | --- | --- |
 | Business | Meadow Lane Realty & Development: one realtor and one assistant sharing all data. |
 | User | A person with a separate identity accessing the same business's CRM. The two business users share clients and opportunities; a support admin acts through either identity with both identities recorded. |
-| Module | A coherent area of behavior; core modules always exist and optional modules can be disabled business-wide. |
+| Module | A top-level product area with a sidebar destination. The current modules are Dashboard, Pipeline, and Registry only. Tasks, the attention view, and Settings are not modules. |
 | View | A presentation of existing records, never a second copy or separate data-entry store. |
 | Client | A person recorded independently of an engagement; may participate in multiple opportunities. The client registry is the list of these people. |
 | Opportunity | A prospective engagement involving one or more clients; the unit tracked on the pipeline. |
@@ -22,8 +22,8 @@ Use these terms consistently. This file defines business language; [SPEC.md](./S
 | Inbox | A cross-module view of work requiring attention; entries point to source records. MVP sources are overdue checklist items and tasks. |
 | Reference | A labeled pointer to another CRM record or an external URL/document, not an upload or dependency. |
 | Archive | Hide a client or opportunity from default views while preserving its data, links, and history and allowing restoration. |
-| Settings | Business-wide configuration, including optional modules, templates, and tag vocabulary. |
-| Event | Something scheduled on a calendar, such as a showing; not implemented in this MVP. |
-| Integration | Support for an external service, including authorization/configuration; none is committed by a prototype. |
+| Settings | Business-wide configuration, including optional capabilities, templates, and tag vocabulary; accessed through the workspace account menu, not the sidebar. |
+| Event | Something scheduled on a calendar, such as a showing. Calendar is intended for the MVP, but event storage, sources, and editing behavior still need definition. |
+| Integration | A connection to an external service, including authorization/configuration, that extends product behavior rather than automatically becoming a module. No provider or sync behavior is committed by a prototype. |
 | Review queue | Human review of incoming or suggested records; deferred until separately specified automated intake exists. |
 | Milestone | A scoped delivery of capability, with its own discovery and specification when needed. |

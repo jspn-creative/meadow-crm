@@ -114,3 +114,34 @@ Alternative: early password plumbing, Cloudflare Access, or a pretend browser-on
 2. Add the local adapter/D1 runtime and idempotent seed/reset path, prove the auth compatibility and stale-write checks, and run the bounded data-layer experiment. Deliver one persisted client → opportunity → checklist → dashboard update slice before expanding the pipeline/modal, registry, and checklist settings. USD is fixed; initial demo timezone/date-format values remain labeled development defaults.
 3. Complete Tasks/Inbox and the dashboard's remaining projections/source links after their source workflows exist, then add three-account auth/impersonation, remove demo identity from production paths, and exercise authenticated cross-session workflows. Keep operator provisioning/recovery and local migrations documented in this change's delivery notes rather than scattering new planning docs.
 4. Verify local builds, phone/desktop/keyboard/motion flows, no silent write loss, and no fixture leakage into production seeds. Deployment, live migrations, backup/rollback execution, and git integration are explicitly outside this change and require a later operational plan.
+
+## Shell delivery evidence
+
+Group 1 implements the Quiet Cream shell with compiled Tailwind 4, DM Sans/Newsreader, local fictional previews, and credential-free demo entry. Native View Transitions own named cream/white route surfaces; the Kit navigation release is bounded at 180ms and the update callback waits at most 700ms for completion after releasing Kit. Reduced motion and unsupported APIs skip the morph. Production builds render an unavailable-preview notice instead of the demo workspace.
+
+The bounded Humanspeak 2.0.0 trial adopts only the greeting height/opacity transition, with initial animation disabled for SSR/hydration and the user's reduced-motion preference honored. The later character pass replaces its spring with a 360ms tween matching the CSS rail geometry, keeping navigation labels in their tracks rather than abruptly centering icons or removing labels. CSS alone owns rail width/main geometry and ordinary control feedback; native transitions alone own route surface morphs. No shared property is animated by two engines. Generalized FLIP/presence components remain deferred until a workflow requires them.
+
+Repeatable shell checks run through `vp run test:shell` on Chromium at 1440px and 375px, covering navigation, Back/Forward, dashboard task access without a Tasks sidebar item, collapse focus/draft retention, demo destination handling, reduced-motion/unsupported fallbacks, and slow/interrupted route readiness. `vp run check`, the Svelte autofixer, and `vp build` verify framework/SSR integration. Desktop/phone shell, login, and collapsed captures are local review artifacts; static references stay unchanged. This evidence does not establish persisted CRM behavior, authentication, or cross-browser acceptance.
+
+The user's details-pass correction keeps Tasks as an optional capability, not a module or sidebar destination. Fixture provenance belongs in development code and documentation, not repeated workspace banners. Restore the reference's 65% translucent sage scorecard wash, 5px hover lift, temporary hover shadow, and softly tinted work-row icon badges; retain flat resting cards, keyboard focus feedback, fine-pointer hover gating, and reduced-motion fallbacks.
+
+## Dashboard character and empty states
+
+The follow-up visual request adds Recent activity and Upcoming events dashboard surfaces, not another sidebar module or an implemented integration. The user now intends Calendar for the MVP; provider, storage, and sync behavior still need a scoped planning update. With no workspace activity, show four deliberately playful milestones from the universe's birth to today, connected by a fine vertical line. Upcoming events uses a quiet quote and the requested next-two-weeks empty-state wording; it does not claim that a connected calendar was queried. Production availability remains guarded until authentication exists. Real activity projection and calendar sourcing are not established by these shell components.
+
+Sidebar destinations are exactly Dashboard, Pipeline, and Registry. The existing Inbox is an overdue-work projection, not messages or a module, and remains reached from dashboard attention while its name is reconsidered. Settings is reached from the account menu. Calendar integrations, tasks, and configuration must not acquire module/sidebar status just because they have an implementation route.
+
+Scorecard colors come from the Quiet Cream palette already defined in `layout.css`: blue/info for New lead, ochre/pending for Active lead, lavender/tour for Under contract, sage/success for Closed. This is a stable presentation mapping, not configurable pipeline semantics. `Scorecard.svelte` accepts a typed palette-family `color` prop; the same family supplies its hover wash, small marker, and icon ink. Actual urgency stays clay; general action links remain green. Client tag colors remain independently owned by tag settings.
+
+Tasks borrow the assistant queue's canvas rows, circular category icons, due badges, disclosure chevrons, expanded tinted surface, and fine internal separators. Disclosures reveal task context, never fake completion. Settings gains General/Pipeline/Client registry underline subnavigation, native labeled draft fields, and disabled save/manage actions until persistence exists. The dashboard-only explanatory footer is removed. Demo login is revealed from the user chip by hover, keyboard focus, or touch activation rather than occupying the page header.
+
+CSS gives dashboard widgets a bounded staggered entrance and the heading a small blur-to-clear reveal; reduced motion removes both. The SVG remains unchanged in this pass: the current implementation repeats one original noise-ring path at different scales rather than retaining the original's distinct contours. Any future navigation sequence should preserve the source Noise Circle paths instead of treating the current simplification as canonical geometry.
+
+### Further character candidates, not implementation commitments
+
+- A subtle Noise Circle contour sequence on completed navigation, with the original paths retained and an immediate reduced-motion fallback.
+- The reference's tiny icon tilt on intentional row hover, without animating every label.
+- A restrained name reveal on the greeting once per session, not replayed on every route.
+- A sliding underline or selected-pill transition for subnavigation, preserving native links and history.
+- Small completion feedback and an interruptible row exit once task persistence exists; no celebratory feedback before a save succeeds.
+- A compact shared-surface record-detail entrance once real record panels exist; avoid decorative modal interactions now.
