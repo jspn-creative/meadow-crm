@@ -17,6 +17,24 @@ Commit messages use a simplified Conventional Commits form: a type, a colon, and
 
 This project uses Vite+ (`vp`). Run everything through `vp`, and follow whatever Vite+ guidance is already loaded in your context.
 
+## Final verification
+
+Finish implementation edits and any fixes suggested by analysers before running final checks. Choose checks for the changed content: app changes require Svelte checks, relevant automated tests, and a production build; documentation-only changes require a final diff review, not an app build. Inspect the final diff for unintended changes before reporting completion.
+
+A later edit invalidates any check whose inputs it changes. Rerun affected checks on the final file state; do not carry forward an earlier passing result as evidence for edited files. Final replies must distinguish checks that passed on the final state from checks run only on an earlier state, and disclose failures or checks that could not run. Automated checks passing does not establish visual or interaction acceptance.
+
+## UI acceptance
+
+For responsive or motion-related changes, inspect the affected surface and actual interactions at phone, tablet, and desktop widths with normal motion enabled. Exercise the relevant scrolling, resizing across breakpoints, and collapse/expand controls; check reduced motion separately. Batch these into the bounded inspection and confirmation passes required by the design workflow rather than adding an open-ended polishing loop.
+
+When matching a visual reference, verify responsive placement, cropping, and behavior as well as the asset itself. Add focused regression coverage for the behavior being changed, but do not substitute dimensions, static screenshots, or reduced-motion tests for observing the normal-motion experience. Report any acceptance limitation instead of claiming broader verification.
+
+## Context loading
+
+For design work using Impeccable, run its context loader once per session with the named source file or route as the target. Treat complete documents emitted by the loader as already read: do not separately reload `PRODUCT.md`, `DESIGN.md`, the resolved surface brief, or any emitted platform reference unless it changed or the earlier output was incomplete. Use the loader's resolved paths to identify what was actually loaded; linked documents are not implicitly loaded.
+
+Load only the applicable command playbook and references required by the active task or instructions. Keep all mandatory framework, styling, tooling, and product guidance; context efficiency is not permission to omit required reads. If the target changes, read the newly relevant surface brief directly rather than rerunning the entire loader. Reuse unchanged guidance already present in the session instead of gathering it again for each follow-up.
+
 ## Cloudflare
 
 Cloudflare work goes through `cf`, Cloudflare's CLI, which is installed globally (currently v1.0.0-beta.5). It covers the entire Cloudflare API — 3,000+ operations across Workers, D1, R2, KV, DNS, Access, Tunnels, and the rest. Use it instead of `wrangler`; Wrangler is in maintenance-only support and Cloudflare is steering agents to `cf`.
