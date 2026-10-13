@@ -1,6 +1,10 @@
 {
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
+		"paths": {
+			"#lib": ["./src/lib/index.ts"],
+			"#lib/*": ["./src/lib/*"]
+		},
 		"rewriteRelativeImportExtensions": true,
 		"sourceMap": true,
 		"strict": true
