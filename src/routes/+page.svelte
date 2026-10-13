@@ -8,8 +8,8 @@
 
 <svelte:head><title>Dashboard · Meadow Lane</title></svelte:head>
 
-<div class="surface-content dashboard-content @container space-y-5 pt-2!">
+<div class="surface-content dashboard-content @container/dashboard space-y-5 pt-2!">
 	<PipelineSummary />
-	<div class="grid items-start gap-5 @min-[52rem]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><AttentionCard /><TasksCard /></div>
-	<div class="grid items-start gap-5 @min-[52rem]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><RecentActivity /><UpcomingEvents /></div>
+	<div class="grid items-start gap-5 @min-[52rem]/dashboard:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><AttentionCard order={1} /><TasksCard order={2} /></div>
+	<div class="grid items-start gap-5 @min-[52rem]/dashboard:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><RecentActivity order={3} /><UpcomingEvents order={4} /></div>
 </div>

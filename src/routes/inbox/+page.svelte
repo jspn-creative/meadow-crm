@@ -5,5 +5,5 @@
 <svelte:head><title>Inbox · Meadow Lane</title></svelte:head>
 
 <div class="surface-content space-y-6">
-	<AttentionCard />
+	<AttentionCard showAction={false} />
 </div>

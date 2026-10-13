@@ -4,12 +4,12 @@
 
 <svelte:head><title>Pipeline · Meadow Lane</title></svelte:head>
 
-<div class="surface-content">
+<div class="surface-content @container/board">
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<p class="text-muted max-w-lg">Four stages, one shared board.</p>
 		<button type="button" class="control" disabled title="Opportunity creation is not implemented yet">New opportunity</button>
 	</div>
-	<div class="grid gap-5 pb-4 lg:grid-cols-4">
+	<div class="grid gap-5 pb-4 @min-[30rem]/board:grid-cols-2 @min-[56rem]/board:grid-cols-4">
 		{#each stages as stage (stage)}
 			<section aria-label={stage} class="min-w-0">
 				<h2 class="border-hairline mb-4 flex items-center justify-between border-b pb-3 text-sm font-medium">{stage}<span class="text-muted text-xs">1</span></h2>

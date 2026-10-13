@@ -70,7 +70,11 @@ When a request is ambiguous between "change the app" and "change something on Cl
 
 Tailwind CSS v4, wired via `@tailwindcss/vite` and `@import "tailwindcss"` in `src/routes/layout.css`. Follow whatever Tailwind guidance is already loaded in your context, in full, before editing any styling.
 
-`layout.css` currently contains only the Tailwind import. Define the product's design tokens, base resets, and CSS-first shared native control classes there during implementation. Start buttons and fields as native elements; create reusable Svelte components only when current behavior or repeated composition needs them, not as up-front scaffolding. Dashboard cards belong to that surface rather than becoming mandatory containers everywhere. Do not assume primitives already exist.
+`src/routes/layout.css` owns the product's design tokens, base resets, and CSS-first shared native control and work-row classes. Start buttons and fields as native elements using the existing `control` and `field` patterns; create reusable Svelte components only when current behavior or repeated composition needs them, not as up-front scaffolding. Dashboard widgets share `src/lib/dashboard/DashboardCard.svelte` for their boundary, heading, optional action, and gutters; keep widget content and layout in its children rather than growing a universal card system. Reuse `TaskList` and `DueBadge` for their existing repeated composition and due-state semantics instead of cloning the dashboard widget onto other pages.
+
+### Content responsiveness
+
+Use named Tailwind container queries for content layouts that depend on the space left inside the workspace: dashboard grids and summaries, pipeline columns, and reusable widget interiors. Keep viewport breakpoints for the shell's desktop rail versus phone/tablet navigation. Choose thresholds from readable minimum content widths, not device names; make narrow layouts the default, use `min-w-0` on shrinking grid/flex children, and check both expanded and collapsed sidebar states plus resizing across the rail breakpoint. A reusable component should own its interior query container when it can appear in different layouts; name outer layout containers explicitly when descendants must respond to them. Prefer CSS queries to JavaScript size observers for purely visual layout.
 
 ## Documentation
 

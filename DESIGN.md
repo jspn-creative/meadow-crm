@@ -193,6 +193,8 @@ Main horizontal gutters step from 20px to 32px at 640px, then 40px at 1024px. Ca
 
 The source's responsive breakpoints are 640px, 1024px, and 1280px. Below 1024px, navigation becomes a header block with horizontally scrolling section pills, and the identity control moves into the wordmark row. Main left corners reduce to 16px. The greeting collapses immediately after more than 24px of main-panel scrolling to reclaim space; desktop remains unchanged. Summary columns progress from one to two to four; the work area adopts a two-thirds/one-third split at desktop; charts become two columns at desktop. These are source compositions, not mandatory layouts for all screens.
 
+The app deliberately keeps a roomier 3:2 attention/task split rather than squeezing tasks into the source's one-third column. Its scorecards retain compact dimensions, with 36px serif figures in the existing 32px line box. Phone chrome and score padding are tighter than desktop. Named content containers govern two/four-column summaries, dashboard work grids, pipeline columns, and widget interiors; viewport breakpoints govern the shell navigation mode. Test content after both sidebar expansion and collapse, not just at device-sized viewports.
+
 Use zero minimum width on chart/grid children where intrinsic canvas dimensions would otherwise force overflow. Shipped CRM actions must remain usable on phones and keyboards; small controls and fixed prototype tuning panels are not production mobile patterns.
 
 ## Elevation & Depth
@@ -233,6 +235,8 @@ Compact rounded badges pair a light colored surface with darker same-family text
 
 Solid white content cards use a hairline boundary, 16px corners, and generous internal padding without resting shadows. Internal queue rows use canvas or a lightly tinted expanded surface with 12px corners. Preserve the floating main panel as a distinct shell layer, not another repeated widget card.
 
+Dashboard widgets use `src/lib/dashboard/DashboardCard.svelte` for a consistent boundary, named heading, optional supporting description/action, and container-responsive 16–20px gutters. It does not prescribe widget body composition, heights, or page-wide containers. `TaskList` is independent of that wrapper so task pages do not inherit dashboard-only headings or self-links. Shared work rows use tonal fill rather than another resting border; metadata wraps naturally within each available width. `DueBadge` uses clay for overdue, ochre for due today, blue for upcoming, and quiet neutral styling for undated work, independent of category colors. Task icons, tones, and notes travel with their presentation data, with neutral defaults when omitted.
+
 ### Inputs / Fields
 
 Observed controls are native checkboxes and prototype range sliders; no text-field design is established by this reference. Checkbox/range accents should follow the action color in future implementation; the source's task checkboxes currently use stock lime instead. Keep labels, visible focus, and reachable hit areas. Do not infer a complete form system from tuning controls.
@@ -254,6 +258,8 @@ When charts are actually specified, retain clear DM Sans labels, understated axe
 The reference uses ease-out control feedback, small press compression, soft overlay entrances, and optional hover color washes. Motion parameters are recorded in the sidecar. Pointer hover effects require a fine pointer; keyboard input disables animated button compression and programmatic entrances where the source supports it. Reduced-motion preferences suppress movement and discrete transitions.
 
 Card lifts, letter-by-letter animated names, staggered widget entrances, shared-element work-detail transitions, and the tuning/replay panel are observed experiments, not settled requirements for every CRM screen. Keep the digital character, but choose motion for actual interaction feedback rather than automatically animating all names and records.
+
+The app's dashboard entrance order is explicit widget metadata rather than a dependency on DOM position. Row washes respond to focused links and keyboard-focused disclosure summaries; the focus outline remains visible. Reduced motion disables the entrances, lifts, and disclosure-arrow transitions.
 
 ## Do's and Don'ts
 

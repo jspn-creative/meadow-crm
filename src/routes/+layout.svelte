@@ -97,10 +97,10 @@
 			{:else}
 				<MotionConfig reducedMotion="user" skipAnimations={reducedMotion.current}>
 					<motion.div initial={false} animate={{ height: greetingHidden ? 0 : "auto", opacity: greetingHidden ? 0 : 1 }} transition={{ type: "tween", duration: 0.36, ease: [0.23, 1, 0.32, 1] }} class="overflow-hidden" inert={greetingHidden}>
-						<p class="font-display mt-8 text-3xl leading-[1.08] tracking-tight text-balance lg:mt-10 lg:w-52">Good morning,<br class="hidden lg:block" /> Meadow Lane.</p>
+						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight text-balance sm:mt-8 sm:text-3xl/[1.08] lg:mt-10 lg:w-52">Good morning,<br class="hidden lg:block" /> Meadow Lane.</p>
 					</motion.div>
 				</MotionConfig>
-				<nav id="workspace-nav" aria-label="Sections" class={["-mx-6 flex gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0", !desktop.current && mobileScrolled ? "mt-4" : "mt-8"]}>
+				<nav id="workspace-nav" aria-label="Sections" class={["-mx-6 flex gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0", !desktop.current && mobileScrolled ? "mt-2 sm:mt-4" : "mt-4 sm:mt-8"]}>
 					{#each destinations as destination (destination.href)}
 						<a
 							href={destination.href}
@@ -131,8 +131,8 @@
 				else if (scrollTop <= 0) mobileScrolled = false;
 			}}>
 			{#if !isLogin}
-				<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-8 pb-6 sm:px-8 lg:px-10">
-					<h1 class="workspace-title font-display text-3xl tracking-tight text-balance">
+				<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
+					<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
 						{title}{#if page.url.pathname === "/"}
 							<span class="text-muted ml-1">/ Overview</span>{/if}
 					</h1>

@@ -119,6 +119,9 @@
 			@apply border-urgent;
 		}
 	}
+	.work-row {
+		@apply bg-canvas min-w-0 rounded-xl;
+	}
 }
 
 /* Quiet Cream's translucent interaction wash preserves the underlying surface. */
@@ -144,7 +147,8 @@
 		opacity: 0;
 		transition: opacity 360ms ease;
 	}
-	&:focus-visible::before {
+	&:focus-visible::before,
+	&:has(> summary:focus-visible)::before {
 		opacity: 1;
 	}
 	@media (hover: hover) and (pointer: fine) {
@@ -305,25 +309,12 @@
 
 .dashboard-content {
 	animation: none;
-	& > section,
-	& > div > section {
+	[data-widget] {
 		animation: widget-enter 560ms var(--ease-shell) backwards;
-	}
-	& > div:nth-child(2) > section:first-child {
-		animation-delay: 70ms;
-	}
-	& > div:nth-child(2) > section:last-child {
-		animation-delay: 120ms;
-	}
-	& > div:nth-child(3) > section:first-child {
-		animation-delay: 170ms;
-	}
-	& > div:nth-child(3) > section:last-child {
-		animation-delay: 220ms;
+		animation-delay: calc(var(--widget-order, 0) * 60ms);
 	}
 	@media (prefers-reduced-motion: reduce) {
-		& > section,
-		& > div > section {
+		[data-widget] {
 			animation: none;
 		}
 	}

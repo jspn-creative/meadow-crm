@@ -1,4 +1,7 @@
 // Fictional visual examples only; persisted fixtures belong to the later local seed task.
+import { Phone, Hammer, Handshake } from "@lucide/svelte";
+import type { TaskListItem } from "#lib/tasks/types.js";
+
 export const stages = ["New lead", "Active lead", "Under contract", "Closed"] as const;
 export const opportunities = [
 	{
@@ -50,6 +53,7 @@ export const attention = [
 		opportunity: "Rivera home search",
 		stage: "Active lead",
 		due: "Due yesterday",
+		dueState: "overdue",
 		href: "/pipeline",
 	},
 	{
@@ -58,6 +62,7 @@ export const attention = [
 		opportunity: "Chen family listing",
 		stage: "Under contract",
 		due: "Due 2 days ago",
+		dueState: "overdue",
 		href: "/pipeline",
 	},
 	{
@@ -66,6 +71,7 @@ export const attention = [
 		opportunity: "Miller kitchen addition",
 		stage: "Active lead · previous stage",
 		due: "Due 3 days ago",
+		dueState: "overdue",
 		href: "/pipeline",
 	},
 ] as const;
@@ -76,17 +82,29 @@ export const tasks = [
 		title: "Call Jamie about the search area",
 		context: "Rivera home search",
 		due: "Due yesterday",
+		dueState: "overdue",
+		icon: Phone,
+		tone: "info",
+		note: "Confirm preferred neighborhoods and the next time to catch up.",
 	},
 	{
 		id: "quote",
 		title: "Confirm the revised contractor quote",
 		context: "Miller kitchen addition",
 		due: "Due today",
+		dueState: "today",
+		icon: Hammer,
+		tone: "pending",
+		note: "Review the revised quote against the agreed scope of work.",
 	},
 	{
 		id: "intro",
 		title: "Introduce Sam to the estate sale partner",
 		context: "Ellis family introduction",
 		due: "No due date",
+		dueState: "undated",
+		icon: Handshake,
+		tone: "tour",
+		note: "Connect Sam with the partner and share the best contact details.",
 	},
-] as const;
+] as const satisfies readonly TaskListItem[];
