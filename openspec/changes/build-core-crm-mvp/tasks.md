@@ -20,7 +20,7 @@ Implement in order, with visual/interactive delivery before real authentication.
 - [x] 2.5 Before expanding CRUD, implement and prove the D1 mutation boundary with revision guards, conditioned related writes, history, and idempotency; verify a zero-row stale update cannot change links or append success history, a bulk operation with one stale record changes nothing, and retrying a successful request does not duplicate work.
 - [ ] 2.6 Timebox one implementation-session TanStack DB experiment using stage movement and registry/dashboard projections; verify Svelte/SSR hydration, remote-function integration, optimism/rollback, identity-scoped caches, and no duplicate cache ownership, then record an adopt/defer decision and implement only the verified narrow data interface, not full offline sync.
 - [x] 2.7 Document the verified local migration/seed/reset/identity commands in this design's delivery notes and package-script help; verify those commands run through `vp` and reset is explicitly scoped to fictional local data.
-- [ ] 2.8 Run a focused Better Auth/Drizzle/D1 compatibility smoke test using isolated auth tables in the local Workers runtime; verify password hashing, session creation/lookup, and disabled interactive transactions, recording the result in the design before expanding CRM workflows while leaving product authentication to group 8.
+- [x] 2.8 Run a focused Better Auth/Drizzle/D1 compatibility smoke test using isolated auth tables in the local Workers runtime; verify password hashing, session creation/lookup, and disabled interactive transactions, recording the result in the design before expanding CRM workflows while leaving product authentication to group 8.
 
 ## 3. First persisted end-to-end slice
 
