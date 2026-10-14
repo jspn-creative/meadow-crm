@@ -7,14 +7,14 @@
 </script>
 
 <DashboardCard title="Checklist attention" headingId="attention-heading" description={`${attention.length} overdue`} action={showAction ? { href: "/inbox", label: "Open inbox" } : undefined} {order}>
-	<ul class="space-y-2.5">
+	<ul class="space-y-(--card-gap)">
 		{#each attention as item (item.id)}
 			<li>
-				<a href={item.href} data-interactive="row" style:--item-hue="var(--color-pending-soft)" class="work-row flex items-start gap-3 px-3 py-3">
+				<a href={item.href} data-interactive="row" style:--item-hue="var(--color-pending-soft)" class="work-row flex items-start gap-(--row-pad) px-(--row-pad) py-(--row-pad)">
 					<span class="bg-pending-soft text-pending mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"><CheckSquare2 size={14} aria-hidden="true" /></span>
 					<div class="min-w-0 flex-1">
-						<p class="text-sm leading-5 font-medium">{item.title}</p>
-						<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+						<p class="item-title">{item.title}</p>
+						<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
 							<p class="text-muted text-xs leading-5">{item.opportunity} · {item.stage}</p>
 							<DueBadge label={item.due} state={item.dueState} />
 						</div>

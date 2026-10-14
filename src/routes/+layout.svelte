@@ -107,7 +107,7 @@
 							aria-current={page.url.pathname === destination.href ? "page" : undefined}
 							aria-label={destination.label}
 							title={sidebarCollapsed ? destination.label : undefined}
-							class={["nav-destination hover:bg-paper-pill hover:text-ink aria-[current=page]:bg-paper-pill aria-[current=page]:text-ink flex min-h-11 shrink-0 items-center gap-3 rounded-full px-4 py-2 font-medium whitespace-nowrap", page.url.pathname === destination.href ? "text-ink" : "text-muted"]}>
+							class={["nav-destination hover:bg-paper-pill hover:text-ink aria-[current=page]:bg-paper-pill aria-[current=page]:text-ink flex min-h-10 shrink-0 items-center gap-3 rounded-full px-4 py-1.5 font-medium whitespace-nowrap", page.url.pathname === destination.href ? "text-ink" : "text-muted"]}>
 							<destination.icon size={17} strokeWidth={1.8} class="shrink-0" aria-hidden="true" />
 							<span class="nav-label">{destination.label}</span>
 						</a>

@@ -5,14 +5,14 @@
 </script>
 
 <DashboardCard title="Upcoming events" headingId="events-heading" description="Next 14 days" descriptionInline {order}>
-	<div class="px-1 pb-2 text-center @min-[24rem]/card:px-0 @min-[24rem]/card:pb-1">
-		<div class="flex flex-col items-center gap-4 py-7">
-			<CalendarCheck class="text-info" size={40} strokeWidth={1} aria-hidden="true" />
+	<div class="flex flex-col items-center gap-(--card-gap) pt-2 pb-1 text-center">
+		<div class="flex flex-col items-center gap-(--card-gap) py-4">
+			<span class="bg-paper text-muted/60 rounded-full p-4"><CalendarCheck size={40} strokeWidth={1} aria-hidden="true" /></span>
 			<p class="text-muted max-w-60 text-sm leading-6 text-balance">Nothing on the calendar for the next two weeks.</p>
 		</div>
-		<figure class="border-hairline border-t pt-5">
-			<blockquote><p class="font-display mx-auto max-w-80 text-2xl leading-8 tracking-tight text-balance">“There is more to life than increasing its speed.”</p></blockquote>
-			<figcaption class="text-muted mt-3 text-xs leading-5">Mahatma Gandhi</figcaption>
+		<figure class="border-hairline w-full border-t pt-(--card-gap) opacity-75">
+			<blockquote><p class="font-display mx-auto max-w-80 text-xl leading-7 tracking-tight text-balance">“There is more to life than increasing its speed.”</p></blockquote>
+			<figcaption class="text-muted mt-2 text-sm leading-6">Mahatma Gandhi</figcaption>
 		</figure>
 	</div>
 </DashboardCard>

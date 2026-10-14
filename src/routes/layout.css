@@ -21,7 +21,7 @@
 	--color-success: #50683d;
 	--color-urgent-soft: #f4e5df;
 	--color-urgent: #98543f;
-	--text-2xs: 0.6875rem;
+	--text-2xs: 0.65rem;
 	--shadow-shell: 0 4px 20px -8px rgb(27 26 23 / 0.12);
 	--shadow-panel: 0 28px 64px -32px rgb(27 26 23 / 0.4);
 	--ease-shell: cubic-bezier(0.23, 1, 0.32, 1);
@@ -122,6 +122,10 @@
 	.work-row {
 		@apply bg-canvas min-w-0 rounded-xl;
 	}
+	/* Single-line-ideal titles keep tight leading so a wrap never costs more vertical space than the row budgeted; use this class for every widget item title. */
+	.item-title {
+		@apply text-ink text-sm/4.5 font-medium;
+	}
 }
 
 /* Quiet Cream's translucent interaction wash preserves the underlying surface. */
@@ -168,6 +172,21 @@
 		&[data-interactive="score"]:hover {
 			transform: none;
 		}
+	}
+}
+
+/* Scorecards rest at 85% of the hover wash; hover runs a slightly stronger mix of the same hue. */
+[data-interactive="score"]::before {
+	opacity: 0.85;
+}
+@media (hover: hover) and (pointer: fine) {
+	[data-interactive="score"]:hover::before {
+		opacity: 1;
+		background: linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--item-hue) 78%, white),
+			transparent 85%
+		);
 	}
 }
 
@@ -309,6 +328,13 @@
 
 .dashboard-content {
 	animation: none;
+	--card-pad: calc(var(--spacing) * 4);
+	--card-gap: calc(var(--spacing) * 2.5);
+	--row-pad: calc(var(--spacing) * 3);
+	--card-head-py: calc(var(--spacing) * 3);
+	@container dashboard (min-width: 38rem) {
+		--card-pad: calc(var(--spacing) * 5);
+	}
 	[data-widget] {
 		animation: widget-enter 560ms var(--ease-shell) backwards;
 		animation-delay: calc(var(--widget-order, 0) * 60ms);

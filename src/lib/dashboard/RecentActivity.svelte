@@ -11,12 +11,12 @@
 </script>
 
 <DashboardCard title="Recent activity" headingId="activity-heading" description="A brief history of everything" {order}>
-	<ol aria-label="No workspace activity yet. A playful history of the universe.">
+	<ol aria-label="No workspace activity yet. A playful history of the universe." class="px-(--row-pad)">
 		{#each history as item (item.id)}
-			<li class="before:bg-hairline relative flex gap-3 pb-4 before:absolute before:top-9 before:bottom-1 before:left-[15px] before:w-px last:pb-0 last:before:hidden" style:--item-hue={`var(--color-${item.color}-soft)`} style:--item-ink={`var(--color-${item.color})`}>
+			<li class="before:bg-hairline relative flex gap-(--row-pad) pb-(--card-pad) before:absolute before:top-9 before:bottom-1 before:left-[15px] before:w-px last:pb-0 last:before:hidden" style:--item-hue={`var(--color-${item.color}-soft)`} style:--item-ink={`var(--color-${item.color})`}>
 				<span class="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-(--item-hue) text-(--item-ink)"><item.icon size={15} strokeWidth={1.7} aria-hidden="true" /></span>
 				<div class="min-w-0 pt-0.5">
-					<p class="text-sm font-medium">{item.title}</p>
+					<p class="item-title">{item.title}</p>
 					<p class="text-muted mt-1 text-xs leading-5">{item.detail}</p>
 					<p class="text-muted mt-1 text-xs">{item.date}</p>
 				</div>
