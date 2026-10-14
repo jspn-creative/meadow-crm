@@ -4,6 +4,7 @@ import { DataConflict } from "#lib/server/data.js";
 import {
 	createClientInput,
 	createOpportunityInput,
+	createOpportunityFormInput,
 	saveChecklistStepInput,
 	moveStageInput,
 	saveOpportunityInput,
@@ -38,7 +39,12 @@ export const createClient = form(createClientInput, (input) => {
 	return save(() => data.createClient(input));
 });
 
-export const createOpportunity = form(createOpportunityInput, (input) => {
+export const createOpportunity = form(createOpportunityFormInput, (input) => {
+	const data = services();
+	return save(() => data.createOpportunity(input));
+});
+
+export const createOpportunityRecord = command(createOpportunityInput, (input) => {
 	const data = services();
 	return save(() => data.createOpportunity(input));
 });

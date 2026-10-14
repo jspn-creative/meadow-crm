@@ -15,6 +15,129 @@ let realtor: ReturnType<typeof createDataService>;
 let assistant: ReturnType<typeof createDataService>;
 const opportunityId = "fictional-opportunity-maple";
 
+test("full opportunity edits preserve cents, visited work, references and attributable history atomically", async () => {
+	const id = crypto.randomUUID();
+	const clientIds = [crypto.randomUUID(), crypto.randomUUID()];
+	for (const clientId of clientIds)
+		await realtor.createClient({
+			requestId: crypto.randomUUID(),
+			id: clientId,
+			name: "Editor client",
+		});
+	const creation = {
+		requestId: crypto.randomUUID(),
+		id,
+		title: "Full editor",
+		type: "buyer",
+		stage: "active-lead",
+		clientIds,
+	};
+	await realtor.createOpportunity(creation);
+	let workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.find((row) => row.id === id)).toMatchObject({
+		timeline: null,
+		address: null,
+		budgetCents: null,
+	});
+	expect(workspace.links.filter((link) => link.opportunityId === id)).toHaveLength(2);
+	const list = workspace.checklists.find((row) => row.opportunityId === id)!;
+	const item = list.items[0]!;
+	await realtor.saveChecklistStep({
+		requestId: crypto.randomUUID(),
+		checklistId: list.id,
+		revision: list.revision,
+		itemId: item.id,
+		itemRevision: item.revision,
+		completed: true,
+		dueDate: "2026-10-20",
+	});
+	const edit = {
+		requestId: crypto.randomUUID(),
+		id,
+		revision: 1,
+		title: "Edited opportunity",
+		type: "seller",
+		stage: "under-contract",
+		clientIds,
+		timeline: "3-6-mo",
+		address: "123 Fictional Lane",
+		budgetCents: 12500050,
+		notes: "Fictional notes",
+		references: [
+			{ kind: "url", label: "Document", url: "https://example.com/document" },
+			{ kind: "client", label: "Client", targetId: clientIds[0] },
+			{ kind: "opportunity", label: "Opportunity", targetId: opportunityId },
+		],
+	};
+	await assistant.saveOpportunity(edit);
+	await assistant.saveOpportunity(edit);
+	workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.find((row) => row.id === id)).toMatchObject({
+		budgetCents: 12500050,
+		type: "seller",
+		stage: "under-contract",
+		revision: 2,
+	});
+	expect(workspace.checklists.find((row) => row.id === list.id)).toMatchObject({
+		templateId: "default-buyer-active-lead",
+		items: expect.arrayContaining([
+			expect.objectContaining({ id: item.id, dueDate: "2026-10-20", completedAt: expect.any(String) }),
+		]),
+	});
+	expect(
+		workspace.checklists.find((row) => row.opportunityId === id && row.stage === "under-contract")
+			?.templateId,
+	).toBe("default-seller-under-contract");
+	expect(workspace.references.filter((row) => row.opportunityId === id)).toHaveLength(3);
+	expect(
+		workspace.history.filter((row) => row.recordId === id && row.action === "edit"),
+	).toMatchObject([
+		{
+			actorUserId: "support-admin",
+			effectiveUserId: "business-assistant",
+			data: { before: { type: "buyer" }, after: { type: "seller" } },
+		},
+	]);
+	const before = JSON.stringify(workspace);
+	for (const invalid of [
+		{ ...edit, requestId: crypto.randomUUID(), revision: 1, references: [] },
+		{
+			...edit,
+			requestId: crypto.randomUUID(),
+			revision: 2,
+			references: [{ kind: "client", label: "Missing", targetId: "missing-client" }],
+		},
+	])
+		await expect(assistant.saveOpportunity(invalid)).rejects.toBeInstanceOf(DataConflict);
+	expect(JSON.stringify(await realtor.workspace({ archived: false }))).toBe(before);
+	for (const url of [
+		"javascript:alert(1)",
+		"data:text/html,test",
+		"https://user:password@example.com",
+	])
+		await expect(
+			realtor.saveOpportunity({
+				...edit,
+				requestId: crypto.randomUUID(),
+				revision: 2,
+				references: [{ kind: "url", label: "Unsafe", url }],
+			}),
+		).rejects.toThrow();
+	await realtor.saveOpportunity({
+		...edit,
+		requestId: crypto.randomUUID(),
+		revision: 2,
+		references: [],
+		timeline: null,
+		address: null,
+		budgetCents: null,
+	});
+	workspace = await realtor.workspace({ archived: false });
+	expect(workspace.references.filter((row) => row.opportunityId === id)).toHaveLength(0);
+	expect(workspace.clients.some((row) => row.id === clientIds[0])).toBe(true);
+	expect(workspace.opportunities.some((row) => row.id === opportunityId)).toBe(true);
+});
+
 test("attention projects only visible incomplete visited work and honors shared scope", async () => {
 	const clientId = crypto.randomUUID();
 	const id = crypto.randomUUID();

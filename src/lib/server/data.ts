@@ -12,6 +12,8 @@ import {
 	stageChecklists,
 	checklistItems,
 	checklistProgress,
+	recordReferences,
+	history,
 } from "./db/schema.ts";
 import {
 	bulkArchiveInput,
@@ -125,32 +127,95 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			guard,
 		);
 
+	function writeReferences(
+		guard: string,
+		now: string,
+		opportunityId: string,
+		references: v.InferOutput<typeof saveOpportunityInput>["references"],
+	) {
+		if (!references) return [];
+		return [
+			stmt(
+				"DELETE FROM record_references WHERE opportunity_id = ? AND " + guardExists,
+				opportunityId,
+				guard,
+			),
+			...references.map((reference) =>
+				stmt(
+					"INSERT INTO record_references (id, opportunity_id, label, kind, url, target_client_id, target_opportunity_id, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE " +
+						guardExists,
+					crypto.randomUUID(),
+					opportunityId,
+					reference.label,
+					reference.kind,
+					reference.kind === "url" ? reference.url : null,
+					reference.kind === "client" ? reference.targetId : null,
+					reference.kind === "opportunity" ? reference.targetId : null,
+					now,
+					now,
+					guard,
+				),
+			),
+		];
+	}
+
 	return {
 		identity: user,
 		async workspace(input: unknown) {
 			const { archived } = v.parse(workspaceInput, input);
-			const [clientRows, opportunityRows, settings, links, checklists, items, progress] =
-				await Promise.all([
-					orm
-						.select()
-						.from(clients)
-						.where(archived ? isNotNull(clients.archivedAt) : isNull(clients.archivedAt)),
-					orm
-						.select()
-						.from(opportunities)
-						.where(archived ? isNotNull(opportunities.archivedAt) : isNull(opportunities.archivedAt)),
-					orm.select().from(businessSettings).where(eq(businessSettings.id, 1)),
-					orm.select().from(opportunityClients),
-					orm.select().from(stageChecklists),
-					orm.select().from(checklistItems),
-					orm.select().from(checklistProgress),
-				]);
+			const [
+				clientRows,
+				opportunityRows,
+				settings,
+				links,
+				checklists,
+				items,
+				progress,
+				references,
+				changes,
+				referenceClients,
+				referenceOpportunities,
+			] = await Promise.all([
+				orm
+					.select()
+					.from(clients)
+					.where(archived ? isNotNull(clients.archivedAt) : isNull(clients.archivedAt)),
+				orm
+					.select()
+					.from(opportunities)
+					.where(archived ? isNotNull(opportunities.archivedAt) : isNull(opportunities.archivedAt)),
+				orm.select().from(businessSettings).where(eq(businessSettings.id, 1)),
+				orm.select().from(opportunityClients),
+				orm.select().from(stageChecklists),
+				orm.select().from(checklistItems),
+				orm.select().from(checklistProgress),
+				orm.select().from(recordReferences),
+				orm.select().from(history).where(eq(history.recordKind, "opportunity")),
+				orm
+					.select({ id: clients.id, name: clients.name, archivedAt: clients.archivedAt })
+					.from(clients),
+				orm
+					.select({
+						id: opportunities.id,
+						title: opportunities.title,
+						archivedAt: opportunities.archivedAt,
+					})
+					.from(opportunities),
+			]);
 			return {
 				identity: user,
 				businessToday: businessDate(settings[0]?.timezone ?? "America/New_York"),
 				clients: clientRows,
 				opportunities: opportunityRows,
 				links: links.filter((link) => opportunityRows.some((row) => row.id === link.opportunityId)),
+				references: references.filter((reference) =>
+					opportunityRows.some((row) => row.id === reference.opportunityId),
+				),
+				history: changes
+					.filter((change) => opportunityRows.some((row) => row.id === change.recordId))
+					.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+				referenceClients,
+				referenceOpportunities,
 				checklists: checklists
 					.filter((list) => opportunityRows.some((row) => row.id === list.opportunityId))
 					.map((list) => ({
@@ -199,36 +264,46 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		},
 		async createOpportunity(input: unknown) {
 			const value = v.parse(createOpportunityInput, input);
+			if (value.clientId && value.clientIds) throw new Error("Choose one client-link input.");
+			const linkedIds = value.clientIds ?? (value.clientId ? [value.clientId] : []);
+			if (!linkedIds.length) throw new Error("Choose at least one client.");
 			return mutation(
 				value.requestId,
 				{ operation: "create-opportunity", ...value },
 				{ id: value.id, revision: 1 },
 				(guard, now) => [
 					stmt(
-						"INSERT INTO mutation_guards VALUES (?, CASE WHEN NOT EXISTS (SELECT 1 FROM opportunities WHERE id = ?) AND EXISTS (SELECT 1 FROM clients WHERE id = ? AND archived_at IS NULL) AND EXISTS (SELECT 1 FROM checklist_templates WHERE type = ? AND stage = ?) THEN 1 ELSE 0 END)",
+						`INSERT INTO mutation_guards VALUES (?, CASE WHEN NOT EXISTS (SELECT 1 FROM opportunities WHERE id = ?) AND (SELECT count(*) FROM clients WHERE id IN (${linkedIds.map(() => "?").join(",")}) AND archived_at IS NULL) = ? AND EXISTS (SELECT 1 FROM checklist_templates WHERE type = ? AND stage = ?) THEN 1 ELSE 0 END)`,
 						guard,
 						value.id,
-						value.clientId,
+						...linkedIds,
+						linkedIds.length,
 						value.type,
 						value.stage,
 					),
 					stmt(
-						"INSERT INTO opportunities (id, title, type, stage, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ? WHERE " +
+						"INSERT INTO opportunities (id, title, type, stage, timeline, address, budget_cents, notes, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE " +
 							guardExists,
 						value.id,
 						value.title,
 						value.type,
 						value.stage,
+						value.timeline ?? null,
+						value.address || null,
+						value.budgetCents ?? null,
+						value.notes ?? "",
 						now,
 						now,
 						guard,
 					),
-					stmt(
-						"INSERT INTO opportunity_clients (opportunity_id, client_id) SELECT ?, ? WHERE " +
-							guardExists,
-						value.id,
-						value.clientId,
-						guard,
+					...linkedIds.map((clientId) =>
+						stmt(
+							"INSERT INTO opportunity_clients (opportunity_id, client_id) SELECT ?, ? WHERE " +
+								guardExists,
+							value.id,
+							clientId,
+							guard,
+						),
 					),
 					stmt(
 						"INSERT INTO stage_checklists (id, opportunity_id, stage, template_id, created_at, updated_at) SELECT ?, ?, stage, id, ?, ? FROM checklist_templates WHERE type = ? AND stage = ? AND " +
@@ -241,6 +316,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						value.stage,
 						guard,
 					),
+					...writeReferences(guard, now, value.id, value.references),
 					appendHistory(guard, now, "opportunity", value.id, "create", { after: value }),
 				],
 			);
@@ -335,17 +411,41 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		},
 		async saveOpportunity(input: unknown) {
 			const value = v.parse(saveOpportunityInput, input);
+			const before = await orm
+				.select()
+				.from(opportunities)
+				.where(eq(opportunities.id, value.id))
+				.then((rows) => rows[0]);
+			if (!before) throw new DataConflict();
+			const retainedLinks = await orm
+				.select()
+				.from(opportunityClients)
+				.where(eq(opportunityClients.opportunityId, value.id));
+			const beforeReferences = await orm
+				.select()
+				.from(recordReferences)
+				.where(eq(recordReferences.opportunityId, value.id));
+			const after = { ...before, ...value };
 			return mutation(
 				value.requestId,
 				{ operation: "save-opportunity", ...value },
 				{ id: value.id, revision: value.revision + 1 },
 				(guard, now) => [
 					stmt(
-						"UPDATE opportunities SET title = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?",
+						`UPDATE opportunities SET title = ?, type = ?, stage = ?, timeline = ?, address = ?, budget_cents = ?, notes = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL AND (SELECT count(*) FROM clients WHERE id IN (${value.clientIds.map(() => "?").join(",")}) AND (archived_at IS NULL OR id IN (SELECT client_id FROM opportunity_clients WHERE opportunity_id = ?))) = ?`,
 						value.title,
+						after.type,
+						after.stage,
+						after.timeline,
+						after.address || null,
+						after.budgetCents,
+						after.notes,
 						now,
 						value.id,
 						value.revision,
+						...value.clientIds,
+						value.id,
+						value.clientIds.length,
 					),
 					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
 					stmt(
@@ -362,9 +462,31 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 							guard,
 						),
 					),
+					stmt(
+						"INSERT INTO stage_checklists (id, opportunity_id, stage, template_id, created_at, updated_at) SELECT ?, o.id, o.stage, t.id, ?, ? FROM opportunities o JOIN checklist_templates t ON t.type = o.type AND t.stage = o.stage WHERE o.id = ? AND " +
+							guardExists +
+							" ON CONFLICT(opportunity_id, stage) DO NOTHING",
+						crypto.randomUUID(),
+						now,
+						now,
+						value.id,
+						guard,
+					),
+					stmt(
+						"UPDATE mutation_guards SET passed = (SELECT count(*) FROM stage_checklists WHERE opportunity_id = ? AND stage = ?) WHERE id = ?",
+						value.id,
+						after.stage,
+						guard,
+					),
+					...writeReferences(guard, now, value.id, value.references),
 					appendHistory(guard, now, "opportunity", value.id, "edit", {
 						revision: value.revision,
-						after: { title: value.title, clientIds: value.clientIds },
+						before: {
+							...before,
+							clientIds: retainedLinks.map((link) => link.clientId),
+							references: beforeReferences,
+						},
+						after: value,
 					}),
 				],
 			);

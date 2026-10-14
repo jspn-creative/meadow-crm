@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
 	import { page } from "$app/state";
-	import { createOpportunity, getWorkspace } from "#lib/crm.remote.js";
+	import { getWorkspace } from "#lib/crm.remote.js";
+	import OpportunityEditor from "#lib/pipeline/OpportunityEditor.svelte";
+	import { opportunityDraft, safeReferenceUrl, type OpportunityDraft } from "#lib/pipeline/opportunity-draft.js";
 	import { workspaceData } from "#lib/data/workspace.js";
 	import ChecklistStep from "#lib/pipeline/ChecklistStep.svelte";
 	import { stageLabels, typeLabels } from "#lib/pipeline/labels.js";
@@ -12,7 +14,8 @@
 	let workspace = $derived(await remote);
 	let creating = $state(false);
 	let opportunityId = $state("");
-	let requestId = $state("");
+	let drafts = $state<Record<string, OpportunityDraft>>({});
+	let editing = $state(false);
 	let selectedId = $state(page.url.searchParams.get("opportunity") ?? "");
 	let inspectedStage = $state(page.url.searchParams.get("stage") ?? "");
 	let failure = $state("");
@@ -26,8 +29,10 @@
 	let checklist = $derived(selected && (workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === (inspectedStage || selected.stage)) ?? workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === selected.stage)));
 	const stages = Object.keys(stageLabels) as (keyof typeof stageLabels)[];
 	function newOpportunity() {
-		opportunityId = crypto.randomUUID();
-		requestId = crypto.randomUUID();
+		if (!opportunityId) {
+			opportunityId = crypto.randomUUID();
+			drafts[opportunityId] = opportunityDraft(workspace, opportunityId, page.url.searchParams.get("client") ?? undefined);
+		}
 		failure = "";
 		creating = true;
 	}
@@ -76,50 +81,9 @@
 <div class="surface-content @container/board">
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<p class="text-muted max-w-lg">Four stages, one shared board.</p>
-		<button type="button" class="control" onclick={newOpportunity} disabled={!ready || creating || workspace.clients.length === 0}>New opportunity</button>
+		<button type="button" class="control" onclick={newOpportunity} disabled={!ready || workspace.clients.length === 0}>New opportunity</button>
 	</div>
 	{#if workspace.clients.length === 0}<p class="mb-6">Start with a client in the <a class="text-field underline underline-offset-4" href="/registry">Registry</a>.</p>{/if}
-	{#if creating}
-		<form
-			class="border-hairline mb-8 max-w-2xl space-y-4 border-b pb-6"
-			{...createOpportunity.enhance(async (form) => {
-				failure = "";
-				try {
-					if (await form.submit().updates(remote)) {
-						creating = false;
-						selectedId = opportunityId;
-						form.element.reset();
-					}
-				} catch {
-					failure = "Opportunity could not be saved. Your draft is retained; check the client and try again.";
-				}
-			})}>
-			<h2 class="font-display text-2xl">New opportunity</h2>
-			<input {...createOpportunity.fields.id.as("hidden", opportunityId)} />
-			<input {...createOpportunity.fields.requestId.as("hidden", requestId)} />
-			<label class="block space-y-2"><span class="font-medium">Opportunity title</span><input class="field" {...createOpportunity.fields.title.as("text")} required maxlength="200" /></label>
-			<div class="space-y-2">
-				<label for="opportunity-client" class="block font-medium">Client</label><select id="opportunity-client" class="field" {...createOpportunity.fields.clientId.as("select", page.url.searchParams.get("client") ?? workspace.clients[0]?.id)} required
-					>{#each workspace.clients as client (client.id)}<option value={client.id}>{client.name}</option>{/each}</select>
-			</div>
-			<div class="grid gap-4 @min-[28rem]/board:grid-cols-2">
-				<div class="space-y-2">
-					<label for="opportunity-type" class="block font-medium">Type</label><select id="opportunity-type" class="field" {...createOpportunity.fields.type.as("select", "buyer")}
-						>{#each Object.entries(typeLabels) as [value, label] (value)}<option {value}>{label}</option>{/each}</select>
-				</div>
-				<div class="space-y-2">
-					<label for="opportunity-stage" class="block font-medium">Initial stage</label><select id="opportunity-stage" class="field" {...createOpportunity.fields.stage.as("select", "new-lead")}
-						>{#each stages as stage (stage)}<option value={stage}>{stageLabels[stage]}</option>{/each}</select>
-				</div>
-			</div>
-			{#each createOpportunity.fields.allIssues() ?? [] as issue (issue)}<p class="text-urgent" role="alert">{issue.message}</p>{/each}
-			{#if failure}<p class="text-urgent" role="alert">{failure}</p>{/if}
-			<div class="flex flex-wrap gap-2">
-				<button class="control" data-variant="primary" disabled={!!createOpportunity.pending} aria-busy={!!createOpportunity.pending}>{createOpportunity.pending ? "Saving…" : "Save opportunity"}</button><button type="button" class="control" disabled={!!createOpportunity.pending} onclick={() => (creating = false)}
-					>Cancel</button>
-			</div>
-		</form>
-	{/if}
 	<div class="grid gap-5 pb-4 @min-[30rem]/board:grid-cols-2 @min-[56rem]/board:grid-cols-4">
 		{#each stages as stage (stage)}
 			{@const rows = workspace.opportunities.filter((row) => row.stage === stage)}
@@ -133,6 +97,7 @@
 							class="border-hairline hover:bg-canvas w-full rounded-xl border bg-white p-5 text-left"
 							onclick={() => {
 								selectedId = opportunity.id;
+								editing = false;
 								inspectedStage = "";
 								failure = "";
 								status = "";
@@ -152,6 +117,38 @@
 		{/each}
 	</div>
 </div>
+
+{#if creating}
+	<dialog
+		{@attach showDialog}
+		aria-labelledby="create-heading"
+		class="bg-canvas text-ink shadow-panel backdrop:bg-ink/30 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-2xl p-0"
+		oncancel={(event) => {
+			if (pending) event.preventDefault();
+			else creating = false;
+		}}
+		onclose={() => (creating = false)}>
+		<div class="@container/opportunity p-5 sm:p-8">
+			<div class="mb-6 flex items-start justify-between gap-4">
+				<h2 id="create-heading" class="font-display text-3xl">New opportunity</h2>
+				<button type="button" class="control" disabled={pending} onclick={() => (creating = false)}>Close</button>
+			</div>
+			<OpportunityEditor
+				bind:draft={drafts[opportunityId]!}
+				{workspace}
+				{remote}
+				bind:pending
+				cancel={() => (creating = false)}
+				saved={() => {
+					creating = false;
+					selectedId = opportunityId;
+					delete drafts[opportunityId];
+					opportunityId = "";
+					editing = false;
+				}} />
+		</div>
+	</dialog>
+{/if}
 
 {#if selected}
 	<dialog
@@ -173,21 +170,109 @@
 			</div>
 			<div class="grid min-w-0 gap-8 @min-[38rem]/opportunity:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
 				<div class="min-w-0 space-y-5">
-					<div>
-						<h3 class="mb-2 font-medium">Linked clients</h3>
-						<p class="text-muted wrap-anywhere">
-							{workspace.links
-								.filter((link) => link.opportunityId === selected?.id)
-								.map((link) => workspace.clients.find((client) => client.id === link.clientId)?.name)
-								.filter(Boolean)
-								.join(", ")}
-						</p>
-					</div>
-					<div class="space-y-2">
-						<label for="selected-stage" class="block font-medium">Pipeline stage</label><select id="selected-stage" class="field" value={selected.stage} disabled={pending} onchange={(event) => move(event.currentTarget.value as keyof typeof stageLabels)}
-							>{#each stages as stage (stage)}<option value={stage}>{stageLabels[stage]}</option>{/each}</select>
-					</div>
-					<p class="text-muted">Moving stages keeps work from each visited stage. Return to a stage to continue its checklist.</p>
+					{#if editing}
+						<OpportunityEditor
+							bind:draft={drafts[selected.id]!}
+							{workspace}
+							{remote}
+							bind:pending
+							cancel={() => (editing = false)}
+							saved={() => {
+								if (selected) delete drafts[selected.id];
+								editing = false;
+								inspectedStage = "";
+								status = "Opportunity saved.";
+							}} />
+					{:else}
+						<button
+							type="button"
+							class="control"
+							disabled={pending}
+							onclick={() => {
+								if (selected) {
+									drafts[selected.id] ??= opportunityDraft(workspace, selected.id);
+									editing = true;
+								}
+							}}>Edit opportunity</button>
+						{#if drafts[selected.id]}<p class="text-muted text-xs">An unsaved editing draft is retained.</p>
+							<button
+								type="button"
+								class="control"
+								disabled={pending}
+								onclick={() => {
+									if (selected) delete drafts[selected.id];
+								}}>Discard editing draft</button
+							>{/if}
+						<div>
+							<h3 class="mb-2 font-medium">Linked clients</h3>
+							<p class="text-muted wrap-anywhere">
+								{workspace.links
+									.filter((link) => link.opportunityId === selected?.id)
+									.map((link) => workspace.referenceClients.find((client) => client.id === link.clientId)?.name)
+									.filter(Boolean)
+									.join(", ")}
+							</p>
+						</div>
+						<div class="space-y-2">
+							<label for="selected-stage" class="block font-medium">Pipeline stage</label><select id="selected-stage" class="field" value={selected.stage} disabled={pending} onchange={(event) => move(event.currentTarget.value as keyof typeof stageLabels)}
+								>{#each stages as stage (stage)}<option value={stage}>{stageLabels[stage]}</option>{/each}</select>
+						</div>
+						<p class="text-muted">Moving stages keeps work from each visited stage. Return to a stage to continue its checklist.</p>
+						<dl class="space-y-3">
+							<div>
+								<dt class="font-medium">Timeline</dt>
+								<dd class="text-muted">{selected.timeline === "1-3-mo" ? "1–3 mo" : selected.timeline === "3-6-mo" ? "3–6 mo" : selected.timeline === "6-plus-mo" ? "6+ mo" : "Not set"}</dd>
+							</div>
+							<div>
+								<dt class="font-medium">Property address</dt>
+								<dd class="text-muted wrap-anywhere">{selected.address || "Not set"}</dd>
+							</div>
+							<div>
+								<dt class="font-medium">Budget (USD)</dt>
+								<dd class="text-muted tabular-nums">{selected.budgetCents == null ? "Not set" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(selected.budgetCents / 100)}</dd>
+							</div>
+						</dl>
+						<section>
+							<h3 class="mb-2 font-medium">Notes</h3>
+							<p class="text-muted wrap-anywhere whitespace-pre-wrap">{selected.notes || "No notes yet."}</p>
+						</section>
+						<section class="space-y-2" aria-label="References">
+							<h3 class="font-medium">References</h3>
+							{#each workspace.references.filter((reference) => reference.opportunityId === selected?.id) as reference (reference.id)}
+								{@const href = reference.kind === "url" ? safeReferenceUrl(reference.url) : reference.kind === "client" ? `/registry?client=${encodeURIComponent(reference.targetClientId ?? "")}` : `/pipeline?opportunity=${encodeURIComponent(reference.targetOpportunityId ?? "")}`}
+								{#if href}<a
+										class="text-field block min-h-11 py-2 wrap-anywhere underline underline-offset-4"
+										{href}
+										target={reference.kind === "url" ? "_blank" : undefined}
+										rel={reference.kind === "url" ? "noopener noreferrer" : undefined}
+										onclick={reference.kind === "opportunity"
+											? (event) => {
+													const target = workspace.opportunities.find((row) => row.id === reference.targetOpportunityId);
+													if (target) {
+														event.preventDefault();
+														selectedId = target.id;
+														editing = false;
+														inspectedStage = "";
+													}
+												}
+											: undefined}>{reference.label}{reference.kind === "url" ? " (opens a new tab)" : ""}</a
+									>{:else}<p class="text-muted wrap-anywhere">{reference.label} · unsafe link unavailable</p>{/if}
+							{:else}<p class="text-muted">No references yet.</p>{/each}
+						</section>
+						<details class="border-hairline border-t pt-4">
+							<summary class="min-h-11 cursor-pointer font-medium">History</summary>
+							<ol class="mt-3 space-y-4">
+								{#each workspace.history.filter((change) => change.recordId === selected?.id) as change (change.id)}<li class="min-w-0 text-xs">
+										<p class="font-medium wrap-anywhere">{change.action} · {change.effectiveUserId}{change.actorUserId !== change.effectiveUserId ? ` (acting user: ${change.actorUserId})` : ""}</p>
+										<time class="text-muted" datetime={change.createdAt}>{new Date(change.createdAt).toLocaleString("en-US", { timeZone: workspace.settings?.timezone ?? "America/New_York" })}</time>
+										<details class="mt-2">
+											<summary class="cursor-pointer py-2">Changed data</summary>
+											<pre class="text-muted mt-2 wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>
+										</details>
+									</li>{:else}<li class="text-muted">No changes recorded.</li>{/each}
+							</ol>
+						</details>
+					{/if}
 					<p role="status" aria-live="polite">{status}</p>
 					{#if failure}<p role="alert" class="text-urgent">{failure}</p>
 						<button
@@ -200,7 +285,7 @@
 							}}>Refresh records</button
 						>{/if}
 				</div>
-				<section class="min-w-0" aria-label="Inspected-stage checklist" aria-busy={pending}>
+				<section class="border-hairline min-w-0 border-t pt-6 @min-[38rem]/opportunity:border-t-0 @min-[38rem]/opportunity:border-l @min-[38rem]/opportunity:pt-0 @min-[38rem]/opportunity:pl-6" aria-label="Inspected-stage checklist" aria-busy={pending}>
 					<h3 class="font-display text-2xl">{stageLabels[checklist?.stage ?? selected.stage]} checklist</h3>
 					{#if checklist && checklist.stage !== selected.stage}<p class="text-muted my-2">Inspecting prior-stage work. The opportunity remains in {stageLabels[selected.stage]}.</p>
 						<button class="control" type="button" disabled={pending} onclick={() => (inspectedStage = "")}>Return to current checklist</button>{/if}

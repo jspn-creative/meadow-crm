@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { page } from "$app/state";
 	import { createClient, getWorkspace } from "#lib/crm.remote.js";
 	const remote = getWorkspace({ archived: false });
 	let workspace = $derived(await remote);
-	let search = $state("");
+	let search = $derived(workspace.referenceClients.find((client) => client.id === page.url.searchParams.get("client"))?.name ?? "");
 	let creating = $state(false);
 	let clientId = $state("");
 	let requestId = $state("");

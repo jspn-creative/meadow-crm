@@ -29,7 +29,7 @@ Implement in order, with visual/interactive delivery before real authentication.
 
 ## 4. Functioning pipeline and opportunity modal
 
-- [ ] 4.1 Implement opportunity create/edit/modal with type/stage, multiple clients, optional timeline/address/budget, notes/references/history, and space for the checklist sidebar; create behavioral modal primitives only as needed and verify focus entry/return, Escape, draft retention, optional fields, safe links, and phone use.
+- [x] 4.1 Implement opportunity create/edit/modal with type/stage, multiple clients, optional timeline/address/budget, notes/references/history, and space for the checklist sidebar; create behavioral modal primitives only as needed and verify focus entry/return, Escape, draft retention, optional fields, safe links, and phone use.
 - [ ] 4.2 Implement the four-stage mixed-type board, inherited tags, type/timeline/tag filters, timeline ordering, and current-stage progress with distinct other-stage attention; verify union tags update from clients, unset timelines sort last, and archived opportunities never appear.
 - [ ] 4.3 Implement explicit keyboard/touch stage moves with immediate pending feedback and automatic destination checklist selection; verify direct/backward moves retain other visited-stage work, no completion gate, stale-move rollback, and attributable history.
 - [ ] 4.4 Implement opportunity archive/restore in a separate view; verify preserved references/relationships/stage checklists/history, exclusion from checklist attention, and no cascade to clients or independent tasks.

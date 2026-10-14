@@ -18,14 +18,12 @@ test("client, opportunity and visited-stage checklist persist across reloads", a
 	await expect(page.getByText("0 linked opportunities", { exact: true })).toBeVisible();
 	await page.getByRole("link", { name: `New opportunity for ${name}`, exact: true }).click();
 	await page.getByRole("button", { name: "New opportunity", exact: true }).click();
-	await expect(page.getByLabel("Client", { exact: true })).toHaveValue(
-		new URL(page.url()).searchParams.get("client")!,
-	);
+	await expect(page.getByRole("checkbox", { name, exact: true })).toBeChecked();
 	await page.getByLabel("Opportunity title", { exact: true }).fill(title);
 	await page.getByLabel("Initial stage", { exact: true }).selectOption("active-lead");
 	await page.getByRole("button", { name: "Save opportunity", exact: true }).click();
 	const dialog = page.getByRole("dialog");
-	await expect(dialog).toBeVisible();
+	await expect(dialog.getByRole("heading", { name: title, exact: true })).toBeVisible();
 	await expect(dialog.getByText(name, { exact: true })).toBeVisible();
 	const step = dialog.locator("form").first();
 	await step.getByRole("checkbox").check();

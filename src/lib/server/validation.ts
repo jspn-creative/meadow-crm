@@ -3,6 +3,51 @@ import * as v from "valibot";
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(120), v.regex(/^[a-zA-Z0-9_-]+$/));
 const revision = v.pipe(v.number(), v.integer(), v.minValue(1));
 const stage = v.picklist(["new-lead", "active-lead", "under-contract", "closed"]);
+const type = v.picklist(["buyer", "seller", "estate-sale", "construction"]);
+const clientIds = v.pipe(
+	v.array(id),
+	v.minLength(1),
+	v.maxLength(100),
+	v.check((ids) => new Set(ids).size === ids.length, "Client links must be unique."),
+);
+const reference = v.variant("kind", [
+	v.strictObject({
+		kind: v.literal("url"),
+		label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+		url: v.pipe(
+			v.string(),
+			v.trim(),
+			v.maxLength(2000),
+			v.check((url) => {
+				try {
+					const parsed = new URL(url);
+					return ["https:", "http:"].includes(parsed.protocol) && !parsed.username && !parsed.password;
+				} catch {
+					return false;
+				}
+			}, "Use a complete HTTP or HTTPS link without credentials."),
+		),
+	}),
+	v.strictObject({
+		kind: v.literal("client"),
+		label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+		targetId: id,
+	}),
+	v.strictObject({
+		kind: v.literal("opportunity"),
+		label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+		targetId: id,
+	}),
+]);
+const opportunityDetails = {
+	timeline: v.optional(v.nullable(v.picklist(["1-3-mo", "3-6-mo", "6-plus-mo"]))),
+	address: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(1000)))),
+	budgetCents: v.optional(
+		v.nullable(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER))),
+	),
+	notes: v.optional(v.pipe(v.string(), v.maxLength(20000))),
+	references: v.optional(v.pipe(v.array(reference), v.maxLength(50))),
+};
 
 export const workspaceInput = v.strictObject({ archived: v.optional(v.boolean(), false) });
 export const createClientInput = v.strictObject({
@@ -11,13 +56,23 @@ export const createClientInput = v.strictObject({
 	name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
 });
 export const moveStageInput = v.strictObject({ requestId: id, id, revision, stage });
+export const createOpportunityFormInput = v.strictObject({
+	requestId: id,
+	id,
+	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	type,
+	stage,
+	clientId: id,
+});
 export const createOpportunityInput = v.strictObject({
 	requestId: id,
 	id,
 	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
-	type: v.picklist(["buyer", "seller", "estate-sale", "construction"]),
+	type,
 	stage,
-	clientId: id,
+	clientId: v.optional(id),
+	clientIds: v.optional(clientIds),
+	...opportunityDetails,
 });
 export const saveChecklistStepInput = v.strictObject({
 	requestId: id,
@@ -42,12 +97,10 @@ export const saveOpportunityInput = v.strictObject({
 	id,
 	revision,
 	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
-	clientIds: v.pipe(
-		v.array(id),
-		v.minLength(1),
-		v.maxLength(100),
-		v.check((ids) => new Set(ids).size === ids.length, "Client links must be unique."),
-	),
+	clientIds,
+	type: v.optional(type),
+	stage: v.optional(stage),
+	...opportunityDetails,
 });
 export const bulkArchiveInput = v.strictObject({
 	requestId: id,
