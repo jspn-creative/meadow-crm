@@ -346,3 +346,13 @@ export const mutationReceipts = sqliteTable(
 	},
 	(t) => [check("receipt_result_json", sql`json_valid(${t.result})`)],
 );
+
+// Transient guards make a zero-row revision update fail the entire D1 batch instead of allowing related writes to commit.
+export const mutationGuards = sqliteTable(
+	"mutation_guards",
+	{
+		id: text("id").primaryKey(),
+		passed: integer("passed").notNull(),
+	},
+	(t) => [check("mutation_guard_passed", sql`${t.passed} = 1`)],
+);

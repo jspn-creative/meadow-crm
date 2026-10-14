@@ -40,7 +40,7 @@ test("fresh and repeated local migrations retain records and have no broken fore
 	await migrate(db, await readMigrations());
 	expect(
 		(await db.prepare("SELECT count(*) AS n FROM meadow_migrations").first<{ n: number }>())?.n,
-	).toBe(2);
+	).toBe(3);
 	expect(
 		(await db.prepare("SELECT budget_cents FROM opportunities WHERE id = 'opportunity-a'").first())
 			?.budget_cents,

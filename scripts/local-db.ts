@@ -7,7 +7,7 @@ import { resetFictional, seedFictional } from "./fictional-seed.ts";
 
 const [command, ...args] = process.argv.slice(2).filter((arg) => arg !== "--");
 const help =
-	"Local D1 only: vp run db:migrate | vp run db:seed | vp run db:seed-fictional -- --today=YYYY-MM-DD | vp run db:reset-fictional -- --confirm-fictional-reset. Defaults never overwrite edited templates; reset deletes only fictional records and refuses protected links. No command accesses Cloudflare accounts or remote D1.";
+	"Local D1 only: vp run db:migrate | vp run db:seed | vp run db:seed-fictional -- --today=YYYY-MM-DD | vp run db:reset-fictional -- --confirm-fictional-reset. Defaults never overwrite edited templates; reset deletes only fictional records and refuses protected links. Copy .dev.vars.example to .dev.vars and set LOCAL_DEMO_USER=realtor or assistant, then restart vp dev on localhost/127.0.0.1. No browser-supplied identity is accepted; production ignores the demo setting and fails closed. MEADOW_LOCAL_STATE_DIR optionally isolates local runtime/test storage. No command accesses Cloudflare accounts or remote D1.";
 if (!command || command === "help") {
 	console.log(help);
 } else {
@@ -19,7 +19,7 @@ if (!command || command === "help") {
 		throw new Error(help);
 	const proxy = await getPlatformProxy<{ DB: D1Database }>({
 		configPath: "wrangler.jsonc",
-		persist: { path: ".wrangler/state/v3" },
+		persist: { path: process.env.MEADOW_LOCAL_STATE_DIR ?? ".wrangler/state/v3" },
 	});
 	try {
 		if (command === "migrate") await migrate(proxy.env.DB, await readMigrations());

@@ -19,6 +19,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:shell": "playwright test",
 		"test:runtime": "node --experimental-strip-types scripts/runtime-smoke.ts",
+		"test:production": "node --experimental-strip-types scripts/production-smoke.ts",
 		"test:db": "vp test src/lib/server/db",
 		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
 		"db:migrate": "node --experimental-strip-types scripts/local-db.ts migrate",
@@ -28,7 +29,8 @@
 	},
 	"dependencies": {
 		"@humanspeak/svelte-motion": "^2.0.0",
-		"drizzle-orm": "^0.45.4"
+		"drizzle-orm": "^0.45.4",
+		"valibot": "^1.5.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261013.1",
@@ -40,6 +42,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^26.6.5",
+		"devalue": "^6.0.3",
 		"drizzle-kit": "^0.31.11",
 		"miniflare": "^4.20260730.0",
 		"svelte": "^5.57.1",

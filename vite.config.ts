@@ -14,7 +14,12 @@ export default defineConfig({
 				runes: ({ filename }) => (filename.split(/[/\\]/).includes("node_modules") ? undefined : true),
 				experimental: { async: true },
 			},
-			adapter: adapter({ config: "wrangler.jsonc" }),
+			adapter: adapter({
+				config: "wrangler.jsonc",
+				platformProxy: {
+					persist: { path: process.env.MEADOW_LOCAL_STATE_DIR ?? ".wrangler/state/v3" },
+				},
+			}),
 			experimental: {
 				remoteFunctions: true,
 				compileModule: { exclude: ["**/.svelte-kit/**"] },

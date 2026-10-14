@@ -15,6 +15,13 @@
 			"when": 1791939633914,
 			"tag": "0001_checklist_ownership",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1791939890974,
+			"tag": "0002_mutation_guards",
+			"breakpoints": true
 		}
 	]
 }
