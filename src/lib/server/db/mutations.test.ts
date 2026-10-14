@@ -7,12 +7,78 @@ import { createDataService, DataConflict } from "../data.ts";
 import { resolveLocalIdentity } from "../identity.ts";
 import { migrate } from "./migrate.ts";
 import { seedDefaults } from "./seed.ts";
+import { checklistAttention } from "../../data/attention.ts";
 
 let proxy: Awaited<ReturnType<typeof getPlatformProxy<{ DB: D1Database }>>>;
 let db: D1Database;
 let realtor: ReturnType<typeof createDataService>;
 let assistant: ReturnType<typeof createDataService>;
 const opportunityId = "fictional-opportunity-maple";
+
+test("attention projects only visible incomplete visited work and honors shared scope", async () => {
+	const clientId = crypto.randomUUID();
+	const id = crypto.randomUUID();
+	await realtor.createClient({
+		requestId: crypto.randomUUID(),
+		id: clientId,
+		name: "Attention client",
+	});
+	await realtor.createOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		clientId,
+		title: "Attention opportunity",
+		type: "buyer",
+		stage: "active-lead",
+	});
+	let snapshot = await realtor.workspace({ archived: false });
+	const list = snapshot.checklists.find((row) => row.opportunityId === id)!;
+	const item = list.items[0]!;
+	const save = {
+		requestId: crypto.randomUUID(),
+		checklistId: list.id,
+		revision: list.revision,
+		itemId: item.id,
+		itemRevision: item.revision,
+		completed: false,
+		dueDate: "2000-01-01",
+	};
+	await realtor.saveChecklistStep(save);
+	await realtor.moveStage({
+		requestId: crypto.randomUUID(),
+		id,
+		revision: 1,
+		stage: "under-contract",
+	});
+	snapshot = await realtor.workspace({ archived: false });
+	const entries = () =>
+		checklistAttention(snapshot).filter((row) => row.opportunity === "Attention opportunity");
+	expect(entries()).toHaveLength(1);
+	expect(entries()[0]!.href).toBe(`/pipeline?opportunity=${id}&stage=active-lead`);
+	snapshot.settings!.attentionScope = "current-stage";
+	expect(entries()).toHaveLength(0);
+	snapshot.settings!.attentionScope = "all-visited";
+	await realtor.saveChecklistStep({
+		...save,
+		requestId: crypto.randomUUID(),
+		revision: list.revision + 1,
+		completed: true,
+	});
+	snapshot = await realtor.workspace({ archived: false });
+	expect(entries()).toHaveLength(0);
+	await realtor.saveChecklistStep({
+		...save,
+		requestId: crypto.randomUUID(),
+		revision: list.revision + 2,
+	});
+	snapshot = await realtor.workspace({ archived: false });
+	expect(entries()).toHaveLength(1);
+	snapshot.opportunities.find((row) => row.id === id)!.archivedAt = new Date().toISOString();
+	expect(entries()).toHaveLength(0);
+	snapshot.opportunities.find((row) => row.id === id)!.archivedAt = null;
+	snapshot.checklists.find((row) => row.id === list.id)!.items = [];
+	expect(entries()).toHaveLength(0);
+});
 
 test("persisted slice inherits defaults and retains guarded step saves across stage visits", async () => {
 	const clientId = crypto.randomUUID();

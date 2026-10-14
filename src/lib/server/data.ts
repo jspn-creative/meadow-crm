@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { eq, isNull, isNotNull } from "drizzle-orm";
 import * as v from "valibot";
 import type { BusinessIdentity } from "./identity.ts";
+import { businessDate } from "../data/attention.ts";
 import {
 	businessSettings,
 	clients,
@@ -146,6 +147,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				]);
 			return {
 				identity: user,
+				businessToday: businessDate(settings[0]?.timezone ?? "America/New_York"),
 				clients: clientRows,
 				opportunities: opportunityRows,
 				links: links.filter((link) => opportunityRows.some((row) => row.id === link.opportunityId)),

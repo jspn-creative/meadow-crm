@@ -6,9 +6,7 @@
 	import UpcomingEvents from "#lib/dashboard/UpcomingEvents.svelte";
 	import { overflowFade } from "#lib/attachments/overflow-fade.js";
 
-	// The content never scrolls itself; the ancestor main does. Drive the mask from
-	// that scroller so scrolled content fades into the panel background instead of
-	// the panel edges dissolving.
+	// The content never scrolls itself; the ancestor main does. Drive the mask from that scroller so scrolled content fades into the panel background instead of the panel edges dissolving.
 	const contentFade = overflowFade({
 		axis: "y",
 		scrollSource: (element) => element.closest<HTMLElement>("#workspace-main"),

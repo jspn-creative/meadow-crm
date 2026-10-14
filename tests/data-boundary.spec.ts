@@ -78,7 +78,7 @@ test("request bootstrap uses local identity and remote queries reject forged act
 	expect(denied).toBe(true);
 	const response = await request.get("/");
 	expect(response.headers()["cache-control"]).toContain("no-store");
-	expect(await response.text()).not.toContain("fictional-client-ada");
+	expect(await response.text()).toContain("fictional-client-ada");
 });
 
 test("single-flight stage command refreshes both requested query variants and invalid links retain committed data", async ({

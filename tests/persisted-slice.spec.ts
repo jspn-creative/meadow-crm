@@ -62,6 +62,36 @@ test("client, opportunity and visited-stage checklist persist across reloads", a
 	await page.getByRole("button", { name: new RegExp(title) }).click();
 	await expect(step.getByRole("checkbox")).toBeChecked();
 	await expect(step.getByLabel(/Due date/)).toHaveValue("2026-10-20");
+	await step.getByRole("checkbox").uncheck();
+	await step.getByLabel(/Due date/).fill("2000-01-01");
+	await step.getByRole("button", { name: /Save step/ }).click();
+	await expect(dialog.getByRole("status")).toHaveText("Step saved.");
+	await dialog.getByLabel("Pipeline stage", { exact: true }).selectOption("under-contract");
+	await expect(dialog.getByRole("status")).toHaveText("Stage saved.");
+	await dialog.getByRole("button", { name: "Close", exact: true }).click();
+	await page.goto("/");
+	const source = page.getByRole("link").filter({ hasText: title });
+	await expect(source).toBeVisible();
+	await expect(source).toContainText("Active lead");
+	await source.click();
+	await expect(dialog.getByLabel("Pipeline stage", { exact: true })).toHaveValue("under-contract");
+	await expect(
+		dialog.getByRole("heading", { name: "Active lead checklist", exact: true }),
+	).toBeVisible();
+	await page.reload();
+	await expect(
+		dialog.getByRole("heading", { name: "Active lead checklist", exact: true }),
+	).toBeVisible();
+	await step.getByRole("checkbox").check();
+	await step.getByRole("button", { name: /Save step/ }).click();
+	await expect(dialog.getByRole("status")).toHaveText("Step saved.");
+	await dialog.getByRole("button", { name: "Return to current checklist", exact: true }).click();
+	await expect(
+		dialog.getByRole("heading", { name: "Under contract checklist", exact: true }),
+	).toBeVisible();
+	await dialog.getByRole("button", { name: "Close", exact: true }).click();
+	await page.goto("/");
+	await expect(source).toHaveCount(0);
 	expect(errors).toEqual([]);
 });
 

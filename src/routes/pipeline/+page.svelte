@@ -13,7 +13,8 @@
 	let creating = $state(false);
 	let opportunityId = $state("");
 	let requestId = $state("");
-	let selectedId = $state("");
+	let selectedId = $state(page.url.searchParams.get("opportunity") ?? "");
+	let inspectedStage = $state(page.url.searchParams.get("stage") ?? "");
 	let failure = $state("");
 	let pending = $state(false);
 	let status = $state("");
@@ -22,7 +23,7 @@
 		ready = true;
 	});
 	let selected = $derived(workspace.opportunities.find((row) => row.id === selectedId));
-	let checklist = $derived(selected && workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === selected.stage));
+	let checklist = $derived(selected && (workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === (inspectedStage || selected.stage)) ?? workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === selected.stage)));
 	const stages = Object.keys(stageLabels) as (keyof typeof stageLabels)[];
 	function newOpportunity() {
 		opportunityId = crypto.randomUUID();
@@ -59,6 +60,7 @@
 		status = "Moving opportunity…";
 		try {
 			await data.move({ requestId: crypto.randomUUID(), id: selected.id, revision: selected.revision, stage });
+			inspectedStage = "";
 			status = "Stage saved.";
 		} catch {
 			failure = "Stage could not be saved or has changed. The move was rolled back. Refresh before retrying.";
@@ -131,6 +133,7 @@
 							class="border-hairline hover:bg-canvas w-full rounded-xl border bg-white p-5 text-left"
 							onclick={() => {
 								selectedId = opportunity.id;
+								inspectedStage = "";
 								failure = "";
 								status = "";
 							}}>
@@ -197,8 +200,10 @@
 							}}>Refresh records</button
 						>{/if}
 				</div>
-				<section class="min-w-0" aria-label="Current-stage checklist" aria-busy={pending}>
-					<h3 class="font-display text-2xl">{stageLabels[selected.stage]} checklist</h3>
+				<section class="min-w-0" aria-label="Inspected-stage checklist" aria-busy={pending}>
+					<h3 class="font-display text-2xl">{stageLabels[checklist?.stage ?? selected.stage]} checklist</h3>
+					{#if checklist && checklist.stage !== selected.stage}<p class="text-muted my-2">Inspecting prior-stage work. The opportunity remains in {stageLabels[selected.stage]}.</p>
+						<button class="control" type="button" disabled={pending} onclick={() => (inspectedStage = "")}>Return to current checklist</button>{/if}
 					{#if checklist}
 						<p class="text-muted mt-2 text-xs">{checklist.items.filter((item) => item.completedAt).length} of {checklist.items.length} complete</p>
 						{#each checklist.items as item (`${checklist.id}:${item.id}`)}<ChecklistStep {item} {checklist} busy={pending} save={saveStep} />{:else}<p class="text-muted py-6">No steps in this stage’s defaults.</p>{/each}

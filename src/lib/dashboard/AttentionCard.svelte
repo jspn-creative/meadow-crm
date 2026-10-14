@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { ArrowUpRight, CheckSquare2 } from "@lucide/svelte";
-	import { attention } from "#lib/shell/fixtures.js";
+	import { getWorkspace } from "#lib/crm.remote.js";
+	import { checklistAttention } from "#lib/data/attention.js";
+	import { stageLabels } from "#lib/pipeline/labels.js";
 	import DashboardCard from "./DashboardCard.svelte";
 	import DueBadge from "#lib/ui/DueBadge.svelte";
+	let workspace = $derived(await getWorkspace({ archived: false }));
+	let attention = $derived(checklistAttention(workspace));
 	let { order = 0, showAction = true }: { order?: number; showAction?: boolean } = $props();
 </script>
 
@@ -15,13 +19,13 @@
 					<div class="min-w-0 flex-1">
 						<p class="item-title">{item.title}</p>
 						<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
-							<p class="text-muted text-xs leading-5">{item.opportunity} · {item.stage}</p>
-							<DueBadge label={item.due} state={item.dueState} />
+							<p class="text-muted text-xs leading-5">{item.opportunity} · {stageLabels[item.stage]}</p>
+							<DueBadge label={`Due ${item.dueDate}`} state="overdue" />
 						</div>
 					</div>
 					<ArrowUpRight size={16} class="text-muted mt-1 shrink-0" aria-hidden="true" />
 				</a>
 			</li>
-		{/each}
+		{:else}<li class="text-muted text-sm">No overdue checklist steps in this scope.</li>{/each}
 	</ul>
 </DashboardCard>
