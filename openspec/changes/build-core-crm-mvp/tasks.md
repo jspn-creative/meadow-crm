@@ -24,7 +24,7 @@ Implement in order, with visual/interactive delivery before real authentication.
 
 ## 3. First persisted end-to-end slice
 
-- [ ] 3.1 Build a minimal persisted client → linked opportunity → inherited current-stage checklist flow using the shell's controls; verify creation, reload, dating/completing a step, and a stage move, then reuse this implementation as groups 4–6 expand the workflows.
+- [x] 3.1 Build a minimal persisted client → linked opportunity → inherited current-stage checklist flow using the shell's controls; verify creation, reload, dating/completing a step, and a stage move, then reuse this implementation as groups 4–6 expand the workflows.
 - [ ] 3.2 Implement shared business-date/overdue/visited-stage-scope queries and wire the slice's pipeline counts and checklist attention into dashboard cards; verify yesterday/today/tomorrow/timezone cases, saved edits updating the dashboard, and a source link reopening the correct checklist stage. Complete remaining dashboard sections in group 7 after their source workflows exist.
 
 ## 4. Functioning pipeline and opportunity modal

@@ -3,6 +3,8 @@ import { error } from "@sveltejs/kit";
 import { DataConflict } from "#lib/server/data.js";
 import {
 	createClientInput,
+	createOpportunityInput,
+	saveChecklistStepInput,
 	moveStageInput,
 	saveOpportunityInput,
 	workspaceInput,
@@ -34,6 +36,16 @@ async function save(action: () => Promise<Record<string, unknown>>) {
 export const createClient = form(createClientInput, (input) => {
 	const data = services();
 	return save(() => data.createClient(input));
+});
+
+export const createOpportunity = form(createOpportunityInput, (input) => {
+	const data = services();
+	return save(() => data.createOpportunity(input));
+});
+
+export const saveChecklistStep = command(saveChecklistStepInput, (input) => {
+	const data = services();
+	return save(() => data.saveChecklistStep(input));
 });
 
 export const moveStage = command(moveStageInput, (input) => {

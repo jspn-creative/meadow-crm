@@ -11,6 +11,32 @@ export const createClientInput = v.strictObject({
 	name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
 });
 export const moveStageInput = v.strictObject({ requestId: id, id, revision, stage });
+export const createOpportunityInput = v.strictObject({
+	requestId: id,
+	id,
+	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	type: v.picklist(["buyer", "seller", "estate-sale", "construction"]),
+	stage,
+	clientId: id,
+});
+export const saveChecklistStepInput = v.strictObject({
+	requestId: id,
+	checklistId: id,
+	revision,
+	itemId: id,
+	itemRevision: revision,
+	completed: v.boolean(),
+	dueDate: v.nullable(
+		v.pipe(
+			v.string(),
+			v.regex(/^\d{4}-\d{2}-\d{2}$/),
+			v.check((date) => {
+				const parsed = new Date(`${date}T00:00:00Z`);
+				return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+			}, "Choose a valid calendar date."),
+		),
+	),
+});
 export const saveOpportunityInput = v.strictObject({
 	requestId: id,
 	id,

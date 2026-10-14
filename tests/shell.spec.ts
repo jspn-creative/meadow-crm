@@ -88,12 +88,15 @@ test("compiled native controls expose focus, disabled, press, and pending states
 }) => {
 	await page.goto("/registry");
 	const field = page.getByLabel("Search clients", { exact: true });
+	await expect(field).toBeEnabled();
 	await field.focus();
 	await expect(field).toBeFocused();
 	await expect
 		.poll(() => field.evaluate((element) => getComputedStyle(element).outlineWidth))
 		.toBe("2px");
-	await expect(page.getByRole("button", { name: "New client" })).toBeDisabled();
+	await page.getByRole("button", { name: "New client", exact: true }).click();
+	await expect(page.getByRole("button", { name: "New client", exact: true })).toBeDisabled();
+	await expect(page.getByLabel("Client name", { exact: true })).toBeVisible();
 	await page.goto("/login?next=%2Fregistry");
 	const submit = page.getByRole("button", { name: "Enter demo workspace" });
 	await expect(submit).toBeEnabled();

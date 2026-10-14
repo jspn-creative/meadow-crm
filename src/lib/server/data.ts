@@ -3,10 +3,20 @@ import { drizzle } from "drizzle-orm/d1";
 import { eq, isNull, isNotNull } from "drizzle-orm";
 import * as v from "valibot";
 import type { BusinessIdentity } from "./identity.ts";
-import { businessSettings, clients, opportunities } from "./db/schema.ts";
+import {
+	businessSettings,
+	clients,
+	opportunities,
+	opportunityClients,
+	stageChecklists,
+	checklistItems,
+	checklistProgress,
+} from "./db/schema.ts";
 import {
 	bulkArchiveInput,
 	createClientInput,
+	createOpportunityInput,
+	saveChecklistStepInput,
 	moveStageInput,
 	saveOpportunityInput,
 	workspaceInput,
@@ -118,21 +128,45 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		identity: user,
 		async workspace(input: unknown) {
 			const { archived } = v.parse(workspaceInput, input);
-			const [clientRows, opportunityRows, settings] = await Promise.all([
-				orm
-					.select()
-					.from(clients)
-					.where(archived ? isNotNull(clients.archivedAt) : isNull(clients.archivedAt)),
-				orm
-					.select()
-					.from(opportunities)
-					.where(archived ? isNotNull(opportunities.archivedAt) : isNull(opportunities.archivedAt)),
-				orm.select().from(businessSettings).where(eq(businessSettings.id, 1)),
-			]);
+			const [clientRows, opportunityRows, settings, links, checklists, items, progress] =
+				await Promise.all([
+					orm
+						.select()
+						.from(clients)
+						.where(archived ? isNotNull(clients.archivedAt) : isNull(clients.archivedAt)),
+					orm
+						.select()
+						.from(opportunities)
+						.where(archived ? isNotNull(opportunities.archivedAt) : isNull(opportunities.archivedAt)),
+					orm.select().from(businessSettings).where(eq(businessSettings.id, 1)),
+					orm.select().from(opportunityClients),
+					orm.select().from(stageChecklists),
+					orm.select().from(checklistItems),
+					orm.select().from(checklistProgress),
+				]);
 			return {
 				identity: user,
 				clients: clientRows,
 				opportunities: opportunityRows,
+				links: links.filter((link) => opportunityRows.some((row) => row.id === link.opportunityId)),
+				checklists: checklists
+					.filter((list) => opportunityRows.some((row) => row.id === list.opportunityId))
+					.map((list) => ({
+						...list,
+						items: items
+							.filter((item) =>
+								list.customized ? item.checklistId === list.id : item.templateId === list.templateId,
+							)
+							.sort((a, b) => a.position - b.position)
+							.map((item) => {
+								const saved = progress.find((row) => row.checklistId === list.id && row.itemId === item.id);
+								return {
+									...item,
+									completedAt: saved?.completedAt ?? null,
+									dueDate: saved?.dueDate ?? null,
+								};
+							}),
+					})),
 				settings: settings[0] ?? null,
 			};
 		},
@@ -158,6 +192,103 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						guard,
 					),
 					appendHistory(guard, now, "client", value.id, "create", { after: { name: value.name } }),
+				],
+			);
+		},
+		async createOpportunity(input: unknown) {
+			const value = v.parse(createOpportunityInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "create-opportunity", ...value },
+				{ id: value.id, revision: 1 },
+				(guard, now) => [
+					stmt(
+						"INSERT INTO mutation_guards VALUES (?, CASE WHEN NOT EXISTS (SELECT 1 FROM opportunities WHERE id = ?) AND EXISTS (SELECT 1 FROM clients WHERE id = ? AND archived_at IS NULL) AND EXISTS (SELECT 1 FROM checklist_templates WHERE type = ? AND stage = ?) THEN 1 ELSE 0 END)",
+						guard,
+						value.id,
+						value.clientId,
+						value.type,
+						value.stage,
+					),
+					stmt(
+						"INSERT INTO opportunities (id, title, type, stage, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ? WHERE " +
+							guardExists,
+						value.id,
+						value.title,
+						value.type,
+						value.stage,
+						now,
+						now,
+						guard,
+					),
+					stmt(
+						"INSERT INTO opportunity_clients (opportunity_id, client_id) SELECT ?, ? WHERE " +
+							guardExists,
+						value.id,
+						value.clientId,
+						guard,
+					),
+					stmt(
+						"INSERT INTO stage_checklists (id, opportunity_id, stage, template_id, created_at, updated_at) SELECT ?, ?, stage, id, ?, ? FROM checklist_templates WHERE type = ? AND stage = ? AND " +
+							guardExists,
+						crypto.randomUUID(),
+						value.id,
+						now,
+						now,
+						value.type,
+						value.stage,
+						guard,
+					),
+					appendHistory(guard, now, "opportunity", value.id, "create", { after: value }),
+				],
+			);
+		},
+		async saveChecklistStep(input: unknown) {
+			const value = v.parse(saveChecklistStepInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "save-checklist-step", ...value },
+				{ id: value.checklistId, revision: value.revision + 1 },
+				(guard, now) => [
+					// Guard both the list and its visible item source; a stale save cannot resurrect a removed step or write to another opportunity's list.
+					stmt(
+						"UPDATE stage_checklists SET revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL) AND EXISTS (SELECT 1 FROM checklist_items i WHERE i.id = ? AND i.revision = ? AND ((customized = 0 AND i.template_id = stage_checklists.template_id) OR (customized = 1 AND i.checklist_id = stage_checklists.id)))",
+						now,
+						value.checklistId,
+						value.revision,
+						value.itemId,
+						value.itemRevision,
+					),
+					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					stmt(
+						"INSERT INTO checklist_progress (checklist_id, item_id, completed_at, due_date, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ? WHERE " +
+							guardExists +
+							" ON CONFLICT(checklist_id, item_id) DO UPDATE SET completed_at = excluded.completed_at, due_date = excluded.due_date, revision = checklist_progress.revision + 1, updated_at = excluded.updated_at",
+						value.checklistId,
+						value.itemId,
+						value.completed ? now : null,
+						value.dueDate,
+						now,
+						now,
+						guard,
+					),
+					stmt(
+						"INSERT INTO history (id, record_kind, record_id, actor_user_id, effective_user_id, action, data, created_at) SELECT ?, 'opportunity', opportunity_id, ?, ?, 'save-checklist-step', ?, ? FROM stage_checklists WHERE id = ? AND " +
+							guardExists,
+						crypto.randomUUID(),
+						user.actorUserId,
+						user.effectiveUserId,
+						JSON.stringify({
+							checklistId: value.checklistId,
+							revision: value.revision,
+							itemId: value.itemId,
+							completed: value.completed,
+							dueDate: value.dueDate,
+						}),
+						now,
+						value.checklistId,
+						guard,
+					),
 				],
 			);
 		},

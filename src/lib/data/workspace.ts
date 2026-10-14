@@ -1,4 +1,4 @@
-import { getWorkspace, moveStage } from "#lib/crm.remote.js";
+import { getWorkspace, moveStage, saveChecklistStep } from "#lib/crm.remote.js";
 
 export type Workspace = Awaited<ReturnType<typeof getWorkspace>>;
 export type StageMove = Parameters<typeof moveStage>[0];
@@ -27,6 +27,30 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 					...snapshot,
 					opportunities: snapshot.opportunities.map((row) =>
 						row.id === input.id ? { ...row, stage: input.stage } : row,
+					),
+				})),
+			);
+		},
+		async saveStep(input: Parameters<typeof saveChecklistStep>[0]) {
+			current();
+			await saveChecklistStep(input).updates(
+				query.withOverride((snapshot) => ({
+					...snapshot,
+					checklists: snapshot.checklists.map((list) =>
+						list.id === input.checklistId
+							? {
+									...list,
+									items: list.items.map((item) =>
+										item.id === input.itemId
+											? {
+													...item,
+													dueDate: input.dueDate,
+													completedAt: input.completed ? new Date().toISOString() : null,
+												}
+											: item,
+									),
+								}
+							: list,
 					),
 				})),
 			);

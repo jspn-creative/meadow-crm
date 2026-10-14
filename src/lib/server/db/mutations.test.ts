@@ -14,6 +14,85 @@ let realtor: ReturnType<typeof createDataService>;
 let assistant: ReturnType<typeof createDataService>;
 const opportunityId = "fictional-opportunity-maple";
 
+test("persisted slice inherits defaults and retains guarded step saves across stage visits", async () => {
+	const clientId = crypto.randomUUID();
+	const id = crypto.randomUUID();
+	await realtor.createClient({
+		requestId: crypto.randomUUID(),
+		id: clientId,
+		name: "Independent slice client",
+	});
+	const creation = {
+		requestId: crypto.randomUUID(),
+		id,
+		clientId,
+		title: "Slice buyer",
+		type: "buyer",
+		stage: "active-lead",
+	};
+	await realtor.createOpportunity(creation);
+	await realtor.createOpportunity(creation);
+	let workspace = await realtor.workspace({ archived: false });
+	expect(workspace.links.filter((link) => link.opportunityId === id)).toEqual([
+		{ opportunityId: id, clientId },
+	]);
+	const list = workspace.checklists.find((row) => row.opportunityId === id)!;
+	expect(list.stage).toBe("active-lead");
+	expect(list.items.length).toBeGreaterThan(0);
+	const item = list.items[0]!;
+	const save = {
+		requestId: crypto.randomUUID(),
+		checklistId: list.id,
+		revision: list.revision,
+		itemId: item.id,
+		itemRevision: item.revision,
+		completed: true,
+		dueDate: "2026-10-20",
+	};
+	await realtor.saveChecklistStep(save);
+	await realtor.saveChecklistStep(save);
+	await expect(
+		realtor.saveChecklistStep({ ...save, requestId: crypto.randomUUID(), dueDate: "2026-10-21" }),
+	).rejects.toBeInstanceOf(DataConflict);
+	await expect(
+		realtor.saveChecklistStep({
+			...save,
+			requestId: crypto.randomUUID(),
+			revision: list.revision + 1,
+			dueDate: "2026-02-30",
+		}),
+	).rejects.toThrow();
+	await realtor.moveStage({
+		requestId: crypto.randomUUID(),
+		id,
+		revision: 1,
+		stage: "under-contract",
+	});
+	await realtor.moveStage({ requestId: crypto.randomUUID(), id, revision: 2, stage: "active-lead" });
+	workspace = await realtor.workspace({ archived: false });
+	expect(workspace.checklists.filter((row) => row.opportunityId === id)).toHaveLength(2);
+	const saved = workspace.checklists.find((row) => row.id === list.id)!;
+	expect(saved.revision).toBe(list.revision + 1);
+	expect(saved.items[0]!.dueDate).toBe("2026-10-20");
+	expect(saved.items[0]!.completedAt).not.toBeNull();
+	expect(
+		await db
+			.prepare(
+				"SELECT count(*) AS n FROM history WHERE record_id = ? AND action = 'save-checklist-step'",
+			)
+			.bind(id)
+			.first("n"),
+	).toBe(1);
+	await expect(
+		realtor.createOpportunity({
+			...creation,
+			requestId: crypto.randomUUID(),
+			id: crypto.randomUUID(),
+			clientId: "missing-client",
+		}),
+	).rejects.toBeInstanceOf(DataConflict);
+});
+
 beforeAll(async () => {
 	proxy = await getPlatformProxy<{ DB: D1Database }>({
 		configPath: "wrangler.jsonc",
