@@ -68,6 +68,9 @@ try {
 	const page = await fetch(origin, { headers });
 	assert.equal(page.status, 200);
 	assert.match(await page.text(), /available only in local development/);
+	const experiment = await fetch(`${origin}/experiments/tanstack`, { headers });
+	assert.equal(experiment.status, 404);
+	assert.doesNotMatch(await experiment.text(), /fictional-opportunity-maple|Maple first home/);
 	console.log(
 		"Production query, command, and form fail closed despite configured or forged demo identities.",
 	);
