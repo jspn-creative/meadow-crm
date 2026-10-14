@@ -1,0 +1,20 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1791939299045,
+			"tag": "0000_wild_iron_monger",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1791939633914,
+			"tag": "0001_checklist_ownership",
+			"breakpoints": true
+		}
+	]
+}

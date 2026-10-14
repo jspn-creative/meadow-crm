@@ -1,5 +1,5 @@
 import tailwindcss from "@tailwindcss/vite";
-import adapter from "@sveltejs/adapter-static";
+import adapter from "@sveltejs/adapter-cloudflare";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
@@ -14,7 +14,7 @@ export default defineConfig({
 				runes: ({ filename }) => (filename.split(/[/\\]/).includes("node_modules") ? undefined : true),
 				experimental: { async: true },
 			},
-			adapter: adapter(),
+			adapter: adapter({ config: "wrangler.jsonc" }),
 			experimental: {
 				remoteFunctions: true,
 				compileModule: { exclude: ["**/.svelte-kit/**"] },

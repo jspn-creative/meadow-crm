@@ -17,27 +17,38 @@
 		"prepare": "vp config --no-agent; svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"test:shell": "playwright test"
+		"test:shell": "playwright test",
+		"test:runtime": "node --experimental-strip-types scripts/runtime-smoke.ts",
+		"test:db": "vp test src/lib/server/db",
+		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
+		"db:migrate": "node --experimental-strip-types scripts/local-db.ts migrate",
+		"db:seed": "node --experimental-strip-types scripts/local-db.ts seed",
+		"db:seed-fictional": "node --experimental-strip-types scripts/local-db.ts seed-fictional",
+		"db:reset-fictional": "node --experimental-strip-types scripts/local-db.ts reset-fictional"
 	},
 	"dependencies": {
-		"@humanspeak/svelte-motion": "^2.0.0"
+		"@humanspeak/svelte-motion": "^2.0.0",
+		"drizzle-orm": "^0.45.4"
 	},
 	"devDependencies": {
-		"@cloudflare/build-output-utils": "^0.9.0",
+		"@cloudflare/workers-types": "^5.20261013.1",
 		"@lucide/svelte": "^1.48.0",
 		"@playwright/test": "^1.64.0",
-		"@sveltejs/adapter-auto": "^8.0.0",
-		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/adapter-cloudflare": "^8.0.0",
 		"@sveltejs/enhanced-img": "^0.11.0",
 		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
+		"@types/node": "^26.6.5",
+		"drizzle-kit": "^0.31.11",
+		"miniflare": "^4.20260730.0",
 		"svelte": "^5.57.1",
 		"svelte-check": "^4.7.5",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.12",
-		"vite-plus": "1.0.0"
+		"vite-plus": "1.0.0",
+		"wrangler": "^4.150.0"
 	},
 	"overrides": {
 		"vite": "npm:@voidzero-dev/vite-plus-core@1.0.0"

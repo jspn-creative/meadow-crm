@@ -17,7 +17,6 @@
 	let ready = $state(false);
 	let mobileScrolled = $state(false);
 	let isLogin = $derived(page.url.pathname === "/login");
-	let isGallery = $derived(page.url.pathname.startsWith("/dashboards"));
 	let current = $derived(destinations.find((destination) => destination.href === page.url.pathname));
 	let title = $derived(current?.label ?? { "/tasks": "Tasks", "/inbox": "Inbox", "/settings": "Settings" }[page.url.pathname as "/tasks" | "/inbox" | "/settings"] ?? "Workspace");
 	let transition: ViewTransition | undefined;
@@ -36,7 +35,7 @@
 	});
 
 	onNavigate((navigation) => {
-		if (isGallery || navigation.to?.url.pathname.startsWith("/dashboards") || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 		transition?.skipTransition();
 		return new Promise<void>((resolve) => {
 			let released = false;
@@ -66,9 +65,7 @@
 	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet" />
 </svelte:head>
 
-{#if isGallery}
-	{@render children()}
-{:else if !dev}
+{#if !dev}
 	<main class="mx-auto max-w-lg p-8">
 		<h1 class="font-display text-3xl">Meadow Lane preview</h1>
 		<p class="text-muted mt-4">This fictional workspace is available only in local development. Real login and shared records are not implemented yet.</p>
