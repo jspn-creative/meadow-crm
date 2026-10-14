@@ -278,6 +278,20 @@
 	}
 }
 
+/* Short desktop viewports shed the rail progressively instead of squashing or scrolling it: the greeting goes first, then the collapse button, while brand, nav, and the account chip stay usable. Thresholds match the measured rail budgets (~471px full, ~366px without the greeting). A viewport query measures the same thing as a height container query here because the desktop rail is exactly viewport-height. */
+.workspace {
+	.rail-greeting {
+		@media (min-width: 64rem) and (max-height: 29.4375rem) {
+			display: none;
+		}
+	}
+	.rail-collapse {
+		@media (min-width: 64rem) and (max-height: 22.875rem) {
+			display: none;
+		}
+	}
+}
+
 .user-chip {
 	@apply relative;
 	.account-menu {

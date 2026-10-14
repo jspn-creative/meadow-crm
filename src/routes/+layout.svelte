@@ -78,7 +78,7 @@
 	<div class="workspace" data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed}>
 		<Motif />
 		<aside class="rail" aria-label={isLogin ? "Meadow Lane" : "Workspace navigation"}>
-			<div class="flex items-center justify-between gap-2">
+			<div class="flex shrink-0 items-center justify-between gap-2">
 				<a href="/" aria-label="Meadow Lane dashboard" class="flex min-h-11 min-w-0 items-center gap-2.5 whitespace-nowrap">
 					<span class="bg-ink size-5 shrink-0 rounded-md" aria-hidden="true"></span>
 					<span class="brand-label font-display truncate text-base tracking-tight">Meadow Lane</span>
@@ -96,11 +96,14 @@
 				</div>
 			{:else}
 				<MotionConfig reducedMotion="user" skipAnimations={reducedMotion.current}>
-					<motion.div initial={false} animate={{ height: greetingHidden ? 0 : "auto", opacity: greetingHidden ? 0 : 1 }} transition={{ type: "tween", duration: 0.36, ease: [0.23, 1, 0.32, 1] }} class="overflow-hidden" inert={greetingHidden}>
+					<motion.div initial={false} animate={{ height: greetingHidden ? 0 : "auto", opacity: greetingHidden ? 0 : 1 }} transition={{ type: "tween", duration: 0.36, ease: [0.23, 1, 0.32, 1] }} class="rail-greeting shrink-0 overflow-hidden" inert={greetingHidden}>
 						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight text-balance sm:mt-8 sm:text-3xl/[1.08] lg:mt-10 lg:w-52">Good morning,<br class="hidden lg:block" /> Meadow Lane.</p>
 					</motion.div>
 				</MotionConfig>
-				<nav id="workspace-nav" aria-label="Sections" class={["-mx-6 flex gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0", !desktop.current && mobileScrolled ? "mt-2 sm:mt-4" : "mt-4 sm:mt-8"]}>
+				<nav
+					id="workspace-nav"
+					aria-label="Sections"
+					class={["-mx-6 flex shrink-0 gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0", !desktop.current && mobileScrolled ? "mt-2 sm:mt-4" : "mt-4 sm:mt-8"]}>
 					{#each destinations as destination (destination.href)}
 						<a
 							href={destination.href}
@@ -113,8 +116,8 @@
 						</a>
 					{/each}
 				</nav>
-				<div class="mt-auto hidden pt-8 lg:block">
-					<button type="button" class="control w-full" data-icon={collapsed || undefined} disabled={!ready} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="workspace-nav" onclick={() => (collapsed = !collapsed)}>
+				<div class="mt-auto hidden shrink-0 pt-8 lg:block">
+					<button type="button" class="control rail-collapse w-full" data-icon={collapsed || undefined} disabled={!ready} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="workspace-nav" onclick={() => (collapsed = !collapsed)}>
 						{#if collapsed}<PanelLeftOpen size={18} aria-hidden="true" />{:else}<PanelLeftClose size={18} aria-hidden="true" /><span>Collapse sidebar</span>{/if}
 					</button>
 					<div class="mt-4"><UserChip /></div>
