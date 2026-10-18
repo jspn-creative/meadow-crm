@@ -3,7 +3,7 @@
 
 ## Implementation scope
 
-The approved `build-core-crm-mvp` change moves implementation into the Svelte app. Follow its tasks and acceptance criteria when applying that change; do not limit product implementation to [static/example.html](static/example.html). Static HTML files remain visual references and should stay unchanged unless explicitly requested. Remove gallery-only routes/modules/links during the planned runtime task, not the static references themselves.
+Build from [docs/BACKLOG.md](docs/BACKLOG.md), one item at a time, against [docs/SPEC.md](docs/SPEC.md). The `openspec/` folder is superseded and kept only as history; do not follow its tasks or treat its decisions as current. Static HTML files in `static/` are visual references and stay unchanged unless explicitly requested.
 
 ## Git
 
@@ -39,11 +39,11 @@ Load only the applicable command playbook and references required by the active 
 
 Cloudflare work goes through `cf`, Cloudflare's CLI, which is installed globally (currently v1.0.0-beta.5). It covers the entire Cloudflare API — 3,000+ operations across Workers, D1, R2, KV, DNS, Access, Tunnels, and the rest. Use it instead of `wrangler`; Wrangler is in maintenance-only support and Cloudflare is steering agents to `cf`.
 
-**This app targets Cloudflare.** The prototype currently uses `@sveltejs/adapter-static`; the working product targets `@sveltejs/adapter-cloudflare`. Use `cf` for Cloudflare provisioning, bindings, deployment, and inspection, and verify the actual adapter/config path before deploying.
+**This app targets Cloudflare.** It uses `@sveltejs/adapter-cloudflare`. Use `cf` for Cloudflare provisioning, bindings, deployment, and inspection, and verify the actual adapter/config path before deploying.
 
 What `cf` must not do is silently take over the build. `vp` owns dev, build, and check, and `cf` is Vite-based, so a plain `cf deploy` would build through its own pipeline and pull in the Cloudflare Vite plugin, fighting `vp` and the `vite-plus-core` pin in `package.json` `overrides`. Avoid `cf init`, `cf migrate`, and `cf dev` for the same reason — they restructure project config, and the adapter stays wired in `vite.config.ts`. For a separately approved deployment, verify the prebuilt output/config path before using `cf deploy --prebuilt`; do not make a `cf` config migration a prerequisite for local MVP implementation.
 
-The `build-core-crm-mvp` change covers local implementation and acceptance only. Use the Cloudflare adapter's required Wrangler configuration for its local D1 runtime; this config dependency does not authorize switching deployment tooling to the Wrangler CLI. Do not introduce `cloudflare.config.ts`, a competing config, provisioning, deployment, live migrations, or git integration as part of this change. The operational guidance below applies only to separately requested Cloudflare work.
+The backlog covers local implementation only. Use the Cloudflare adapter's required Wrangler configuration for its local D1 runtime; this config dependency does not authorize switching deployment tooling to the Wrangler CLI. Do not introduce `cloudflare.config.ts`, a competing config, provisioning, deployment, live migrations, or git integration as part of backlog work. The operational guidance below applies only to separately requested Cloudflare work.
 
 **Deployment sequence: manual first, git integration second.** The first deploy is done by hand via `cf`, and git integration is attached to the already-deployed site afterwards. This is deliberate — a pipeline that builds on every push surfaces requirements as a run of failed builds, and the first several almost always fail while bindings, routes, and compatibility dates get settled. A manual deploy surfaces the same requirements immediately, with the error in front of you. Do not propose wiring up git integration as the first step, and do not treat early deploy failures as a reason to reach for CI.
 
@@ -78,16 +78,122 @@ Use named Tailwind container queries for content layouts that depend on the spac
 
 ## Documentation
 
-Product requirements live under `docs/`; `PRODUCT.md` is a short design-context summary, and OpenSpec changes hold implementation plans and acceptance criteria. Read before building:
+Product requirements live under `docs/`; `PRODUCT.md` is a short design-context summary. Read before building:
 
 - `docs/SPEC.md`: what the MVP is, the record model, the pipeline, modules, settings, out of scope, settled decisions, and open questions. The primary document.
-- `docs/CONTEXT.md`: the glossary. Use its terms for domain concepts; it defines `Client`, `Opportunity`, `Stage`, `Timeline`, `Tag`, `Archive`, and the rest.
+- `docs/BACKLOG.md`: what to build next, one item per session, and which work waits on an open question.
 - `docs/checklists.md`: the 16 default checklist templates (4 opportunity types × 4 stages).
 - `docs/research/`: research briefs for later milestones, currently the phone module.
 - `docs/examples/`: visual inspiration screenshots, not requirements.
 
-If the work contradicts `docs/SPEC.md`, say so before implementing it. If it contradicts `docs/CONTEXT.md`, fix the glossary first.
+If the work contradicts `docs/SPEC.md`, say so before implementing it. If it contradicts the [Vocabulary](#vocabulary) below, fix the vocabulary first.
 
-## Domain vocabulary
+## Decisions and assumptions
 
-`docs/CONTEXT.md` is the glossary and the single source of the project's business language. When naming or proposing a new domain concept, follow its terminology guidance.
+`docs/SPEC.md` holds the product decisions the user has made. Anything it does not settle is still open, even when a plan, prototype, example screen, or earlier agent output implies an answer. When work depends on an open product or behavior decision, ask the user before building it rather than choosing an answer.
+
+Ask one decision per question, and keep each option's description to that decision; never bundle further choices into a recommended option's fine print. Do not present a recommendation as a decision, and record a decision in `docs/SPEC.md` only after the user confirms it explicitly.
+
+For small implementation choices that do not change what users see or how the product behaves, pick a sensible default and keep going, then list every such choice under an **Assumptions** heading in the final reply so the user can catch preference mismatches early.
+
+## Vocabulary
+
+This is the project's single source of business language. Use these terms exactly in code, docs, UI copy, plans, and conversation. Each concept has one name: never substitute a word from the **Not** column, even for variety. If a concept has no entry, propose one to the user before naming it in code or docs. If the user uses a term in a way that does not match its definition, ask which meaning they intend instead of assuming. If code or docs disagree with this vocabulary, the vocabulary wins until the user changes it. Entries marked *Open* are not settled; do not resolve them silently.
+
+The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also feeds the in-app Glossary view. Edit that file, never the tables, then run `vp run vocabulary`; `vp test src/lib/glossary` fails while they are out of sync. **Belongs to** shows where a term sits in the hierarchy.
+
+<!-- vocabulary:start -->
+
+### Kinds
+
+| Kind | Meaning |
+| --- | --- |
+| Concept | An idea or rule that shapes the product; it is not stored or shown on its own. |
+| Role | A kind of person who uses or supports the workspace. |
+| Module | A main area of the app with its own sidebar item. |
+| View | Something you navigate to that shows records or tools. |
+| Widget | A self-contained block on a dashboard. |
+| Record | Something the business stores that opens in its own detail view. |
+| Field | A piece of information kept on a record. |
+| Value | One of the allowed values of a field, or a part of one. |
+| Status | A condition something can be in, such as overdue. |
+| Action | Something a person does to a record. |
+
+### Business
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Business | Concept |  | Meadow Lane Realty & Development: one realtor and one assistant sharing all data. | company, organization, tenant, account |
+| User | Role | Business | A person with their own login. The realtor and the assistant are the two business users, and both can see and change every record. | member, seat |
+| Realtor | Role | User | The business owner, and the person whose task list tasks land on. | agent (in this repo, an agent is an AI coding agent) |
+| Assistant | Role | User | Keeps records organized and creates tasks for the realtor, often by promoting checklist items. | admin |
+| Support admin | Role | Business | The developer's own account. It signs in and impersonates either business user to give support, and has no CRM role of its own. | admin user, superuser, owner |
+| Impersonate | Action | Support admin | Act as a business user from the support admin account. History records both who acted and who they acted as. | log in as, switch user, sudo |
+
+### Product structure
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Module | Concept |  | A feature with its own sidebar item. A module owns one or more views. The modules are Dashboard, Pipeline, and Registry. *Open:* Whether a module can be switched off. | section, area, app |
+| View | Concept |  | Something a user navigates to that shows records or tools. Most views belong to a module, and a module can have several. A few views belong to no module, such as Settings and the Glossary. | page, screen |
+| Integration | Concept |  | A connection to an outside service, such as Google Calendar, with its own authorization and configuration. It builds on an existing module rather than becoming one. Calendar integration is deferred. | plugin, connector, sync |
+| Settings | View |  | Configuration, opened from the account menu. Working assumption: panels for User preferences, Business settings, and one per module. *Open:* How Settings is organized. | preferences (as the view's name), admin, config |
+| Glossary | View |  | This vocabulary as a searchable, expandable table, opened from the account menu. *Open:* Whether it grows into a help view with tips and FAQs. | reference page (a reference is a link on a record) |
+
+### Record
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Record | Concept |  | Something the business stores that opens in its own detail view to be read or edited: a client from the Registry, an opportunity from its Pipeline card, a task from Today's Tasks. A record's detail view has a references section and a history section. | entry, object |
+| Reference | Field | Record | A link in a record's references section. Its kind sets how it looks: a linked record shown by that record's own name, such as a task's opportunity; a web link, such as a Zillow listing; or an uploaded file, such as a signed contract. Web links and files can be given a friendly name; linked records cannot. Uploads and related records do not get sections of their own; they are references. A promoted task's reference points to its opportunity, and its chip can also show the checklist item. | attachment, dependency, related record |
+| History | Field | Record | The saved list of changes to a record: what changed, when, by whom, and as whom when impersonating. Shown in the record's detail view. | audit log, changelog |
+| Archive | Action | Record | Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. | delete, remove, close |
+| Delete | Action | Record | Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly. *Open:* Which records can be deleted, and how. Some delete options will exist in the MVP. | archive |
+
+### Dashboard
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Dashboard | Module |  | The landing module. For now there are two fixed versions: one for the realtor and one for the assistant. *Open:* Letting users customize their own dashboards later. | home, overview |
+| Widget | Concept | Dashboard | A self-contained block on a dashboard, built on `DashboardCard`. | panel, tile |
+| Today's Tasks | Widget | Widget | On the realtor's dashboard: incomplete tasks whose date has arrived. An unfinished task rolls over to the next day until it is completed. |  |
+| Inbox | Widget | Widget | On the assistant's dashboard: things the assistant should do or check, each linking to its source record. It replaces the earlier idea of a review queue. *Open:* What it lists; overdue tasks are a likely start. | review queue, queue, notifications, messages, attention |
+
+### Pipeline
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Pipeline | Module |  | The module whose single board moves every opportunity through the stages, whatever its type. | funnel, workflow, kanban (as a name) |
+| Opportunity | Record | Pipeline | A prospective engagement, usually with one or more clients; the unit the pipeline tracks. A client is not required. | deal, lead, listing, job, project, transaction |
+| Opportunity type | Field | Opportunity | Exactly four, with no "other": Buyer (the client is buying a home), Seller (the client is selling a home), Estate Sale (a referral to the partner company that runs the sale), Construction (work the realtor takes on personally as a side line). Fixed for now but implemented so another type can be added later without a redesign. Changing an opportunity's type is treated as a correction and replaces its checklists with the new type's templates. | category, kind, deal type |
+| Stage | Field | Opportunity | A fixed position in the pipeline, in order: New lead (an inquiry not yet worked in depth), Active lead (committed and underway: qualifying, searching, showing, negotiating), Under contract (a signed agreement in force, through due diligence and closing), Closed (the engagement completed). | status, column, phase, step |
+| Lead | Value | Stage | Appears only inside the stage names New lead and Active lead. Never call a client or an opportunity "a lead". |  |
+| Timeline | Field | Opportunity | The client's stated horizon: 1-3 mo, 3-6 mo, or 6+ mo. Optional; used to prioritize, filter, and sort, never to gate or judge. | urgency, priority, deadline, temperature |
+| Checklist | Field | Opportunity | An opportunity's checklist items for one stage. Each stage keeps its own checklist, so returning to a stage shows it as it was left. A checklist starts from its checklist template and keeps following it: template changes reach every opportunity, except items that were added, renamed, removed, or reordered on that opportunity, which keep their local version. *Open:* What happens to tasks promoted from items that a type change replaces. | to-do list, task list |
+| Checklist item | Value | Checklist | One line of a checklist. It can be checked off, and giving it a date or a due date promotes it to a task. | step, to-do |
+| Promote | Action | Checklist item | Turn a checklist item into a task on the realtor's task list by giving it a date or a due date. Behind the scenes this creates a task linked to the item. The two share one title, and completing, reopening, or deleting either one does the same to the other. When the opportunity moves to another stage, each open task promoted from the current stage's checklist can be completed, deleted, or ignored. *Open:* Keeping the task and item titles in sync is a working assumption. | convert, escalate |
+| Checklist template | Concept | Opportunity | The checklist for one opportunity type at one stage, 16 in all, edited in Settings. Editing a template changes the default checklists of every opportunity at that type and stage. | preset |
+
+### Registry
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Registry | Module |  | The module listing every client. "Client registry" is fine where it reads more clearly. *Open:* The name may change. | client list, contacts, directory |
+| Client | Record | Registry | A person the business has a relationship with. A client exists on its own and can take part in several opportunities. | contact, customer, lead, prospect |
+| Lead source | Field | Client | Where a client came from: a referral, an open house, a sign, the website, a walk-in. | source tag, channel |
+| Tag | Field | Client | A relationship label on a client. An opportunity shows the combined tags of its clients, read-only. | label, category |
+| Sphere | Value | Tag | In the realtor's sphere of influence: past clients, friends and family, and their wider network. |  |
+| Nurture | Value | Tag | Worth staying in touch with, but not looking to transact now. *Open:* The follow-up behavior built on it, which belongs in the MVP but is not specified yet. |  |
+| Referral | Value | Tag | The client was referred to the business. It says how the relationship started, not that the client refers others. |  |
+| Retired tag | Status | Tag | A tag that can no longer be applied but stays on existing clients until removed. | archived tag, deleted tag |
+
+### Task
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| Task | Record |  | Work on the realtor's task list. Usually created by the assistant, directly or by promoting a checklist item; the realtor can create tasks too. A task can carry a time, a location, and a repeat, so scheduled things such as showings are tasks. | to-do, reminder, action item, event, appointment |
+| Date | Field | Task | When the task starts appearing on the task list. If it is not completed, it rolls over to the next day. |  |
+| Due date | Field | Task | The deadline. A task not completed by its due date becomes overdue. | deadline |
+| Overdue | Status | Task | A task that is not completed and whose due date is before today in the business's timezone; a promoted checklist item shares its task's status. It is a problem for the realtor who missed it and for the assistant who may need to fix it. | late, urgent, attention |
+
+<!-- vocabulary:end -->

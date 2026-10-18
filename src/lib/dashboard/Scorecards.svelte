@@ -6,7 +6,7 @@
 	const colors = ["info", "pending", "tour", "success"] as const;
 </script>
 
-<section data-widget style:--widget-order={0} aria-label="Pipeline summary" class="grid grid-cols-2 gap-(--card-gap) @min-[38rem]/dashboard:grid-cols-4 @min-[52rem]/dashboard:gap-(--card-pad)">
+<section data-widget style:--widget-order={0} aria-label="Pipeline summary" class="grid grid-cols-2 gap-5 @min-[38rem]/dashboard:grid-cols-4">
 	{#each Object.entries(stageLabels) as [stage, label], index (stage)}
 		{@const count = workspace.opportunities.filter((opportunity) => opportunity.stage === stage).length}
 		<Scorecard {label} value={count} detail={`${count} ${count === 1 ? "opportunity" : "opportunities"}`} color={colors[index]} />

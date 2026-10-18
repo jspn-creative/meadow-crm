@@ -1,5 +1,7 @@
 # Proposal
 
+> **Superseded.** Kept as history only; see [docs/SPEC.md](../../../docs/SPEC.md) and [docs/BACKLOG.md](../../../docs/BACKLOG.md). Do not follow this file.
+
 ## Why
 
 Meadow has an approved visual starting point but no working CRM. Build an interactive, motion-rich workspace early so the user can evaluate real workflows with fictional development data before authentication and operational concerns consume the timeline.

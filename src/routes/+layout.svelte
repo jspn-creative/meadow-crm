@@ -8,6 +8,7 @@
 	import { destinations } from "#lib/shell/navigation.js";
 	import Motif from "#lib/shell/Motif.svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
+	import VariantHost from "#lib/dev/VariantHost.svelte";
 	import { motion, MotionConfig } from "@humanspeak/svelte-motion";
 	import { MediaQuery } from "svelte/reactivity";
 	import { onMount } from "svelte";
@@ -18,7 +19,7 @@
 	let mobileScrolled = $state(false);
 	let isLogin = $derived(page.url.pathname === "/login");
 	let current = $derived(destinations.find((destination) => destination.href === page.url.pathname));
-	let title = $derived(current?.label ?? { "/tasks": "Tasks", "/inbox": "Inbox", "/settings": "Settings" }[page.url.pathname as "/tasks" | "/inbox" | "/settings"] ?? "Workspace");
+	let title = $derived(current?.label ?? { "/tasks": "Tasks", "/inbox": "Inbox", "/settings": "Settings", "/glossary": "Glossary" }[page.url.pathname as "/tasks" | "/inbox" | "/settings" | "/glossary"] ?? "Workspace");
 	let transition: ViewTransition | undefined;
 	const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 	const desktop = new MediaQuery("(min-width: 64rem)");
@@ -142,3 +143,4 @@
 		</main>
 	</div>
 {/if}
+<VariantHost />

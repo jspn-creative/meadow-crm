@@ -9,7 +9,7 @@ export default defineConfig({
 		tailwindcss(),
 		enhancedImages(),
 		sveltekit({
-			inspector: { showToggleButton: "always", toggleKeyCombo: "alt-s" },
+			inspector: { toggleKeyCombo: "alt-s" },
 			compilerOptions: {
 				runes: ({ filename }) => (filename.split(/[/\\]/).includes("node_modules") ? undefined : true),
 				experimental: { async: true },

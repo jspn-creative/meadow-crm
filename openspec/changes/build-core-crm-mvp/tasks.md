@@ -1,5 +1,7 @@
 # Tasks
 
+> **Superseded.** Kept as history only; see [docs/SPEC.md](../../../docs/SPEC.md) and [docs/BACKLOG.md](../../../docs/BACKLOG.md). Do not follow this file.
+
 Implement in order, with visual/interactive delivery before real authentication. Quiet Cream is the signed-off visual starting point, not a feature list. Development uses explicitly fictional data and guarded local identity until group 8; no real client information or public hosting before authentication. Deployment/provisioning is outside this change. Contracts are in `specs/`, approach in `design.md`.
 
 ## 1. Animated shell, demo login, and only the primitives needed now

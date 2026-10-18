@@ -126,7 +126,7 @@ A distinctly digital workspace: softly rounded content surfaces float over a con
 
 The visual source is [Quiet Cream](static/dashboards/04-quiet-cream.html), interpreted with the user's confirmed direction: use DM Sans instead of Inter, keep the digital shell composition, and make the Commission Split widget's brighter pastels available as an alternative to its muted accents. The existing beige/yellow background is provisional, not an immutable brand color. Frontmatter captures reference values for reproducibility; it does not settle the future background hue.
 
-This documents visual language, not dashboard requirements. [PRODUCT.md](PRODUCT.md), [docs/SPEC.md](docs/SPEC.md), and [docs/CONTEXT.md](docs/CONTEXT.md) remain authoritative for product scope and vocabulary. The source HTML is unchanged and still uses Inter; this document specifies DM Sans for subsequent implementation, including charts.
+This documents visual language, not dashboard requirements. [PRODUCT.md](PRODUCT.md), [docs/SPEC.md](docs/SPEC.md), and the Vocabulary section of [AGENTS.md](AGENTS.md#vocabulary) remain authoritative for product scope and vocabulary. The source HTML is unchanged and still uses Inter; this document specifies DM Sans for subsequent implementation, including charts.
 
 **Key Characteristics:**
 - Floating main surface with rounded left corners and a background-integrated navigation rail.

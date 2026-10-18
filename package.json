@@ -20,7 +20,7 @@
 		"test:shell": "playwright test",
 		"test:runtime": "node --experimental-strip-types scripts/runtime-smoke.ts",
 		"test:auth": "node --experimental-strip-types scripts/auth-smoke.ts",
-		"test:tanstack": "playwright test tests/tanstack-experiment.spec.ts",
+		"vocabulary": "node --experimental-strip-types scripts/vocabulary.ts",
 		"test:production": "node --experimental-strip-types scripts/production-smoke.ts",
 		"test:db": "vp test src/lib/server/db",
 		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
@@ -31,6 +31,7 @@
 	},
 	"dependencies": {
 		"@humanspeak/svelte-motion": "^2.0.0",
+		"@tanstack/svelte-table": "^9.3.1",
 		"drizzle-orm": "^0.45.4",
 		"valibot": "^1.5.0"
 	},
@@ -44,7 +45,6 @@
 		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
-		"@tanstack/svelte-db": "^0.5.9",
 		"@types/node": "^26.6.5",
 		"better-auth": "^1.7.7",
 		"devalue": "^6.0.3",

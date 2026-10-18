@@ -8,11 +8,11 @@ Web; desktop and mobile browsers, not a native app.
 
 ## Users
 
-One realtor and one assistant at Meadow Lane Realty & Development, with equal access to shared records, plus a separately provisioned support admin acting through either business identity. The assistant keeps work organized and assigns tasks to the realtor. Both business users use one dashboard in the initial MVP.
+One realtor and one assistant at Meadow Lane Realty & Development, with equal access to shared records, plus a separately provisioned support admin acting through either business identity. The assistant keeps work organized and assigns tasks to the realtor. The realtor and the assistant each have their own dashboard.
 
 ## Product Purpose
 
-Replace scattered client and engagement tracking with a working shared CRM. [docs/SPEC.md](docs/SPEC.md) is the sole product brief; [docs/CONTEXT.md](docs/CONTEXT.md) owns domain vocabulary. Do not duplicate requirements here.
+Replace scattered client and engagement tracking with a working shared CRM. [docs/SPEC.md](docs/SPEC.md) is the sole product brief; the Vocabulary section of [AGENTS.md](AGENTS.md#vocabulary) owns domain vocabulary. Do not duplicate requirements here.
 
 ## Positioning
 
@@ -24,7 +24,7 @@ The realtor works away from a desk; shipped workflows must work on phones. The b
 
 ## Capabilities and Constraints
 
-Use the MVP boundaries in [docs/SPEC.md](docs/SPEC.md). OpenSpec changes define proposed implementation and acceptance criteria. Calendar, Phone, automated reminders, and reporting are not inferred from examples.
+Use the MVP boundaries in [docs/SPEC.md](docs/SPEC.md). [docs/BACKLOG.md](docs/BACKLOG.md) lists what to build next. Calendar, Phone, automated reminders, and reporting are not inferred from examples.
 
 ## Brand Commitments
 

@@ -2,7 +2,7 @@
 	import { page } from "$app/state";
 	import { afterNavigate } from "$app/navigation";
 	import { onMount } from "svelte";
-	import { LogIn, Settings2 } from "@lucide/svelte";
+	import { BookOpen, LogIn, Settings2 } from "@lucide/svelte";
 	let { compact = false }: { compact?: boolean } = $props();
 	let open = $state(false);
 	let ready = $state(false);
@@ -30,6 +30,7 @@
 	</button>
 	<div class="account-menu border-hairline shadow-panel rounded-xl border bg-white p-2">
 		<a href="/settings" class="text-muted hover:bg-paper hover:text-ink flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors"><Settings2 size={16} aria-hidden="true" />Settings</a>
+		<a href="/glossary" class="text-muted hover:bg-paper hover:text-ink flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors"><BookOpen size={16} aria-hidden="true" />Glossary</a>
 		<a href={`/login?next=${encodeURIComponent(page.url.pathname)}`} class="text-muted hover:bg-paper hover:text-ink flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors"><LogIn size={16} aria-hidden="true" />Demo login</a>
 	</div>
 </div>

@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
  This is a small, one-off CRM for a U.S. business using USD. Favor straightforward implementations and focused checks proportionate to two business users; avoid speculative SaaS infrastructure or process overhead.
- Read docs/SPEC.md for product scope, docs/CONTEXT.md for domain vocabulary, and docs/checklists.md when planning checklist behavior. Keep product documentation there rather than duplicating it in every artifact.
+ Read docs/SPEC.md for product scope, the Vocabulary section of AGENTS.md for domain vocabulary, and docs/checklists.md when planning checklist behavior. Keep product documentation there rather than duplicating it in every artifact.
  Visual references establish visual direction only; their widgets, sample data, and interactions do not authorize features. Distinguish approved decisions, recommendations, and unresolved questions.
  When an approved change supersedes documented behavior, identify the conflict explicitly and schedule reconciliation before implementing the affected behavior; never infer approval from a contradictory artifact alone.
 

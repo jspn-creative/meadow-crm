@@ -17,6 +17,11 @@
 		ready = true;
 	});
 	const stages = ["New lead", "Active lead", "Under contract", "Closed"];
+	const tags = [
+		{ name: "sphere", description: "People in your wider network.", color: "info" },
+		{ name: "nurture", description: "Relationships worth staying in touch with.", color: "tour" },
+		{ name: "referral", description: "Clients referred to the business.", color: "pending" },
+	];
 </script>
 
 <svelte:head><title>Settings · Meadow Lane</title></svelte:head>
@@ -99,11 +104,10 @@
 				</div>
 			</div>
 			<ul class="divide-hairline mt-8 divide-y">
-				{#each [{ name: "sphere", description: "People in your wider network.", color: "info" }, { name: "nurture", description: "Relationships worth staying in touch with.", color: "tour" }, { name: "referral", description: "Clients referred to the business.", color: "pending" }] as tag (tag.name)}<li
-						class="flex items-center justify-between gap-4 py-5">
-						<div>
-							<span class="inline-block rounded-md px-2.5 py-1 text-xs font-medium" style:background-color={`var(--color-${tag.color}-soft)`} style:color={`var(--color-${tag.color})`}>{tag.name}</span>
-							<p class="text-muted mt-2 text-sm">{tag.description}</p>
+				{#each tags as tag (tag.name)}<li class="flex items-center justify-between gap-3 py-3">
+						<div class="flex min-w-0 items-center gap-3">
+							<span class="inline-block shrink-0 rounded-md px-2.5 py-1 text-xs font-medium" style:background-color={`var(--color-${tag.color}-soft)`} style:color={`var(--color-${tag.color})`}>{tag.name}</span>
+							<p class="text-muted min-w-0 truncate text-sm">{tag.description}</p>
 						</div>
 						<button type="button" class="control" disabled aria-label={`Manage ${tag.name} tag`}>Manage</button>
 					</li>{/each}
