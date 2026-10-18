@@ -2,9 +2,11 @@ import { command, form, getRequestEvent, query, requested } from "$app/server";
 import { error } from "@sveltejs/kit";
 import { DataConflict } from "#lib/server/data.js";
 import {
+	archiveOpportunityInput,
 	createClientInput,
 	createOpportunityInput,
 	createOpportunityFormInput,
+	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
 	saveOpportunityInput,
@@ -62,4 +64,14 @@ export const moveStage = command(moveStageInput, (input) => {
 export const saveOpportunity = command(saveOpportunityInput, (input) => {
 	const data = services();
 	return save(() => data.saveOpportunity(input));
+});
+
+export const archiveOpportunity = command(archiveOpportunityInput, (input) => {
+	const data = services();
+	return save(() => data.archiveOpportunity(input));
+});
+
+export const restoreOpportunity = command(restoreOpportunityInput, (input) => {
+	const data = services();
+	return save(() => data.restoreOpportunity(input));
 });

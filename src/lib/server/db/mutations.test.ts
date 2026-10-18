@@ -311,6 +311,82 @@ test("an opportunity can be created and saved with no clients", async () => {
 	expect(workspace.links.filter((link) => link.opportunityId === id)).toEqual([]);
 });
 
+test("archiving an opportunity hides it from the board and restoring brings it back, with archive and restore history", async () => {
+	const clientId = crypto.randomUUID();
+	const id = crypto.randomUUID();
+	await realtor.createClient({
+		requestId: crypto.randomUUID(),
+		id: clientId,
+		name: "Archive client",
+	});
+	await realtor.createOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		clientId,
+		title: "Fictional archivable listing",
+		type: "seller",
+		stage: "active-lead",
+	});
+	let workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.some((row) => row.id === id)).toBe(true);
+	const row = workspace.opportunities.find((row) => row.id === id)!;
+	const revision = row.revision;
+
+	await realtor.archiveOpportunity({ requestId: crypto.randomUUID(), id, revision });
+	workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.some((row) => row.id === id)).toBe(false);
+	workspace = await realtor.workspace({ archived: true });
+	expect(workspace.opportunities.some((row) => row.id === id)).toBe(true);
+	const archived = workspace.opportunities.find((row) => row.id === id)!;
+	expect(archived.archivedAt).not.toBeNull();
+	expect(archived.revision).toBe(revision + 1);
+	expect(
+		workspace.history.filter((row) => row.recordId === id && row.action === "archive"),
+	).toMatchObject([{ actorUserId: "business-realtor", effectiveUserId: "business-realtor" }]);
+
+	// A stale revision or an already-archived opportunity cannot be archived again.
+	await expect(
+		realtor.archiveOpportunity({ requestId: crypto.randomUUID(), id, revision }),
+	).rejects.toBeInstanceOf(DataConflict);
+
+	await realtor.restoreOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		revision: archived.revision,
+	});
+	const activeWorkspace = await realtor.workspace({ archived: false });
+	expect(activeWorkspace.opportunities.some((row) => row.id === id)).toBe(true);
+	const archivedAgain = await realtor.workspace({ archived: true });
+	expect(archivedAgain.opportunities.some((row) => row.id === id)).toBe(false);
+	const restored = activeWorkspace.opportunities.find((row) => row.id === id)!;
+	expect(restored.archivedAt).toBeNull();
+	expect(restored.revision).toBe(archived.revision + 1);
+	expect(
+		activeWorkspace.history.filter((row) => row.recordId === id && row.action === "restore"),
+	).toMatchObject([{ actorUserId: "business-realtor", effectiveUserId: "business-realtor" }]);
+
+	// Remove the fixture this test added so it cannot affect later tests in this file.
+	await db.prepare("DELETE FROM history WHERE record_id = ?").bind(id).run();
+	await db
+		.prepare(
+			"DELETE FROM checklist_progress WHERE checklist_id IN (SELECT id FROM stage_checklists WHERE opportunity_id = ?)",
+		)
+		.bind(id)
+		.run();
+	await db
+		.prepare(
+			"DELETE FROM checklist_items WHERE checklist_id IN (SELECT id FROM stage_checklists WHERE opportunity_id = ?)",
+		)
+		.bind(id)
+		.run();
+	await db.prepare("DELETE FROM stage_checklists WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM record_references WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM tasks WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM opportunity_clients WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM opportunities WHERE id = ?").bind(id).run();
+	await db.prepare("DELETE FROM clients WHERE id = ?").bind(clientId).run();
+});
+
 beforeAll(async () => {
 	proxy = await getPlatformProxy<{ DB: D1Database }>({
 		configPath: "wrangler.jsonc",

@@ -109,14 +109,33 @@
 			pending = false;
 		}
 	}
+
+	async function archive(opportunity: (typeof visible)[number]) {
+		pending = true;
+		failure = "";
+		status = "Archiving opportunity…";
+		try {
+			await data.archive({ requestId: crypto.randomUUID(), id: opportunity.id, revision: opportunity.revision });
+			if (selected && opportunity.id === selected.id) selectedId = "";
+			status = "Opportunity archived.";
+		} catch {
+			failure = "Opportunity could not be archived or has changed. Refresh before retrying.";
+			status = "";
+		} finally {
+			pending = false;
+		}
+	}
 </script>
 
 <svelte:head><title>Pipeline · Meadow Lane</title></svelte:head>
 
 <div class="surface-content @container/board">
+	<p role="status" aria-live="polite" class="text-muted mb-3 text-xs">{status}</p>
+	{#if failure}<p role="alert" class="text-urgent mb-3 text-xs">{failure}</p>{/if}
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<p class="text-muted max-w-lg">Four stages, one shared board.</p>
 		<button type="button" class="control" onclick={newOpportunity} disabled={!ready}>New opportunity</button>
+		<a class="control" href="/pipeline/archived">View archived opportunities</a>
 	</div>
 	<div class="mb-4 flex flex-wrap items-center gap-3">
 		<label class="flex shrink-0 items-center gap-1.5"
@@ -163,10 +182,11 @@
 										.filter(Boolean)
 										.join(", ")}</span>
 							</button>
-							<div class="flex items-center gap-2">
+							<div class="flex flex-wrap items-center gap-2">
 								<label for={`card-stage-${opportunity.id}`} class="text-muted shrink-0 text-xs">Move to stage</label>
 								<select id={`card-stage-${opportunity.id}`} class="field" value={opportunity.stage} disabled={pending} onchange={(event) => moveCard(opportunity, event.currentTarget.value as keyof typeof stageLabels)}
 									>{#each stages as stage (stage)}<option value={stage}>{stageLabels[stage]}</option>{/each}</select>
+								<button type="button" class="control" disabled={!ready || pending} onclick={() => archive(opportunity)}>Archive</button>
 							</div>
 						</div>
 					{:else}<p class="text-muted py-4 text-xs">No opportunities in this stage.</p>{/each}
@@ -252,6 +272,7 @@
 									editing = true;
 								}
 							}}>Edit opportunity</button>
+						<button type="button" class="control" disabled={!ready || pending} onclick={() => selected && archive(selected)}>Archive opportunity</button>
 						{#if drafts[selected.id]}<p class="text-muted text-xs">An unsaved editing draft is retained.</p>
 							<button
 								type="button"

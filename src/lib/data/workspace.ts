@@ -1,7 +1,15 @@
-import { getWorkspace, moveStage, saveChecklistStep } from "#lib/crm.remote.js";
+import {
+	getWorkspace,
+	archiveOpportunity,
+	moveStage,
+	restoreOpportunity,
+	saveChecklistStep,
+} from "#lib/crm.remote.js";
 
 export type Workspace = Awaited<ReturnType<typeof getWorkspace>>;
 export type StageMove = Parameters<typeof moveStage>[0];
+export type ArchiveOpportunity = Parameters<typeof archiveOpportunity>[0];
+export type RestoreOpportunity = Parameters<typeof restoreOpportunity>[0];
 
 export function identityKey(identity: Workspace["identity"]) {
 	return JSON.stringify([identity.actorUserId, identity.effectiveUserId]);
@@ -52,6 +60,24 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 								}
 							: list,
 					),
+				})),
+			);
+		},
+		async archive(input: ArchiveOpportunity) {
+			current();
+			await archiveOpportunity(input).updates(
+				query.withOverride((snapshot) => ({
+					...snapshot,
+					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
+				})),
+			);
+		},
+		async restore(input: RestoreOpportunity) {
+			current();
+			await restoreOpportunity(input).updates(
+				query.withOverride((snapshot) => ({
+					...snapshot,
+					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
 				})),
 			);
 		},

@@ -18,9 +18,11 @@ import {
 	tags,
 } from "./db/schema.ts";
 import {
+	archiveOpportunityInput,
 	bulkArchiveInput,
 	createClientInput,
 	createOpportunityInput,
+	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
 	saveOpportunityInput,
@@ -526,6 +528,49 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 							references: beforeReferences,
 						},
 						after: value,
+					}),
+				],
+			);
+		},
+		async archiveOpportunity(input: unknown) {
+			const value = v.parse(archiveOpportunityInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "archive-opportunity", ...value },
+				{ id: value.id, revision: value.revision + 1 },
+				(guard, now) => [
+					stmt(
+						"UPDATE opportunities SET archived_at = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL",
+						now,
+						now,
+						value.id,
+						value.revision,
+					),
+					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					appendHistory(guard, now, "opportunity", value.id, "archive", {
+						revision: value.revision,
+						archivedAt: now,
+					}),
+				],
+			);
+		},
+		async restoreOpportunity(input: unknown) {
+			const value = v.parse(restoreOpportunityInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "restore-opportunity", ...value },
+				{ id: value.id, revision: value.revision + 1 },
+				(guard, now) => [
+					stmt(
+						"UPDATE opportunities SET archived_at = null, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NOT NULL",
+						now,
+						value.id,
+						value.revision,
+					),
+					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					appendHistory(guard, now, "opportunity", value.id, "restore", {
+						revision: value.revision,
+						archivedAt: null,
 					}),
 				],
 			);
