@@ -6,7 +6,7 @@
 	import { opportunityDraft, safeReferenceUrl, type OpportunityDraft } from "#lib/pipeline/opportunity-draft.js";
 	import { workspaceData } from "#lib/data/workspace.js";
 	import ChecklistStep from "#lib/pipeline/ChecklistStep.svelte";
-	import { stageLabels, typeLabels } from "#lib/pipeline/labels.js";
+	import { stageLabels, typeLabels, timelineLabels } from "#lib/pipeline/labels.js";
 	const remote = getWorkspace({ archived: false });
 	await remote;
 	const data = workspaceData(remote);
@@ -22,11 +22,30 @@
 	let pending = $state(false);
 	let status = $state("");
 	let ready = $state(false);
+	let filterType = $state("all");
+	let filterTimeline = $state("all");
+	let filterTag = $state("all");
 	onMount(() => {
 		ready = true;
 	});
 	let selected = $derived(workspace.opportunities.find((row) => row.id === selectedId));
 	let checklist = $derived(selected && (workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === (inspectedStage || selected.stage)) ?? workspace.checklists.find((list) => list.opportunityId === selected.id && list.stage === selected.stage)));
+	let clientById = $derived(new Map(workspace.referenceClients.map((client) => [client.id, client])));
+	let allTags = $derived([...new Map(workspace.referenceClients.flatMap((client) => client.tags.map((tag) => [tag.id, tag]))).values()]);
+	const timelineRank = (timeline: string | null) => (timeline === "1-3-mo" ? 0 : timeline === "3-6-mo" ? 1 : timeline === "6-plus-mo" ? 2 : 3);
+	let visible = $derived(
+		workspace.opportunities
+			.filter((opportunity) => {
+				if (filterType !== "all" && opportunity.type !== filterType) return false;
+				if (filterTimeline !== "all" && opportunity.timeline !== filterTimeline) return false;
+				if (filterTag !== "all") {
+					const linked = workspace.links.filter((link) => link.opportunityId === opportunity.id).map((link) => link.clientId);
+					if (!linked.some((clientId) => clientById.get(clientId)?.tags.some((tag) => tag.id === filterTag))) return false;
+				}
+				return true;
+			})
+			.sort((a, b) => timelineRank(a.timeline) - timelineRank(b.timeline)),
+	);
 	const stages = Object.keys(stageLabels) as (keyof typeof stageLabels)[];
 	function newOpportunity() {
 		if (!opportunityId) {
@@ -83,9 +102,26 @@
 		<p class="text-muted max-w-lg">Four stages, one shared board.</p>
 		<button type="button" class="control" onclick={newOpportunity} disabled={!ready}>New opportunity</button>
 	</div>
+	<div class="mb-4 flex flex-wrap items-center gap-3">
+		<label class="flex shrink-0 items-center gap-1.5"
+			><span class="text-muted text-xs">Type</span><select class="field" aria-label="Type" value={filterType} onchange={(event) => (filterType = event.currentTarget.value as string)}
+				><option value="all">All types</option>{#each Object.entries(typeLabels) as [value, label] (value)}
+					<option {value}>{label}</option>{/each}</select
+			></label>
+		<label class="flex shrink-0 items-center gap-1.5"
+			><span class="text-muted text-xs">Timeline</span><select class="field" aria-label="Timeline" value={filterTimeline} onchange={(event) => (filterTimeline = event.currentTarget.value as string)}
+				><option value="all">All timelines</option>{#each Object.entries(timelineLabels) as [value, label] (value)}
+					<option {value}>{label}</option>{/each}</select
+			></label>
+		<label class="flex shrink-0 items-center gap-1.5"
+			><span class="text-muted text-xs">Tag</span><select class="field" aria-label="Tag" value={filterTag} onchange={(event) => (filterTag = event.currentTarget.value as string)}
+				><option value="all">All tags</option>{#each allTags as tag (tag.id)}<option value={tag.id}>{tag.name}</option>{/each}
+			</select></label>
+		<p class="text-muted shrink-0 text-xs">Sorted by timeline within each stage.</p>
+	</div>
 	<div class="grid gap-5 pb-4 @min-[30rem]/board:grid-cols-2 @min-[56rem]/board:grid-cols-4">
 		{#each stages as stage (stage)}
-			{@const rows = workspace.opportunities.filter((row) => row.stage === stage)}
+			{@const rows = visible.filter((row) => row.stage === stage)}
 			<section aria-label={stageLabels[stage]} class="min-w-0">
 				<h2 class="border-hairline mb-4 flex items-center justify-between border-b pb-3 text-sm font-medium">{stageLabels[stage]}<span class="text-muted text-xs">{rows.length}</span></h2>
 				<div class="space-y-3">

@@ -14,6 +14,8 @@ import {
 	checklistProgress,
 	recordReferences,
 	history,
+	clientTags,
+	tags,
 } from "./db/schema.ts";
 import {
 	bulkArchiveInput,
@@ -186,8 +188,9 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				progress,
 				references,
 				changes,
-				referenceClients,
+				referenceClientRows,
 				referenceOpportunities,
+				clientTagRows,
 			] = await Promise.all([
 				orm
 					.select()
@@ -214,7 +217,23 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						archivedAt: opportunities.archivedAt,
 					})
 					.from(opportunities),
+				orm
+					.select({
+						clientId: clientTags.clientId,
+						id: tags.id,
+						name: tags.name,
+						color: tags.color,
+					})
+					.from(clientTags)
+					.innerJoin(tags, eq(tags.id, clientTags.tagId))
+					.where(isNull(tags.retiredAt)),
 			]);
+			const tagsByClient = new Map<string, { id: string; name: string; color: string }[]>();
+			for (const row of clientTagRows) {
+				const list = tagsByClient.get(row.clientId) ?? [];
+				list.push({ id: row.id, name: row.name, color: row.color });
+				tagsByClient.set(row.clientId, list);
+			}
 			return {
 				identity: user,
 				businessToday: businessDate(settings[0]?.timezone ?? "America/New_York"),
@@ -227,7 +246,12 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				history: changes
 					.filter((change) => opportunityRows.some((row) => row.id === change.recordId))
 					.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-				referenceClients,
+				referenceClients: referenceClientRows.map((client) => ({
+					id: client.id,
+					name: client.name,
+					archivedAt: client.archivedAt,
+					tags: tagsByClient.get(client.id) ?? [],
+				})),
 				referenceOpportunities,
 				checklists: checklists
 					.filter((list) => opportunityRows.some((row) => row.id === list.opportunityId))
