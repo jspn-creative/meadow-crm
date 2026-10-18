@@ -38,9 +38,9 @@ test("board filters by type and timeline, sorts by timeline, and exposes the tag
 	await expect(page.getByRole("button", { name: /Archived Alder search/ })).not.toBeVisible();
 
 	// The tag filter lists the tags exposed on clients and filters opportunities by them.
-	await page.getByLabel("Tag").selectOption("sphere");
+	await page.getByLabel("Tag", { exact: true }).selectOption("sphere");
 	await expect(page.getByRole("button", { name: /Maple first home/ })).toBeVisible();
-	await page.getByLabel("Tag").selectOption("All tags");
+	await page.getByLabel("Tag", { exact: true }).selectOption("All tags");
 
 	// Create two New lead opportunities with different timelines.
 	const alpha = `QA alpha ${crypto.randomUUID()}`;

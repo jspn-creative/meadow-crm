@@ -4,31 +4,30 @@ What is left to build for the MVP, in rough dependency order. [SPEC.md](./SPEC.m
 
 ## Next
 
-1. Move opportunities between stages from the board and from the detail view, recording history.
-2. Archive and restore opportunities, with a view of archived ones.
-3. Delete an opportunity, with its checklists; once promoting exists, the tasks promoted from its checklists go with it.
-4. Per-item checklist edits: add, remove, rename, and reorder items on one opportunity, while template changes keep reaching the items not edited there. This replaces today's whole-stage "customized" flag.
-5. Client data model: people (name, birthday, labeled phones and emails), labeled addresses with an owns-it marker, Referred by (a linked client or a typed name), relationships, key dates, preferences, consent per channel defaulting on, and a preferred contact method. Drop the referral starting tag from the seed data and the Settings placeholder.
-6. Client create and edit in a side panel covering every client field, with history and the client's opportunities inline.
-7. Uploaded files as references, with a friendly name, on clients and opportunities; tasks get them when they are built.
-8. Registry table on TanStack Table with hand-added, restyled SV Table components: search, filters, sorting, pagination, and column controls.
-9. Keep Registry search and filters in the URL.
-10. Bulk tag and archive, with Gmail-style "Select all matching clients": apply to every client possible, say which were skipped and why, and offer Undo for the whole change right after; archived clients can be searched and restored.
-11. Settings panels for User preferences, Business settings, and each module; Business settings (name, timezone, date format, fixed USD); the tag vocabulary: add, rename, recolor, and retire with an offer to strip; and the relationship and address labels.
-12. Checklist template editor in Settings: prototype layouts for the developer to choose from, then build the chosen one. Edits are drafted and saved together with a count of the opportunities they reach; a removed item stays where it is checked off or promoted.
-13. Tasks with a date, due date, time, location, and repeat; daily rollover; overdue status; create, edit, complete, and reopen by either business user.
-14. Delete a client from the Registry: a notice lists the client's opportunities (delete, archive, or leave alone, each) and tasks linked directly to the client (delete or leave alone, each); whatever is left alone loses the link.
-15. Promote checklist items: a date or due date creates a linked task that references the opportunity; the title, completing, reopening, and deleting stay in sync both ways.
-16. The stage-move dialog that asks whether to complete, delete, or ignore each open promoted task from the current stage.
-17. Board view options: a discreet panel choosing which card details show (client names, checklist progress for the current stage, overdue marker, budget or price), saved in the browser. Card design and options settle over review rounds with the developer.
-18. The realtor's dashboard: Today's Tasks, Upcoming (tasks dated or due in the next several days), and Key dates (clients' birthdays and key dates in the next few weeks).
-19. The assistant's dashboard: the Inbox (overdue tasks, and records the realtor created until the assistant marks them done), Realtor's day (editable but locked against accidental edits), Upcoming, Pipeline summary, and Recent activity.
-20. Keep both users' screens current: refresh on focus and navigation, poll while visible, and recompute overdue at the business's midnight.
-21. Real login, managed by the app: accounts for the realtor, the assistant, and the support admin, with no public signup, plus logout and password change.
-22. Support admin impersonation with a visible indicator while impersonating, and both identities in history.
-23. Require login for every request, page, and data call.
-24. Full pass before real data: phone, tablet, and desktop; keyboard; reduced motion; every automated check.
-25. Import the business's real client data with a one-time script.
+1. Archive and restore opportunities, with a view of archived ones.
+2. Delete an opportunity, with its checklists; once promoting exists, the tasks promoted from its checklists go with it.
+3. Per-item checklist edits: add, remove, rename, and reorder items on one opportunity, while template changes keep reaching the items not edited there. This replaces today's whole-stage "customized" flag.
+4. Client data model: people (name, birthday, labeled phones and emails), labeled addresses with an owns-it marker, Referred by (a linked client or a typed name), relationships, key dates, preferences, consent per channel defaulting on, and a preferred contact method. Drop the referral starting tag from the seed data and the Settings placeholder.
+5. Client create and edit in a side panel covering every client field, with history and the client's opportunities inline.
+6. Uploaded files as references, with a friendly name, on clients and opportunities; tasks get them when they are built.
+7. Registry table on TanStack Table with hand-added, restyled SV Table components: search, filters, sorting, pagination, and column controls.
+8. Keep Registry search and filters in the URL.
+9. Bulk tag and archive, with Gmail-style "Select all matching clients": apply to every client possible, say which were skipped and why, and offer Undo for the whole change right after; archived clients can be searched and restored.
+10. Settings panels for User preferences, Business settings, and each module; Business settings (name, timezone, date format, fixed USD); the tag vocabulary: add, rename, recolor, and retire with an offer to strip; and the relationship and address labels.
+11. Checklist template editor in Settings: prototype layouts for the developer to choose from, then build the chosen one. Edits are drafted and saved together with a count of the opportunities they reach; a removed item stays where it is checked off or promoted.
+12. Tasks with a date, due date, time, location, and repeat; daily rollover; overdue status; create, edit, complete, and reopen by either business user.
+13. Delete a client from the Registry: a notice lists the client's opportunities (delete, archive, or leave alone, each) and tasks linked directly to the client (delete or leave alone, each); whatever is left alone loses the link.
+14. Promote checklist items: a date or due date creates a linked task that references the opportunity; the title, completing, reopening, and deleting stay in sync both ways.
+15. The stage-move dialog that asks whether to complete, delete, or ignore each open promoted task from the current stage.
+16. Board view options: a discreet panel choosing which card details show (client names, checklist progress for the current stage, overdue marker, budget or price), saved in the browser. Card design and options settle over review rounds with the developer.
+17. The realtor's dashboard: Today's Tasks, Upcoming (tasks dated or due in the next several days), and Key dates (clients' birthdays and key dates in the next few weeks).
+18. The assistant's dashboard: the Inbox (overdue tasks, and records the realtor created until the assistant marks them done), Realtor's day (editable but locked against accidental edits), Upcoming, Pipeline summary, and Recent activity.
+19. Keep both users' screens current: refresh on focus and navigation, poll while visible, and recompute overdue at the business's midnight.
+20. Real login, managed by the app: accounts for the realtor, the assistant, and the support admin, with no public signup, plus logout and password change.
+21. Support admin impersonation with a visible indicator while impersonating, and both identities in history.
+22. Require login for every request, page, and data call.
+23. Full pass before real data: phone, tablet, and desktop; keyboard; reduced motion; every automated check.
+24. Import the business's real client data with a one-time script.
 
 ## Waiting on an open question
 

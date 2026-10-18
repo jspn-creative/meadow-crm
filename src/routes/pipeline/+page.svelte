@@ -93,6 +93,22 @@
 			pending = false;
 		}
 	}
+
+	async function moveCard(opportunity: (typeof visible)[number], stage: keyof typeof stageLabels) {
+		if (stage === opportunity.stage) return;
+		pending = true;
+		failure = "";
+		status = "Moving opportunity…";
+		try {
+			await data.move({ requestId: crypto.randomUUID(), id: opportunity.id, revision: opportunity.revision, stage });
+			status = "Stage saved.";
+		} catch {
+			failure = "Stage could not be saved or has changed. The move was rolled back. Refresh before retrying.";
+			status = "";
+		} finally {
+			pending = false;
+		}
+	}
 </script>
 
 <svelte:head><title>Pipeline · Meadow Lane</title></svelte:head>
@@ -126,26 +142,33 @@
 				<h2 class="border-hairline mb-4 flex items-center justify-between border-b pb-3 text-sm font-medium">{stageLabels[stage]}<span class="text-muted text-xs">{rows.length}</span></h2>
 				<div class="space-y-3">
 					{#each rows as opportunity (opportunity.id)}
-						<button
-							type="button"
-							disabled={!ready}
-							class="border-hairline hover:bg-canvas w-full rounded-xl border bg-white p-5 text-left"
-							onclick={() => {
-								selectedId = opportunity.id;
-								editing = false;
-								inspectedStage = "";
-								failure = "";
-								status = "";
-							}}>
-							<span class="text-info bg-info-soft inline-block rounded-md px-2 py-1 text-xs">{typeLabels[opportunity.type]}</span>
-							<span class="mt-4 block font-medium wrap-anywhere">{opportunity.title}</span>
-							<span class="text-muted mt-1 block text-xs wrap-anywhere"
-								>{workspace.links
-									.filter((link) => link.opportunityId === opportunity.id)
-									.map((link) => workspace.clients.find((client) => client.id === link.clientId)?.name)
-									.filter(Boolean)
-									.join(", ")}</span>
-						</button>
+						<div class="space-y-2">
+							<button
+								type="button"
+								disabled={!ready}
+								class="border-hairline hover:bg-canvas w-full rounded-xl border bg-white p-5 text-left"
+								onclick={() => {
+									selectedId = opportunity.id;
+									editing = false;
+									inspectedStage = "";
+									failure = "";
+									status = "";
+								}}>
+								<span class="text-info bg-info-soft inline-block rounded-md px-2 py-1 text-xs">{typeLabels[opportunity.type]}</span>
+								<span class="mt-4 block font-medium wrap-anywhere">{opportunity.title}</span>
+								<span class="text-muted mt-1 block text-xs wrap-anywhere"
+									>{workspace.links
+										.filter((link) => link.opportunityId === opportunity.id)
+										.map((link) => workspace.clients.find((client) => client.id === link.clientId)?.name)
+										.filter(Boolean)
+										.join(", ")}</span>
+							</button>
+							<div class="flex items-center gap-2">
+								<label for={`card-stage-${opportunity.id}`} class="text-muted shrink-0 text-xs">Move to stage</label>
+								<select id={`card-stage-${opportunity.id}`} class="field" value={opportunity.stage} disabled={pending} onchange={(event) => moveCard(opportunity, event.currentTarget.value as keyof typeof stageLabels)}
+									>{#each stages as stage (stage)}<option value={stage}>{stageLabels[stage]}</option>{/each}</select>
+							</div>
+						</div>
 					{:else}<p class="text-muted py-4 text-xs">No opportunities in this stage.</p>{/each}
 				</div>
 			</section>
