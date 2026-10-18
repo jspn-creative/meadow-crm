@@ -181,7 +181,7 @@ export const stageChecklists = sqliteTable(
 			.references(() => opportunities.id),
 		stage: text("stage", { enum: stages }).notNull(),
 		templateId: text("template_id").notNull(),
-		customized: integer("customized", { mode: "boolean" }).notNull().default(false),
+		removedTemplateItems: text("removed_template_items").notNull().default("[]"),
 		revision: revision(),
 		...timestamps(),
 	},
@@ -191,7 +191,7 @@ export const stageChecklists = sqliteTable(
 			columns: [t.templateId, t.stage],
 			foreignColumns: [checklistTemplates.id, checklistTemplates.stage],
 		}),
-		check("checklist_customized_boolean", sql`${t.customized} IN (0, 1)`),
+		check("checklist_removed_items_json", sql`json_valid(${t.removedTemplateItems})`),
 		check("checklist_revision_positive", sql`${t.revision} > 0`),
 	],
 );

@@ -40,7 +40,7 @@ test("fresh and repeated local migrations retain records and have no broken fore
 	await migrate(db, await readMigrations());
 	expect(
 		(await db.prepare("SELECT count(*) AS n FROM meadow_migrations").first<{ n: number }>())?.n,
-	).toBe(3);
+	).toBe(4);
 	expect(
 		(await db.prepare("SELECT budget_cents FROM opportunities WHERE id = 'opportunity-a'").first())
 			?.budget_cents,
@@ -123,7 +123,6 @@ test("visited-stage sources, stable item IDs, overrides, and progress cannot cro
 		db.prepare("DELETE FROM checklist_items WHERE id = 'template-a-item'").run(),
 	).rejects.toThrow();
 	await db.prepare("DELETE FROM checklist_progress").run();
-	await db.prepare("UPDATE stage_checklists SET customized = 1 WHERE id = 'checklist-a'").run();
 	await db
 		.prepare(
 			"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) VALUES ('override-a', 'checklist-a', 'Custom step', 0, ?, ?)",
@@ -131,7 +130,7 @@ test("visited-stage sources, stable item IDs, overrides, and progress cannot cro
 		.bind(now, now)
 		.run();
 	await progress("override-a");
-	await expect(progress("template-a-item")).rejects.toThrow(/stage source/);
+	await progress("template-a-item");
 });
 
 test("history requires both identities and tasks reject assistant assignment or malformed references", async () => {

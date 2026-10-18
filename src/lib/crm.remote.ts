@@ -2,11 +2,15 @@ import { command, form, getRequestEvent, query, requested } from "$app/server";
 import { error } from "@sveltejs/kit";
 import { DataConflict } from "#lib/server/data.js";
 import {
+	addChecklistItemInput,
 	archiveOpportunityInput,
 	createClientInput,
 	createOpportunityInput,
 	createOpportunityFormInput,
 	deleteOpportunityInput,
+	removeChecklistItemInput,
+	renameChecklistItemInput,
+	reorderChecklistItemsInput,
 	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
@@ -80,4 +84,24 @@ export const restoreOpportunity = command(restoreOpportunityInput, (input) => {
 export const deleteOpportunity = command(deleteOpportunityInput, (input) => {
 	const data = services();
 	return save(() => data.deleteOpportunity(input));
+});
+
+export const addChecklistItem = command(addChecklistItemInput, (input) => {
+	const data = services();
+	return save(() => data.addChecklistItem(input));
+});
+
+export const removeChecklistItem = command(removeChecklistItemInput, (input) => {
+	const data = services();
+	return save(() => data.removeChecklistItem(input));
+});
+
+export const renameChecklistItem = command(renameChecklistItemInput, (input) => {
+	const data = services();
+	return save(() => data.renameChecklistItem(input));
+});
+
+export const reorderChecklistItems = command(reorderChecklistItemsInput, (input) => {
+	const data = services();
+	return save(() => data.reorderChecklistItems(input));
 });

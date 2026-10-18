@@ -627,6 +627,96 @@ test("one stale or missing selected client prevents every bulk record and histor
 	).toBe(2);
 });
 
+test("per-item checklist edits: add, remove, rename, and reorder items on one opportunity", async () => {
+	const clientId = crypto.randomUUID();
+	const id = crypto.randomUUID();
+	await realtor.createClient({
+		requestId: crypto.randomUUID(),
+		id: clientId,
+		name: "Checklist edit client",
+	});
+	await realtor.createOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		clientId,
+		title: "Fictional checklist edit",
+		type: "buyer",
+		stage: "new-lead",
+	});
+	let workspace = await realtor.workspace({ archived: false });
+	const checklist = workspace.checklists.find(
+		(row) => row.opportunityId === id && row.stage === "new-lead",
+	)!;
+	const revision = checklist.revision;
+	const originalCount = checklist.items.length;
+
+	await realtor.addChecklistItem({
+		requestId: crypto.randomUUID(),
+		checklistId: checklist.id,
+		revision,
+		title: "Custom step",
+	});
+	workspace = await realtor.workspace({ archived: false });
+	const updated = workspace.checklists.find((row) => row.id === checklist.id)!;
+	expect(updated.items.length).toBe(originalCount + 1);
+	expect(updated.items.some((item) => item.title === "Custom step")).toBe(true);
+	const addedItem = updated.items.find((item) => item.title === "Custom step")!;
+	const newRevision = updated.revision;
+
+	await realtor.renameChecklistItem({
+		requestId: crypto.randomUUID(),
+		checklistId: checklist.id,
+		revision: newRevision,
+		itemId: addedItem.id,
+		itemRevision: addedItem.revision,
+		title: "Renamed step",
+	});
+	workspace = await realtor.workspace({ archived: false });
+	const renamed = workspace.checklists.find((row) => row.id === checklist.id)!;
+	expect(renamed.items.some((item) => item.title === "Renamed step")).toBe(true);
+
+	const toRemove = renamed.items.find((item) => item.title === "Renamed step")!;
+	await realtor.removeChecklistItem({
+		requestId: crypto.randomUUID(),
+		checklistId: checklist.id,
+		revision: renamed.revision,
+		itemId: toRemove.id,
+	});
+	workspace = await realtor.workspace({ archived: false });
+	const afterRemove = workspace.checklists.find((row) => row.id === checklist.id)!;
+	expect(afterRemove.items.length).toBe(originalCount);
+	expect(afterRemove.items.some((item) => item.title === "Renamed step")).toBe(false);
+
+	await expect(
+		realtor.addChecklistItem({
+			requestId: crypto.randomUUID(),
+			checklistId: checklist.id,
+			revision: 999,
+			title: "Stale",
+		}),
+	).rejects.toBeInstanceOf(DataConflict);
+
+	await db
+		.prepare(
+			"DELETE FROM checklist_progress WHERE checklist_id IN (SELECT id FROM stage_checklists WHERE opportunity_id = ?)",
+		)
+		.bind(id)
+		.run();
+	await db
+		.prepare(
+			"DELETE FROM checklist_items WHERE checklist_id IN (SELECT id FROM stage_checklists WHERE opportunity_id = ?)",
+		)
+		.bind(id)
+		.run();
+	await db.prepare("DELETE FROM stage_checklists WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM record_references WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM opportunity_clients WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM tasks WHERE opportunity_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM history WHERE record_id = ?").bind(id).run();
+	await db.prepare("DELETE FROM opportunities WHERE id = ?").bind(id).run();
+	await db.prepare("DELETE FROM clients WHERE id = ?").bind(clientId).run();
+});
+
 test("strict validation rejects forged identities and duplicate links; request-scoped services retain independent identities", async () => {
 	await expect(
 		realtor.createClient({

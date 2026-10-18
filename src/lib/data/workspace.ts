@@ -1,8 +1,12 @@
 import {
 	getWorkspace,
+	addChecklistItem,
 	archiveOpportunity,
 	deleteOpportunity,
 	moveStage,
+	removeChecklistItem,
+	renameChecklistItem,
+	reorderChecklistItems,
 	restoreOpportunity,
 	saveChecklistStep,
 } from "#lib/crm.remote.js";
@@ -12,6 +16,10 @@ export type StageMove = Parameters<typeof moveStage>[0];
 export type ArchiveOpportunity = Parameters<typeof archiveOpportunity>[0];
 export type DeleteOpportunity = Parameters<typeof deleteOpportunity>[0];
 export type RestoreOpportunity = Parameters<typeof restoreOpportunity>[0];
+export type AddChecklistItem = Parameters<typeof addChecklistItem>[0];
+export type RemoveChecklistItem = Parameters<typeof removeChecklistItem>[0];
+export type RenameChecklistItem = Parameters<typeof renameChecklistItem>[0];
+export type ReorderChecklistItems = Parameters<typeof reorderChecklistItems>[0];
 
 export function identityKey(identity: Workspace["identity"]) {
 	return JSON.stringify([identity.actorUserId, identity.effectiveUserId]);
@@ -91,6 +99,22 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
 				})),
 			);
+		},
+		async addChecklistItem(input: AddChecklistItem) {
+			current();
+			await addChecklistItem(input).updates(query);
+		},
+		async removeChecklistItem(input: RemoveChecklistItem) {
+			current();
+			await removeChecklistItem(input).updates(query);
+		},
+		async renameChecklistItem(input: RenameChecklistItem) {
+			current();
+			await renameChecklistItem(input).updates(query);
+		},
+		async reorderChecklistItems(input: ReorderChecklistItems) {
+			current();
+			await reorderChecklistItems(input).updates(query);
 		},
 		dispose() {
 			disposed = true;

@@ -116,3 +116,30 @@ export const bulkArchiveInput = v.strictObject({
 export const archiveOpportunityInput = v.strictObject({ requestId: id, id, revision });
 export const restoreOpportunityInput = v.strictObject({ requestId: id, id, revision });
 export const deleteOpportunityInput = v.strictObject({ requestId: id, id, revision });
+
+export const addChecklistItemInput = v.strictObject({
+	requestId: id,
+	checklistId: id,
+	revision,
+	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+});
+export const removeChecklistItemInput = v.strictObject({
+	requestId: id,
+	checklistId: id,
+	revision,
+	itemId: id,
+});
+export const renameChecklistItemInput = v.strictObject({
+	requestId: id,
+	checklistId: id,
+	revision,
+	itemId: id,
+	itemRevision: revision,
+	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+});
+export const reorderChecklistItemsInput = v.strictObject({
+	requestId: id,
+	checklistId: id,
+	revision,
+	itemIds: v.pipe(v.array(id), v.minLength(1), v.maxLength(100)),
+});

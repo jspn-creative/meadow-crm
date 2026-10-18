@@ -390,7 +390,101 @@
 						<button class="control" type="button" disabled={pending} onclick={() => (inspectedStage = "")}>Return to current checklist</button>{/if}
 					{#if checklist}
 						<p class="text-muted mt-2 text-xs">{checklist.items.filter((item) => item.completedAt).length} of {checklist.items.length} complete</p>
-						{#each checklist.items as item (`${checklist.id}:${item.id}`)}<ChecklistStep {item} {checklist} busy={pending} save={saveStep} />{:else}<p class="text-muted py-6">No steps in this stage’s defaults.</p>{/each}
+						{#each checklist.items as item, index (`${checklist.id}:${item.id}`)}
+							<div class="flex items-start gap-2">
+								<div class="min-w-0 flex-1"><ChecklistStep {item} {checklist} busy={pending} save={saveStep} /></div>
+								<div class="flex shrink-0 flex-col gap-1 pt-4">
+									<button
+										type="button"
+										class="control text-xs"
+										disabled={pending || index === 0}
+										onclick={async () => {
+											if (!checklist) return;
+											const ids = checklist.items.map((row) => row.id);
+											const [moved] = ids.splice(index, 1);
+											ids.splice(index - 1, 0, moved);
+											pending = true;
+											try {
+												await data.reorderChecklistItems({ requestId: crypto.randomUUID(), checklistId: checklist.id, revision: checklist.revision, itemIds: ids });
+											} catch {
+												failure = "Could not reorder. Refresh before retrying.";
+											} finally {
+												pending = false;
+											}
+										}}>↑</button>
+									<button
+										type="button"
+										class="control text-xs"
+										disabled={pending || index === checklist.items.length - 1}
+										onclick={async () => {
+											if (!checklist) return;
+											const ids = checklist.items.map((row) => row.id);
+											const [moved] = ids.splice(index, 1);
+											ids.splice(index + 1, 0, moved);
+											pending = true;
+											try {
+												await data.reorderChecklistItems({ requestId: crypto.randomUUID(), checklistId: checklist.id, revision: checklist.revision, itemIds: ids });
+											} catch {
+												failure = "Could not reorder. Refresh before retrying.";
+											} finally {
+												pending = false;
+											}
+										}}>↓</button>
+									<button
+										type="button"
+										class="control text-xs"
+										disabled={pending}
+										onclick={async () => {
+											if (!checklist) return;
+											const next = prompt("New title", item.title);
+											if (!next || next === item.title) return;
+											pending = true;
+											try {
+												await data.renameChecklistItem({ requestId: crypto.randomUUID(), checklistId: checklist.id, revision: checklist.revision, itemId: item.id, itemRevision: item.revision, title: next });
+											} catch {
+												failure = "Could not rename. Refresh before retrying.";
+											} finally {
+												pending = false;
+											}
+										}}>Edit</button>
+									<button
+										type="button"
+										class="control text-xs"
+										disabled={pending}
+										onclick={async () => {
+											if (!checklist) return;
+											if (!confirm("Remove this step?")) return;
+											pending = true;
+											try {
+												await data.removeChecklistItem({ requestId: crypto.randomUUID(), checklistId: checklist.id, revision: checklist.revision, itemId: item.id });
+											} catch {
+												failure = "Could not remove. Refresh before retrying.";
+											} finally {
+												pending = false;
+											}
+										}}>Remove</button>
+								</div>
+							</div>
+						{:else}<p class="text-muted py-6">No steps in this stage’s defaults.</p>{/each}
+						<div class="mt-3">
+							<button
+								type="button"
+								class="control"
+								disabled={pending || !ready}
+								onclick={async () => {
+									if (!checklist) return;
+									const title = prompt("New step");
+									if (!title) return;
+									pending = true;
+									try {
+										await data.addChecklistItem({ requestId: crypto.randomUUID(), checklistId: checklist.id, revision: checklist.revision, title });
+									} catch {
+										failure = "Could not add step. Refresh before retrying.";
+									} finally {
+										pending = false;
+									}
+								}}>Add step</button>
+						</div>
 					{:else}<p class="text-muted py-6">Loading this stage’s checklist…</p>{/if}
 				</section>
 			</div>

@@ -18,11 +18,15 @@ import {
 	tags,
 } from "./db/schema.ts";
 import {
+	addChecklistItemInput,
 	archiveOpportunityInput,
 	bulkArchiveInput,
 	createClientInput,
 	createOpportunityInput,
 	deleteOpportunityInput,
+	removeChecklistItemInput,
+	renameChecklistItemInput,
+	reorderChecklistItemsInput,
 	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
@@ -258,22 +262,29 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				referenceOpportunities,
 				checklists: checklists
 					.filter((list) => opportunityRows.some((row) => row.id === list.opportunityId))
-					.map((list) => ({
-						...list,
-						items: items
-							.filter((item) =>
-								list.customized ? item.checklistId === list.id : item.templateId === list.templateId,
-							)
-							.sort((a, b) => a.position - b.position)
-							.map((item) => {
-								const saved = progress.find((row) => row.checklistId === list.id && row.itemId === item.id);
-								return {
-									...item,
-									completedAt: saved?.completedAt ?? null,
-									dueDate: saved?.dueDate ?? null,
-								};
-							}),
-					})),
+					.map((list) => {
+						const removed = new Set(JSON.parse(list.removedTemplateItems || "[]") as string[]);
+						return {
+							...list,
+							items: items
+								.filter((item) => {
+									if (item.checklistId === list.id) return true;
+									if (item.templateId === list.templateId && !removed.has(item.id)) return true;
+									return false;
+								})
+								.sort((a, b) => a.position - b.position)
+								.map((item) => {
+									const saved = progress.find(
+										(row) => row.checklistId === list.id && row.itemId === item.id,
+									);
+									return {
+										...item,
+										completedAt: saved?.completedAt ?? null,
+										dueDate: saved?.dueDate ?? null,
+									};
+								}),
+						};
+					}),
 				settings: settings[0] ?? null,
 			};
 		},
@@ -408,6 +419,200 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				],
 			);
 		},
+		async addChecklistItem(input: unknown) {
+			const value = v.parse(addChecklistItemInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "add-checklist-item", ...value },
+				{ checklistId: value.checklistId, revision: value.revision + 1 },
+				(guard, now) => [
+					stmt(
+						"UPDATE stage_checklists SET revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL)",
+						now,
+						value.checklistId,
+						value.revision,
+					),
+					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					stmt(
+						"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) SELECT ?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM checklist_items WHERE checklist_id = ?), ?, ? WHERE " +
+							guardExists,
+						crypto.randomUUID(),
+						value.checklistId,
+						value.title,
+						value.checklistId,
+						now,
+						now,
+						guard,
+					),
+					appendHistory(guard, now, "opportunity", "", "add-checklist-item", {
+						checklistId: value.checklistId,
+						revision: value.revision,
+						title: value.title,
+					}),
+				],
+			);
+		},
+
+		async removeChecklistItem(input: unknown) {
+			const value = v.parse(removeChecklistItemInput, input);
+			const list = await orm
+				.select()
+				.from(stageChecklists)
+				.where(eq(stageChecklists.id, value.checklistId))
+				.then((rows) => rows[0]);
+			if (!list) throw new DataConflict();
+			const item = await orm
+				.select()
+				.from(checklistItems)
+				.where(eq(checklistItems.id, value.itemId))
+				.then((rows) => rows[0]);
+			if (!item) throw new DataConflict();
+			const removed = JSON.parse(list.removedTemplateItems || "[]") as string[];
+			const isLocal = item.checklistId === value.checklistId;
+			const newRemoved = isLocal ? removed : [...new Set([...removed, value.itemId])];
+			return mutation(
+				value.requestId,
+				{ operation: "remove-checklist-item", ...value },
+				{ checklistId: value.checklistId, revision: value.revision + 1 },
+				(guard, now) => {
+					const stmts: D1PreparedStatement[] = [
+						stmt(
+							"UPDATE stage_checklists SET removed_template_items = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL)",
+							JSON.stringify(newRemoved),
+							now,
+							value.checklistId,
+							value.revision,
+						),
+						stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					];
+					if (isLocal) {
+						stmts.push(
+							stmt(
+								"DELETE FROM checklist_items WHERE id = ? AND checklist_id = ? AND " + guardExists,
+								value.itemId,
+								value.checklistId,
+								guard,
+							),
+							stmt(
+								"DELETE FROM checklist_progress WHERE checklist_id = ? AND item_id = ? AND " + guardExists,
+								value.checklistId,
+								value.itemId,
+								guard,
+							),
+						);
+					}
+					return stmts;
+				},
+			);
+		},
+
+		async renameChecklistItem(input: unknown) {
+			const value = v.parse(renameChecklistItemInput, input);
+			const list = await orm
+				.select()
+				.from(stageChecklists)
+				.where(eq(stageChecklists.id, value.checklistId))
+				.then((rows) => rows[0]);
+			if (!list) throw new DataConflict();
+			const item = await orm
+				.select()
+				.from(checklistItems)
+				.where(eq(checklistItems.id, value.itemId))
+				.then((rows) => rows[0]);
+			if (!item) throw new DataConflict();
+			const isLocal = item.checklistId === value.checklistId;
+			const removed = JSON.parse(list.removedTemplateItems || "[]") as string[];
+			const newRemoved = isLocal ? removed : [...new Set([...removed, value.itemId])];
+			return mutation(
+				value.requestId,
+				{ operation: "rename-checklist-item", ...value },
+				{ checklistId: value.checklistId, revision: value.revision + 1 },
+				(guard, now) => {
+					const stmts: D1PreparedStatement[] = [
+						stmt(
+							"UPDATE stage_checklists SET removed_template_items = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL)",
+							JSON.stringify(newRemoved),
+							now,
+							value.checklistId,
+							value.revision,
+						),
+						stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					];
+					if (isLocal) {
+						stmts.push(
+							stmt(
+								"UPDATE checklist_items SET title = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND checklist_id = ? AND revision = ? AND " +
+									guardExists,
+								value.title,
+								now,
+								value.itemId,
+								value.checklistId,
+								value.itemRevision,
+								guard,
+							),
+						);
+					} else {
+						// Create a local copy with the new title.
+						stmts.push(
+							stmt(
+								"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) WHERE " +
+									guardExists,
+								crypto.randomUUID(),
+								value.checklistId,
+								value.title,
+								item.position,
+								now,
+								now,
+								guard,
+							),
+						);
+					}
+					return stmts;
+				},
+			);
+		},
+
+		async reorderChecklistItems(input: unknown) {
+			const value = v.parse(reorderChecklistItemsInput, input);
+			const list = await orm
+				.select()
+				.from(stageChecklists)
+				.where(eq(stageChecklists.id, value.checklistId))
+				.then((rows) => rows[0]);
+			if (!list) throw new DataConflict();
+			return mutation(
+				value.requestId,
+				{ operation: "reorder-checklist-items", ...value },
+				{ checklistId: value.checklistId, revision: value.revision + 1 },
+				(guard, now) => {
+					const stmts: D1PreparedStatement[] = [
+						stmt(
+							"UPDATE stage_checklists SET revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL)",
+							now,
+							value.checklistId,
+							value.revision,
+						),
+						stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					];
+					value.itemIds.forEach((itemId, index) => {
+						stmts.push(
+							stmt(
+								"UPDATE checklist_items SET position = ?, updated_at = ? WHERE id = ? AND (checklist_id = ? OR template_id = ?) AND " +
+									guardExists,
+								index,
+								now,
+								itemId,
+								value.checklistId,
+								list.templateId,
+								guard,
+							),
+						);
+					});
+					return stmts;
+				},
+			);
+		},
+
 		async moveStage(input: unknown) {
 			const value = v.parse(moveStageInput, input);
 			return mutation(
