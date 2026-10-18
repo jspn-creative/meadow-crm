@@ -134,11 +134,17 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 
 | Term | Kind | Belongs to | Meaning | Not |
 | --- | --- | --- | --- | --- |
-| Module | Concept |  | A feature with its own sidebar item. A module owns one or more views. The modules are Dashboard, Pipeline, and Registry. *Open:* Whether a module can be switched off. | section, area, app |
-| View | Concept |  | Something a user navigates to that shows records or tools. Most views belong to a module, and a module can have several. A few views belong to no module, such as Settings and the Glossary. | page, screen |
+| Module | Concept |  | A feature with its own sidebar item. A module owns one or more views. The modules are Dashboard, Pipeline, and Registry, and none of them can be switched off; later modules may be optional. | section, area, app |
 | Integration | Concept |  | A connection to an outside service, such as Google Calendar, with its own authorization and configuration. It builds on an existing module rather than becoming one. Calendar integration is deferred. | plugin, connector, sync |
-| Settings | View |  | Configuration, opened from the account menu. Working assumption: panels for User preferences, Business settings, and one per module. *Open:* How Settings is organized. | preferences (as the view's name), admin, config |
-| Glossary | View |  | This vocabulary as a searchable, expandable table, opened from the account menu. *Open:* Whether it grows into a help view with tips and FAQs. | reference page (a reference is a link on a record) |
+| Settings | View |  | Configuration, opened from the account menu, with a panel for User preferences, one for Business settings, and one per module. | preferences (as the view's name), admin, config |
+| Glossary | View |  | This vocabulary as a searchable, expandable table, opened from the account menu. *Open:* Whether it grows into a help view with tips and FAQs after the MVP. | reference page (a reference is a link on a record) |
+
+### View
+
+| Term | Kind | Belongs to | Meaning | Not |
+| --- | --- | --- | --- | --- |
+| View | Concept |  | Something a user navigates to that shows records or tools. Most views belong to a module, and a module can have several. A few views belong to no module, such as Settings and the Glossary. | page, screen |
+| View options | Concept | View | A discreet panel on a view that chooses what the view shows, such as which details the board's opportunity cards show. Saved in the user's browser. | display settings, settings |
 
 ### Record
 
@@ -147,17 +153,22 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | Record | Concept |  | Something the business stores that opens in its own detail view to be read or edited: a client from the Registry, an opportunity from its Pipeline card, a task from Today's Tasks. A record's detail view has a references section and a history section. | entry, object |
 | Reference | Field | Record | A link in a record's references section. Its kind sets how it looks: a linked record shown by that record's own name, such as a task's opportunity; a web link, such as a Zillow listing; or an uploaded file, such as a signed contract. Web links and files can be given a friendly name; linked records cannot. Uploads and related records do not get sections of their own; they are references. A promoted task's reference points to its opportunity, and its chip can also show the checklist item. | attachment, dependency, related record |
 | History | Field | Record | The saved list of changes to a record: what changed, when, by whom, and as whom when impersonating. Shown in the record's detail view. | audit log, changelog |
-| Archive | Action | Record | Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. | delete, remove, close |
-| Delete | Action | Record | Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly. *Open:* Which records can be deleted, and how. Some delete options will exist in the MVP. | archive |
+| Archive | Action | Record | Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. A record created by mistake is deleted, not archived. | delete, remove, close |
+| Delete | Action | Record | Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly. Clients can be deleted, only from the Registry; opportunities and tasks can be deleted too. | archive |
 
 ### Dashboard
 
 | Term | Kind | Belongs to | Meaning | Not |
 | --- | --- | --- | --- | --- |
-| Dashboard | Module |  | The landing module. For now there are two fixed versions: one for the realtor and one for the assistant. *Open:* Letting users customize their own dashboards later. | home, overview |
+| Dashboard | Module |  | The landing module. For now there are two fixed versions: one for the realtor and one for the assistant. Dashboards users customize themselves may come later. | home, overview |
 | Widget | Concept | Dashboard | A self-contained block on a dashboard, built on `DashboardCard`. | panel, tile |
 | Today's Tasks | Widget | Widget | On the realtor's dashboard: incomplete tasks whose date has arrived. An unfinished task rolls over to the next day until it is completed. |  |
-| Inbox | Widget | Widget | On the assistant's dashboard: things the assistant should do or check, each linking to its source record. It replaces the earlier idea of a review queue. *Open:* What it lists; overdue tasks are a likely start. | review queue, queue, notifications, messages, attention |
+| Inbox | Widget | Widget | On the assistant's dashboard: things the assistant should do or check, each linking to its record. It lists overdue tasks until they are no longer overdue, and clients, opportunities, and tasks the realtor created until the assistant marks them done. It replaces the earlier idea of a review queue. | review queue, queue, notifications, messages, attention |
+| Upcoming | Widget | Widget | On both dashboards: the realtor's tasks whose date or due date falls in the next several days. | upcoming events, agenda |
+| Key dates | Widget | Widget | On the realtor's dashboard: clients' birthdays and key dates coming up in the next few weeks. | occasions |
+| Realtor's day | Widget | Widget | On the assistant's dashboard: the realtor's Today's Tasks. The assistant can edit them there, but the widget is locked against accidental edits until deliberately unlocked. |  |
+| Pipeline summary | Widget | Widget | On the assistant's dashboard: the number of opportunities in each stage, linking to the board. |  |
+| Recent activity | Widget | Widget | On the assistant's dashboard: the latest changes across records, drawn from their history. | feed, audit log |
 
 ### Pipeline
 
@@ -165,26 +176,32 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | --- | --- | --- | --- | --- |
 | Pipeline | Module |  | The module whose single board moves every opportunity through the stages, whatever its type. | funnel, workflow, kanban (as a name) |
 | Opportunity | Record | Pipeline | A prospective engagement, usually with one or more clients; the unit the pipeline tracks. A client is not required. | deal, lead, listing, job, project, transaction |
-| Opportunity type | Field | Opportunity | Exactly four, with no "other": Buyer (the client is buying a home), Seller (the client is selling a home), Estate Sale (a referral to the partner company that runs the sale), Construction (work the realtor takes on personally as a side line). Fixed for now but implemented so another type can be added later without a redesign. Changing an opportunity's type is treated as a correction and replaces its checklists with the new type's templates. | category, kind, deal type |
+| Opportunity type | Field | Opportunity | Exactly four, with no "other": Buyer (the client is buying a home), Seller (the client is selling a home), Estate Sale (a referral to the partner company that runs the sale), Construction (work the realtor takes on personally as a side line). Fixed for now but implemented so another type can be added later without a redesign. Chosen when the opportunity is created and never changed; an opportunity created with the wrong type is deleted and created again. | category, kind, deal type |
 | Stage | Field | Opportunity | A fixed position in the pipeline, in order: New lead (an inquiry not yet worked in depth), Active lead (committed and underway: qualifying, searching, showing, negotiating), Under contract (a signed agreement in force, through due diligence and closing), Closed (the engagement completed). | status, column, phase, step |
 | Lead | Value | Stage | Appears only inside the stage names New lead and Active lead. Never call a client or an opportunity "a lead". |  |
 | Timeline | Field | Opportunity | The client's stated horizon: 1-3 mo, 3-6 mo, or 6+ mo. Optional; used to prioritize, filter, and sort, never to gate or judge. | urgency, priority, deadline, temperature |
-| Checklist | Field | Opportunity | An opportunity's checklist items for one stage. Each stage keeps its own checklist, so returning to a stage shows it as it was left. A checklist starts from its checklist template and keeps following it: template changes reach every opportunity, except items that were added, renamed, removed, or reordered on that opportunity, which keep their local version. *Open:* What happens to tasks promoted from items that a type change replaces. | to-do list, task list |
+| Checklist | Field | Opportunity | An opportunity's checklist items for one stage. Each stage keeps its own checklist, so returning to a stage shows it as it was left. A checklist starts from its checklist template and keeps following it: template changes reach every opportunity, except items that were added, renamed, removed, or reordered on that opportunity, which keep their local version. | to-do list, task list |
 | Checklist item | Value | Checklist | One line of a checklist. It can be checked off, and giving it a date or a due date promotes it to a task. | step, to-do |
-| Promote | Action | Checklist item | Turn a checklist item into a task on the realtor's task list by giving it a date or a due date. Behind the scenes this creates a task linked to the item. The two share one title, and completing, reopening, or deleting either one does the same to the other. When the opportunity moves to another stage, each open task promoted from the current stage's checklist can be completed, deleted, or ignored. *Open:* Keeping the task and item titles in sync is a working assumption. | convert, escalate |
-| Checklist template | Concept | Opportunity | The checklist for one opportunity type at one stage, 16 in all, edited in Settings. Editing a template changes the default checklists of every opportunity at that type and stage. | preset |
+| Promote | Action | Checklist item | Turn a checklist item into a task on the realtor's task list by giving it a date or a due date. Behind the scenes this creates a task linked to the item. The two always share one title, so renaming either renames both, and completing, reopening, or deleting either one does the same to the other. When the opportunity moves to another stage, each open task promoted from the current stage's checklist can be completed, deleted, or ignored. | convert, escalate |
+| Checklist template | Concept | Opportunity | The checklist for one opportunity type at one stage, 16 in all, edited in Settings. Edits are saved together and change the default checklists of every opportunity at that type and stage; a removed item stays on opportunities where it is checked off or promoted. | preset |
 
 ### Registry
 
 | Term | Kind | Belongs to | Meaning | Not |
 | --- | --- | --- | --- | --- |
-| Registry | Module |  | The module listing every client. "Client registry" is fine where it reads more clearly. *Open:* The name may change. | client list, contacts, directory |
-| Client | Record | Registry | A person the business has a relationship with. A client exists on its own and can take part in several opportunities. | contact, customer, lead, prospect |
+| Registry | Module |  | The module listing every client. "Client registry" is fine where it reads more clearly. | client list, contacts, directory |
+| Client | Record | Registry | A person, or several people such as a married couple, whom the business treats as one relationship. A client exists on its own and can take part in several opportunities. | contact, customer, lead, prospect |
+| Person | Field | Client | One of the people a client holds, with their own name, birthday, and labeled phone numbers and email addresses. "The Millers" is one client holding two people. | contact, individual, member |
+| Address | Field | Client | One of a client's addresses, of any kind, with a label from Registry settings and a marker for whether the client owns it. Distinct from an opportunity's property address. | owned property, holding |
+| Referred by | Field | Client | Who referred the client: another client, linked, or a typed name when the referrer is not a client, such as a lender or another agent. | referrer, referral source |
+| Relationship | Field | Client | A labeled link between two clients, such as parent, sibling, or colleague. Labels are edited in Registry settings. | connection, household link |
+| Key date | Field | Client | A named custom date on a client, such as a wedding anniversary or a home purchase. | important date, occasion |
+| Preferences | Field | Client | Free text on how to treat a client, including how to address them. Later it may give AI features context. | salutation, profile, about |
+| Consent | Field | Client | Whether a client may be contacted by call, text, email, and mail. On for every client by default; the assistant turns channels off, and turning all of them off marks the client as not to be contacted. | contact permissions, opt-in, do-not-contact flag |
 | Lead source | Field | Client | Where a client came from: a referral, an open house, a sign, the website, a walk-in. | source tag, channel |
-| Tag | Field | Client | A relationship label on a client. An opportunity shows the combined tags of its clients, read-only. | label, category |
+| Tag | Field | Client | A label saying where a client stands with the business, such as sphere or nurture. An opportunity shows the combined tags of its clients, read-only. How a client came to the business is lead source and Referred by, not a tag. | label, category |
 | Sphere | Value | Tag | In the realtor's sphere of influence: past clients, friends and family, and their wider network. |  |
-| Nurture | Value | Tag | Worth staying in touch with, but not looking to transact now. *Open:* The follow-up behavior built on it, which belongs in the MVP but is not specified yet. |  |
-| Referral | Value | Tag | The client was referred to the business. It says how the relationship started, not that the client refers others. |  |
+| Nurture | Value | Tag | Worth staying in touch with, but not looking to transact now. *Open:* Its follow-up behavior, which is not part of the MVP and will be decided once the MVP has been tested; an interval set per tag is the leading idea. |  |
 | Retired tag | Status | Tag | A tag that can no longer be applied but stays on existing clients until removed. | archived tag, deleted tag |
 
 ### Task

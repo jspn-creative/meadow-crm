@@ -90,9 +90,8 @@ export const vocabulary: Term[] = [
 		term: "Module",
 		kind: "Concept",
 		meaning:
-			"A feature with its own sidebar item. A module owns one or more views. The modules are Dashboard, Pipeline, and Registry.",
+			"A feature with its own sidebar item. A module owns one or more views. The modules are Dashboard, Pipeline, and Registry, and none of them can be switched off; later modules may be optional.",
 		not: ["section", "area", "app"],
-		open: "Whether a module can be switched off.",
 	},
 	{
 		term: "View",
@@ -100,6 +99,15 @@ export const vocabulary: Term[] = [
 		meaning:
 			"Something a user navigates to that shows records or tools. Most views belong to a module, and a module can have several. A few views belong to no module, such as Settings and the Glossary.",
 		not: ["page", "screen"],
+		children: [
+			{
+				term: "View options",
+				kind: "Concept",
+				meaning:
+					"A discreet panel on a view that chooses what the view shows, such as which details the board's opportunity cards show. Saved in the user's browser.",
+				not: ["display settings", "settings"],
+			},
+		],
 	},
 	{
 		term: "Integration",
@@ -133,16 +141,15 @@ export const vocabulary: Term[] = [
 				term: "Archive",
 				kind: "Action",
 				meaning:
-					"Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements.",
+					"Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. A record created by mistake is deleted, not archived.",
 				not: ["delete", "remove", "close"],
 			},
 			{
 				term: "Delete",
 				kind: "Action",
 				meaning:
-					"Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly.",
+					"Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly. Clients can be deleted, only from the Registry; opportunities and tasks can be deleted too.",
 				not: ["archive"],
-				open: "Which records can be deleted, and how. Some delete options will exist in the MVP.",
 			},
 		],
 	},
@@ -150,9 +157,8 @@ export const vocabulary: Term[] = [
 		term: "Dashboard",
 		kind: "Module",
 		meaning:
-			"The landing module. For now there are two fixed versions: one for the realtor and one for the assistant.",
+			"The landing module. For now there are two fixed versions: one for the realtor and one for the assistant. Dashboards users customize themselves may come later.",
 		not: ["home", "overview"],
-		open: "Letting users customize their own dashboards later.",
 		children: [
 			{
 				term: "Widget",
@@ -170,9 +176,41 @@ export const vocabulary: Term[] = [
 						term: "Inbox",
 						kind: "Widget",
 						meaning:
-							"On the assistant's dashboard: things the assistant should do or check, each linking to its source record. It replaces the earlier idea of a review queue.",
+							"On the assistant's dashboard: things the assistant should do or check, each linking to its record. It lists overdue tasks until they are no longer overdue, and clients, opportunities, and tasks the realtor created until the assistant marks them done. It replaces the earlier idea of a review queue.",
 						not: ["review queue", "queue", "notifications", "messages", "attention"],
-						open: "What it lists; overdue tasks are a likely start.",
+					},
+					{
+						term: "Upcoming",
+						kind: "Widget",
+						meaning:
+							"On both dashboards: the realtor's tasks whose date or due date falls in the next several days.",
+						not: ["upcoming events", "agenda"],
+					},
+					{
+						term: "Key dates",
+						kind: "Widget",
+						meaning:
+							"On the realtor's dashboard: clients' birthdays and key dates coming up in the next few weeks.",
+						not: ["occasions"],
+					},
+					{
+						term: "Realtor's day",
+						kind: "Widget",
+						meaning:
+							"On the assistant's dashboard: the realtor's Today's Tasks. The assistant can edit them there, but the widget is locked against accidental edits until deliberately unlocked.",
+					},
+					{
+						term: "Pipeline summary",
+						kind: "Widget",
+						meaning:
+							"On the assistant's dashboard: the number of opportunities in each stage, linking to the board.",
+					},
+					{
+						term: "Recent activity",
+						kind: "Widget",
+						meaning:
+							"On the assistant's dashboard: the latest changes across records, drawn from their history.",
+						not: ["feed", "audit log"],
 					},
 				],
 			},
@@ -196,7 +234,7 @@ export const vocabulary: Term[] = [
 						term: "Opportunity type",
 						kind: "Field",
 						meaning:
-							"Exactly four, with no \"other\": Buyer (the client is buying a home), Seller (the client is selling a home), Estate Sale (a referral to the partner company that runs the sale), Construction (work the realtor takes on personally as a side line). Fixed for now but implemented so another type can be added later without a redesign. Changing an opportunity's type is treated as a correction and replaces its checklists with the new type's templates.",
+							'Exactly four, with no "other": Buyer (the client is buying a home), Seller (the client is selling a home), Estate Sale (a referral to the partner company that runs the sale), Construction (work the realtor takes on personally as a side line). Fixed for now but implemented so another type can be added later without a redesign. Chosen when the opportunity is created and never changed; an opportunity created with the wrong type is deleted and created again.',
 						not: ["category", "kind", "deal type"],
 					},
 					{
@@ -227,7 +265,6 @@ export const vocabulary: Term[] = [
 						meaning:
 							"An opportunity's checklist items for one stage. Each stage keeps its own checklist, so returning to a stage shows it as it was left. A checklist starts from its checklist template and keeps following it: template changes reach every opportunity, except items that were added, renamed, removed, or reordered on that opportunity, which keep their local version.",
 						not: ["to-do list", "task list"],
-						open: "What happens to tasks promoted from items that a type change replaces.",
 						children: [
 							{
 								term: "Checklist item",
@@ -240,9 +277,8 @@ export const vocabulary: Term[] = [
 										term: "Promote",
 										kind: "Action",
 										meaning:
-											"Turn a checklist item into a task on the realtor's task list by giving it a date or a due date. Behind the scenes this creates a task linked to the item. The two share one title, and completing, reopening, or deleting either one does the same to the other. When the opportunity moves to another stage, each open task promoted from the current stage's checklist can be completed, deleted, or ignored.",
+											"Turn a checklist item into a task on the realtor's task list by giving it a date or a due date. Behind the scenes this creates a task linked to the item. The two always share one title, so renaming either renames both, and completing, reopening, or deleting either one does the same to the other. When the opportunity moves to another stage, each open task promoted from the current stage's checklist can be completed, deleted, or ignored.",
 										not: ["convert", "escalate"],
-										open: "Keeping the task and item titles in sync is a working assumption.",
 									},
 								],
 							},
@@ -252,7 +288,7 @@ export const vocabulary: Term[] = [
 						term: "Checklist template",
 						kind: "Concept",
 						meaning:
-							"The checklist for one opportunity type at one stage, 16 in all, edited in Settings. Editing a template changes the default checklists of every opportunity at that type and stage.",
+							"The checklist for one opportunity type at one stage, 16 in all, edited in Settings. Edits are saved together and change the default checklists of every opportunity at that type and stage; a removed item stays on opportunities where it is checked off or promoted.",
 						not: ["preset"],
 					},
 				],
@@ -265,15 +301,62 @@ export const vocabulary: Term[] = [
 		meaning:
 			'The module listing every client. "Client registry" is fine where it reads more clearly.',
 		not: ["client list", "contacts", "directory"],
-		open: "The name may change.",
 		children: [
 			{
 				term: "Client",
 				kind: "Record",
 				meaning:
-					"A person the business has a relationship with. A client exists on its own and can take part in several opportunities.",
+					"A person, or several people such as a married couple, whom the business treats as one relationship. A client exists on its own and can take part in several opportunities.",
 				not: ["contact", "customer", "lead", "prospect"],
 				children: [
+					{
+						term: "Person",
+						kind: "Field",
+						meaning:
+							'One of the people a client holds, with their own name, birthday, and labeled phone numbers and email addresses. "The Millers" is one client holding two people.',
+						not: ["contact", "individual", "member"],
+					},
+					{
+						term: "Address",
+						kind: "Field",
+						meaning:
+							"One of a client's addresses, of any kind, with a label from Registry settings and a marker for whether the client owns it. Distinct from an opportunity's property address.",
+						not: ["owned property", "holding"],
+					},
+					{
+						term: "Referred by",
+						kind: "Field",
+						meaning:
+							"Who referred the client: another client, linked, or a typed name when the referrer is not a client, such as a lender or another agent.",
+						not: ["referrer", "referral source"],
+					},
+					{
+						term: "Relationship",
+						kind: "Field",
+						meaning:
+							"A labeled link between two clients, such as parent, sibling, or colleague. Labels are edited in Registry settings.",
+						not: ["connection", "household link"],
+					},
+					{
+						term: "Key date",
+						kind: "Field",
+						meaning: "A named custom date on a client, such as a wedding anniversary or a home purchase.",
+						not: ["important date", "occasion"],
+					},
+					{
+						term: "Preferences",
+						kind: "Field",
+						meaning:
+							"Free text on how to treat a client, including how to address them. Later it may give AI features context.",
+						not: ["salutation", "profile", "about"],
+					},
+					{
+						term: "Consent",
+						kind: "Field",
+						meaning:
+							"Whether a client may be contacted by call, text, email, and mail. On for every client by default; the assistant turns channels off, and turning all of them off marks the client as not to be contacted.",
+						not: ["contact permissions", "opt-in", "do-not-contact flag"],
+					},
 					{
 						term: "Lead source",
 						kind: "Field",
@@ -285,7 +368,7 @@ export const vocabulary: Term[] = [
 						term: "Tag",
 						kind: "Field",
 						meaning:
-							"A relationship label on a client. An opportunity shows the combined tags of its clients, read-only.",
+							"A label saying where a client stands with the business, such as sphere or nurture. An opportunity shows the combined tags of its clients, read-only. How a client came to the business is lead source and Referred by, not a tag.",
 						not: ["label", "category"],
 						children: [
 							{
@@ -299,13 +382,7 @@ export const vocabulary: Term[] = [
 								kind: "Value",
 								meaning: "Worth staying in touch with, but not looking to transact now.",
 								open:
-									"The follow-up behavior built on it, which belongs in the MVP but is not specified yet.",
-							},
-							{
-								term: "Referral",
-								kind: "Value",
-								meaning:
-									"The client was referred to the business. It says how the relationship started, not that the client refers others.",
+									"Its follow-up behavior, which is not part of the MVP and will be decided once the MVP has been tested; an interval set per tag is the leading idea.",
 							},
 							{
 								term: "Retired tag",
@@ -351,15 +428,14 @@ export const vocabulary: Term[] = [
 		term: "Settings",
 		kind: "View",
 		meaning:
-			"Configuration, opened from the account menu. Working assumption: panels for User preferences, Business settings, and one per module.",
+			"Configuration, opened from the account menu, with a panel for User preferences, one for Business settings, and one per module.",
 		not: ["preferences (as the view's name)", "admin", "config"],
-		open: "How Settings is organized.",
 	},
 	{
 		term: "Glossary",
 		kind: "View",
 		meaning: "This vocabulary as a searchable, expandable table, opened from the account menu.",
 		not: ["reference page (a reference is a link on a record)"],
-		open: "Whether it grows into a help view with tips and FAQs.",
+		open: "Whether it grows into a help view with tips and FAQs after the MVP.",
 	},
 ];
