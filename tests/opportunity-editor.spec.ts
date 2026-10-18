@@ -68,7 +68,6 @@ test("opportunity editor persists multiple clients, optional USD fields, referen
 	await expect(dialog.getByLabel("Notes", { exact: true })).toHaveValue("Retained offline draft");
 	await page.unroute("**/_app/remote/**/saveOpportunity");
 	await dialog.getByRole("button", { name: "Remove reference 1", exact: true }).click();
-	await dialog.getByLabel("Type", { exact: true }).selectOption("seller");
 	await dialog.getByRole("button", { name: "Save opportunity", exact: true }).click();
 	await expect(documentLink).toHaveCount(0);
 	await dialog.getByRole("link", { name: "Related opportunity", exact: true }).click();

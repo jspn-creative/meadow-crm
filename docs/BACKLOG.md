@@ -4,9 +4,8 @@ What is left to build for the MVP, in rough dependency order. [SPEC.md](./SPEC.m
 
 ## Next
 
-1. Fix an opportunity's type once it is created: remove type from opportunity editing.
-2. Pipeline board: four stages holding every type, filters for type, timeline, and tag, sorting by timeline, archived opportunities never shown.
-3. Move opportunities between stages from the board and from the detail view, recording history.
+1. Pipeline board: four stages holding every type, filters for type, timeline, and tag, sorting by timeline, archived opportunities never shown.
+2. Move opportunities between stages from the board and from the detail view, recording history.
 4. Archive and restore opportunities, with a view of archived ones.
 5. Delete an opportunity, with its checklists; once promoting exists, the tasks promoted from its checklists go with it.
 6. Per-item checklist edits: add, remove, rename, and reorder items on one opportunity, while template changes keep reaching the items not edited there. This replaces today's whole-stage "customized" flag.

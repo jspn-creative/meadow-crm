@@ -23,7 +23,6 @@
 		const input = {
 			id: draft.id,
 			title: draft.title,
-			type: draft.type,
 			stage: draft.stage,
 			clientIds: [...draft.clientIds],
 			timeline: (draft.timeline || null) as Workspace["opportunities"][number]["timeline"],
@@ -32,7 +31,11 @@
 			notes: draft.notes,
 			references: draft.references.map((reference) => (reference.kind === "url" ? { kind: "url" as const, label: reference.label, url: reference.destination } : { kind: reference.kind, label: reference.label, targetId: reference.destination })),
 		};
-		const payload = JSON.stringify({ ...input, revision: draft.revision });
+		const payload = JSON.stringify({
+			...input,
+			...(!draft.revision ? { type: draft.type } : {}),
+			revision: draft.revision,
+		});
 		if (payload !== previousPayload) {
 			requestId = crypto.randomUUID();
 			previousPayload = payload;
@@ -40,7 +43,7 @@
 		pending = true;
 		try {
 			if (draft.revision) await saveOpportunity({ ...input, requestId, revision: draft.revision }).updates(remote);
-			else await createOpportunityRecord({ ...input, requestId }).updates(remote);
+			else await createOpportunityRecord({ ...input, type: draft.type, requestId }).updates(remote);
 			saved();
 		} catch {
 			failure = "Opportunity could not be saved. Check the fields and links; if the record changed, refresh and reopen the editor. Your draft is retained.";
@@ -54,16 +57,16 @@
 	<fieldset disabled={pending} class="min-w-0 space-y-5">
 		<label class="block space-y-2"><span class="font-medium">Opportunity title</span><input class="field" bind:value={draft.title} required maxlength="200" /></label>
 		<div class="grid min-w-0 gap-4 @min-[28rem]/opportunity:grid-cols-2">
-			<label class="block min-w-0 space-y-2"
-				><span class="font-medium">Type</span><select class="field" aria-label="Type" bind:value={draft.type}
-					>{#each Object.entries(typeLabels) as [value, label] (value)}<option {value}>{label}</option>{/each}</select
-				></label>
+			{#if !draft.revision}<label class="block min-w-0 space-y-2"
+					><span class="font-medium">Type</span><select class="field" aria-label="Type" bind:value={draft.type}
+						>{#each Object.entries(typeLabels) as [value, label] (value)}<option {value}>{label}</option>{/each}</select
+					></label
+				>{/if}
 			<label class="block min-w-0 space-y-2"
 				><span class="font-medium">{draft.revision ? "Stage" : "Initial stage"}</span><select class="field" aria-label={draft.revision ? "Stage" : "Initial stage"} bind:value={draft.stage}
 					>{#each Object.entries(stageLabels) as [value, label] (value)}<option {value}>{label}</option>{/each}</select
 				></label>
 		</div>
-		{#if draft.revision}<p class="text-muted text-xs">Changing type keeps all visited-stage checklist work. New stages use the new type’s defaults.</p>{/if}
 		<fieldset class="min-w-0">
 			<legend class="mb-2 font-medium">Linked clients · choose one or more</legend>
 			<div class="border-hairline max-h-48 overflow-y-auto rounded-xl border p-2">
