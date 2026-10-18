@@ -583,12 +583,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				{ operation: "delete-opportunity", ...value },
 				{ id: value.id, revision: value.revision },
 				(guard, now) => {
-					// Collect the checklist ids for this opportunity so their children can be removed first.
-					const checklistRows = orm
-						.select({ id: stageChecklists.id })
-						.from(stageChecklists)
-						.where(eq(stageChecklists.opportunityId, value.id));
-					// We can't await inside the statements builder (it's sync), so resolve ids via a subquery in SQL instead.
+					// Resolve checklist ids via subqueries in SQL since the statements builder is sync.
 					return [
 						// 1. checklist_progress for this opportunity's checklists
 						stmt(
