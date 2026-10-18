@@ -115,3 +115,4 @@ export const bulkArchiveInput = v.strictObject({
 });
 export const archiveOpportunityInput = v.strictObject({ requestId: id, id, revision });
 export const restoreOpportunityInput = v.strictObject({ requestId: id, id, revision });
+export const deleteOpportunityInput = v.strictObject({ requestId: id, id, revision });

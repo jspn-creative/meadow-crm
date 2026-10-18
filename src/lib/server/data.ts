@@ -22,6 +22,7 @@ import {
 	bulkArchiveInput,
 	createClientInput,
 	createOpportunityInput,
+	deleteOpportunityInput,
 	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
@@ -573,6 +574,48 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						archivedAt: null,
 					}),
 				],
+			);
+		},
+		async deleteOpportunity(input: unknown) {
+			const value = v.parse(deleteOpportunityInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "delete-opportunity", ...value },
+				{ id: value.id, revision: value.revision },
+				(guard, now) => {
+					// Collect the checklist ids for this opportunity so their children can be removed first.
+					const checklistRows = orm
+						.select({ id: stageChecklists.id })
+						.from(stageChecklists)
+						.where(eq(stageChecklists.opportunityId, value.id));
+					// We can't await inside the statements builder (it's sync), so resolve ids via a subquery in SQL instead.
+					return [
+						// 1. checklist_progress for this opportunity's checklists
+						stmt(
+							"DELETE FROM checklist_progress WHERE checklist_id IN (SELECT id FROM stage_checklists WHERE opportunity_id = ?)",
+							value.id,
+						),
+						// 2. checklist_items for this opportunity's checklists
+						stmt(
+							"DELETE FROM checklist_items WHERE checklist_id IN (SELECT id FROM stage_checklists WHERE opportunity_id = ?)",
+							value.id,
+						),
+						// 3. stage_checklists for this opportunity
+						stmt("DELETE FROM stage_checklists WHERE opportunity_id = ?", value.id),
+						// 4. record_references for this opportunity
+						stmt("DELETE FROM record_references WHERE opportunity_id = ?", value.id),
+						// 5. opportunity_clients for this opportunity
+						stmt("DELETE FROM opportunity_clients WHERE opportunity_id = ?", value.id),
+						// 6. tasks promoted from this opportunity's checklists
+						stmt("DELETE FROM tasks WHERE opportunity_id = ?", value.id),
+						// 7. history for this opportunity
+						stmt("DELETE FROM history WHERE record_kind = 'opportunity' AND record_id = ?", value.id),
+						// 8. the opportunity itself (guarded by revision match)
+						stmt("DELETE FROM opportunities WHERE id = ? AND revision = ?", value.id, value.revision),
+						stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+						// append a final history row is impossible for a deleted record; skip.
+					];
+				},
 			);
 		},
 		async bulkArchive(input: unknown) {

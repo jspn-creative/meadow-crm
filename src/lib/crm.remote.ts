@@ -6,6 +6,7 @@ import {
 	createClientInput,
 	createOpportunityInput,
 	createOpportunityFormInput,
+	deleteOpportunityInput,
 	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
@@ -74,4 +75,9 @@ export const archiveOpportunity = command(archiveOpportunityInput, (input) => {
 export const restoreOpportunity = command(restoreOpportunityInput, (input) => {
 	const data = services();
 	return save(() => data.restoreOpportunity(input));
+});
+
+export const deleteOpportunity = command(deleteOpportunityInput, (input) => {
+	const data = services();
+	return save(() => data.deleteOpportunity(input));
 });

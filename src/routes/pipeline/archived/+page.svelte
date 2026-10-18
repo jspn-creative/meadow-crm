@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
-	import { getWorkspace, restoreOpportunity } from "#lib/crm.remote.js";
+	import { getWorkspace, deleteOpportunity, restoreOpportunity } from "#lib/crm.remote.js";
 	import { workspaceData } from "#lib/data/workspace.js";
 	import { stageLabels, typeLabels } from "#lib/pipeline/labels.js";
 	const remote = getWorkspace({ archived: true });
@@ -24,6 +24,22 @@
 			status = "Opportunity restored.";
 		} catch {
 			failure = "Opportunity could not be restored or has changed. Refresh before retrying.";
+			status = "";
+		} finally {
+			pending = false;
+		}
+	}
+
+	async function deleteOpportunityFn(opportunity: (typeof workspace.opportunities)[number]) {
+		if (!confirm("Delete this opportunity? This cannot be undone.")) return;
+		pending = true;
+		failure = "";
+		status = "Deleting opportunity…";
+		try {
+			await data.delete({ requestId: crypto.randomUUID(), id: opportunity.id, revision: opportunity.revision });
+			status = "Opportunity deleted.";
+		} catch {
+			failure = "Opportunity could not be deleted or has changed. Refresh before retrying.";
 			status = "";
 		} finally {
 			pending = false;
@@ -59,6 +75,7 @@
 						<span class="text-muted mt-1 block text-xs wrap-anywhere">{clientNames(opportunity) || "No linked clients"}</span>
 					</div>
 					<button type="button" class="control" disabled={!ready || pending} onclick={() => restore(opportunity)}>{pending ? "Restoring…" : "Restore"}</button>
+					<button type="button" class="control" disabled={!ready || pending} onclick={() => deleteOpportunityFn(opportunity)}>Delete</button>
 				</div>
 			</div>
 		{:else}

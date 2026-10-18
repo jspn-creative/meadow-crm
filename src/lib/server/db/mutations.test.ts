@@ -387,6 +387,43 @@ test("archiving an opportunity hides it from the board and restoring brings it b
 	await db.prepare("DELETE FROM clients WHERE id = ?").bind(clientId).run();
 });
 
+test("deleting an opportunity removes it and its checklists, links, references, and tasks", async () => {
+	const clientId = crypto.randomUUID();
+	const id = crypto.randomUUID();
+	await realtor.createClient({
+		requestId: crypto.randomUUID(),
+		id: clientId,
+		name: "Delete client",
+	});
+	await realtor.createOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		clientId,
+		title: "Fictional deletable listing",
+		type: "buyer",
+		stage: "new-lead",
+	});
+	let workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.some((row) => row.id === id)).toBe(true);
+	const row = workspace.opportunities.find((row) => row.id === id)!;
+	const revision = row.revision;
+
+	await realtor.deleteOpportunity({ requestId: crypto.randomUUID(), id, revision });
+
+	const activeWorkspace = await realtor.workspace({ archived: false });
+	const archivedWorkspace = await realtor.workspace({ archived: true });
+	expect(activeWorkspace.opportunities.some((row) => row.id === id)).toBe(false);
+	expect(archivedWorkspace.opportunities.some((row) => row.id === id)).toBe(false);
+	expect(activeWorkspace.links.filter((link) => link.opportunityId === id)).toEqual([]);
+	expect(activeWorkspace.history.filter((change) => change.recordId === id)).toEqual([]);
+
+	await expect(
+		realtor.deleteOpportunity({ requestId: crypto.randomUUID(), id, revision }),
+	).rejects.toBeInstanceOf(DataConflict);
+
+	await db.prepare("DELETE FROM clients WHERE id = ?").bind(clientId).run();
+});
+
 beforeAll(async () => {
 	proxy = await getPlatformProxy<{ DB: D1Database }>({
 		configPath: "wrangler.jsonc",

@@ -1,6 +1,7 @@
 import {
 	getWorkspace,
 	archiveOpportunity,
+	deleteOpportunity,
 	moveStage,
 	restoreOpportunity,
 	saveChecklistStep,
@@ -9,6 +10,7 @@ import {
 export type Workspace = Awaited<ReturnType<typeof getWorkspace>>;
 export type StageMove = Parameters<typeof moveStage>[0];
 export type ArchiveOpportunity = Parameters<typeof archiveOpportunity>[0];
+export type DeleteOpportunity = Parameters<typeof deleteOpportunity>[0];
 export type RestoreOpportunity = Parameters<typeof restoreOpportunity>[0];
 
 export function identityKey(identity: Workspace["identity"]) {
@@ -75,6 +77,15 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		async restore(input: RestoreOpportunity) {
 			current();
 			await restoreOpportunity(input).updates(
+				query.withOverride((snapshot) => ({
+					...snapshot,
+					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
+				})),
+			);
+		},
+		async delete(input: DeleteOpportunity) {
+			current();
+			await deleteOpportunity(input).updates(
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),

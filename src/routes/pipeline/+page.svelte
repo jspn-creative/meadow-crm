@@ -125,6 +125,24 @@
 			pending = false;
 		}
 	}
+
+	async function deleteOpportunityFn(opportunity: { id: string; revision: number }) {
+		if (!confirm("Delete this opportunity? This cannot be undone.")) return;
+		pending = true;
+		failure = "";
+		status = "Deleting opportunity…";
+		try {
+			await data.delete({ requestId: crypto.randomUUID(), id: opportunity.id, revision: opportunity.revision });
+			if (selected && opportunity.id === selected.id) selectedId = "";
+			if (selectedId === opportunity.id) selectedId = "";
+			status = "Opportunity deleted.";
+		} catch {
+			failure = "Opportunity could not be deleted or has changed. Refresh before retrying.";
+			status = "";
+		} finally {
+			pending = false;
+		}
+	}
 </script>
 
 <svelte:head><title>Pipeline · Meadow Lane</title></svelte:head>
@@ -187,6 +205,7 @@
 								<select id={`card-stage-${opportunity.id}`} class="field" value={opportunity.stage} disabled={pending} onchange={(event) => moveCard(opportunity, event.currentTarget.value as keyof typeof stageLabels)}
 									>{#each stages as stage (stage)}<option value={stage}>{stageLabels[stage]}</option>{/each}</select>
 								<button type="button" class="control" disabled={!ready || pending} onclick={() => archive(opportunity)}>Archive</button>
+								<button type="button" class="control" disabled={!ready || pending} onclick={() => deleteOpportunityFn(opportunity)}>Delete</button>
 							</div>
 						</div>
 					{:else}<p class="text-muted py-4 text-xs">No opportunities in this stage.</p>{/each}
@@ -273,6 +292,7 @@
 								}
 							}}>Edit opportunity</button>
 						<button type="button" class="control" disabled={!ready || pending} onclick={() => selected && archive(selected)}>Archive opportunity</button>
+						<button type="button" class="control" disabled={!ready || pending} onclick={() => selected && deleteOpportunityFn(selected)}>Delete opportunity</button>
 						{#if drafts[selected.id]}<p class="text-muted text-xs">An unsaved editing draft is retained.</p>
 							<button
 								type="button"
