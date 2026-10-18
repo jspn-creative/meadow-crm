@@ -7,8 +7,7 @@ export const destinations = [
 ] as const;
 
 export function workspaceDestination(value: string | null) {
-	return ["/tasks", "/inbox", "/settings"].includes(value ?? "") ||
-		destinations.some((destination) => destination.href === value)
+	return value === "/settings" || destinations.some((destination) => destination.href === value)
 		? value!
 		: "/";
 }

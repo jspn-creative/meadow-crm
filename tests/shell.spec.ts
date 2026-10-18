@@ -150,8 +150,6 @@ test("destinations, history, dashboard tasks, and uncluttered workspace", async 
 	await page.getByRole("link", { name: "Dashboard", exact: true }).click();
 	await expect(page.getByRole("heading", { name: "Checklist attention" })).toBeVisible();
 	await expect(page.getByRole("heading", { name: "Realtor tasks" })).toBeVisible();
-	await page.getByRole("link", { name: "View all", exact: true }).click();
-	await expect(page).toHaveURL(/\/tasks$/);
 	await expect(
 		page
 			.getByRole("navigation", { name: "Sections" })

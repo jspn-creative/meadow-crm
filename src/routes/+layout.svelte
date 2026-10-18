@@ -19,7 +19,7 @@
 	let mobileScrolled = $state(false);
 	let isLogin = $derived(page.url.pathname === "/login");
 	let current = $derived(destinations.find((destination) => destination.href === page.url.pathname));
-	let title = $derived(current?.label ?? { "/tasks": "Tasks", "/inbox": "Inbox", "/settings": "Settings", "/glossary": "Glossary" }[page.url.pathname as "/tasks" | "/inbox" | "/settings" | "/glossary"] ?? "Workspace");
+	let title = $derived(current?.label ?? { "/settings": "Settings", "/glossary": "Glossary" }[page.url.pathname as "/settings" | "/glossary"] ?? "Workspace");
 	let transition: ViewTransition | undefined;
 	const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 	const desktop = new MediaQuery("(min-width: 64rem)");

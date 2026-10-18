@@ -7,10 +7,10 @@
 	import DueBadge from "#lib/ui/DueBadge.svelte";
 	let workspace = $derived(await getWorkspace({ archived: false }));
 	let attention = $derived(checklistAttention(workspace));
-	let { order = 0, showAction = true }: { order?: number; showAction?: boolean } = $props();
+	let { order = 0 }: { order?: number } = $props();
 </script>
 
-<DashboardCard title="Checklist attention" headingId="attention-heading" description={`${attention.length} overdue`} action={showAction ? { href: "/inbox", label: "Open inbox" } : undefined} {order}>
+<DashboardCard title="Checklist attention" headingId="attention-heading" description={`${attention.length} overdue`} {order}>
 	<ul class="space-y-(--card-gap)">
 		{#each attention as item (item.id)}
 			<li>

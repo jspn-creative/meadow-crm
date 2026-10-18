@@ -5,6 +5,6 @@
 	let { order = 0 }: { order?: number } = $props();
 </script>
 
-<DashboardCard title="Realtor tasks" headingId="tasks-heading" action={{ href: "/tasks", label: "View all" }} {order}>
+<DashboardCard title="Realtor tasks" headingId="tasks-heading" {order}>
 	<TaskList items={tasks} />
 </DashboardCard>

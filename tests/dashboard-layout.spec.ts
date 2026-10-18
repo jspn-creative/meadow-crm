@@ -118,7 +118,7 @@ test("task rows retain their own presentation when reordered and accept neutral 
 }) => {
 	const errors: string[] = [];
 	page.on("pageerror", (error) => errors.push(error.message));
-	await page.goto("/login?next=%2Ftasks");
+	await page.goto("/login?next=%2F");
 	await page.evaluate(async (path) => {
 		const { tasks } = await import(path);
 		tasks.reverse();
@@ -130,8 +130,7 @@ test("task rows retain their own presentation when reordered and accept neutral 
 		});
 	}, "/src/lib/shell/fixtures.ts");
 	await page.getByRole("button", { name: "Enter demo workspace" }).click();
-	await expect(page).toHaveURL(/\/tasks$/);
-	await expect(page.getByRole("link", { name: "View all", exact: true })).toHaveCount(0);
+	await expect(page).toHaveURL(/\/$/);
 	await expect(page.locator("[data-tasks] details")).toHaveCount(4);
 	const call = page.locator('[data-task-id="call"]');
 	await call.locator("summary").click();
@@ -166,8 +165,6 @@ test("widget stagger is explicit and reduced motion removes it", async ({ page }
 	expect(delays).toEqual(["0s", "0.06s", "0.12s", "0.18s", "0.24s"]);
 	await page.emulateMedia({ reducedMotion: "reduce" });
 	for (const widget of await widgets.all()) await expect(widget).toHaveCSS("animation-name", "none");
-	await page.goto("/inbox");
-	await expect(page.getByRole("link", { name: "Open inbox", exact: true })).toHaveCount(0);
 });
 
 test("background preserves all default Quiet Cream ring paths", async ({ page }) => {
