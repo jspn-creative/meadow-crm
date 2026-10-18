@@ -282,6 +282,35 @@ test("persisted slice inherits defaults and retains guarded step saves across st
 	).rejects.toBeInstanceOf(DataConflict);
 });
 
+test("an opportunity can be created and saved with no clients", async () => {
+	const id = crypto.randomUUID();
+	await realtor.createOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		title: "Fictional no-client viewing",
+		type: "buyer",
+		stage: "new-lead",
+		clientIds: [],
+	});
+	let workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.some((row) => row.id === id)).toBe(true);
+	expect(workspace.links.filter((link) => link.opportunityId === id)).toEqual([]);
+
+	const row = workspace.opportunities.find((record) => record.id === id)!;
+	await realtor.saveOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		revision: row.revision,
+		title: "Fictional no-client viewing",
+		clientIds: [],
+	});
+	workspace = await realtor.workspace({ archived: false });
+	expect(workspace.opportunities.find((record) => record.id === id)!.revision).toBe(
+		row.revision + 1,
+	);
+	expect(workspace.links.filter((link) => link.opportunityId === id)).toEqual([]);
+});
+
 beforeAll(async () => {
 	proxy = await getPlatformProxy<{ DB: D1Database }>({
 		configPath: "wrangler.jsonc",

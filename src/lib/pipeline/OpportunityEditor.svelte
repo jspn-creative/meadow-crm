@@ -10,10 +10,6 @@
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		failure = "";
-		if (!draft.clientIds.length) {
-			failure = "Choose at least one client. Your draft is retained.";
-			return;
-		}
 		if (draft.budget && !/^\d+(\.\d{1,2})?$/.test(draft.budget)) {
 			failure = "Enter a non-negative USD amount with at most two decimal places. Your draft is retained.";
 			return;

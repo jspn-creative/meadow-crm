@@ -81,9 +81,8 @@
 <div class="surface-content @container/board">
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<p class="text-muted max-w-lg">Four stages, one shared board.</p>
-		<button type="button" class="control" onclick={newOpportunity} disabled={!ready || workspace.clients.length === 0}>New opportunity</button>
+		<button type="button" class="control" onclick={newOpportunity} disabled={!ready}>New opportunity</button>
 	</div>
-	{#if workspace.clients.length === 0}<p class="mb-6">Start with a client in the <a class="text-field underline underline-offset-4" href="/registry">Registry</a>.</p>{/if}
 	<div class="grid gap-5 pb-4 @min-[30rem]/board:grid-cols-2 @min-[56rem]/board:grid-cols-4">
 		{#each stages as stage (stage)}
 			{@const rows = workspace.opportunities.filter((row) => row.stage === stage)}

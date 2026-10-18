@@ -6,7 +6,6 @@ const stage = v.picklist(["new-lead", "active-lead", "under-contract", "closed"]
 const type = v.picklist(["buyer", "seller", "estate-sale", "construction"]);
 const clientIds = v.pipe(
 	v.array(id),
-	v.minLength(1),
 	v.maxLength(100),
 	v.check((ids) => new Set(ids).size === ids.length, "Client links must be unique."),
 );
@@ -62,7 +61,7 @@ export const createOpportunityFormInput = v.strictObject({
 	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
 	type,
 	stage,
-	clientId: id,
+	clientId: v.optional(id),
 });
 export const createOpportunityInput = v.strictObject({
 	requestId: id,
@@ -97,7 +96,7 @@ export const saveOpportunityInput = v.strictObject({
 	id,
 	revision,
 	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
-	clientIds,
+	clientIds: v.optional(clientIds),
 	type: v.optional(type),
 	stage: v.optional(stage),
 	...opportunityDetails,

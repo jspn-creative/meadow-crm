@@ -33,6 +33,19 @@ export class DataConflict extends Error {
 	}
 }
 
+// Compares the linked-client count against an expected length. An empty id list can't be
+// used in an IN clause, so with no ids the guard is a tautology: 0 linked clients matches
+// an expectation of 0.
+function clientCountGuard(ids: string[]): string {
+	const placeholders = ids.map(() => "?").join(",");
+	return placeholders
+		? `(SELECT count(*) FROM clients WHERE id IN (${placeholders}) AND archived_at IS NULL) = ?`
+		: "0 = 0";
+}
+function clientCountParams(ids: string[]): (string | number)[] {
+	return ids.length ? [...ids, ids.length] : [];
+}
+
 interface Receipt {
 	actor_user_id: string;
 	effective_user_id: string;
@@ -266,18 +279,16 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			const value = v.parse(createOpportunityInput, input);
 			if (value.clientId && value.clientIds) throw new Error("Choose one client-link input.");
 			const linkedIds = value.clientIds ?? (value.clientId ? [value.clientId] : []);
-			if (!linkedIds.length) throw new Error("Choose at least one client.");
 			return mutation(
 				value.requestId,
 				{ operation: "create-opportunity", ...value },
 				{ id: value.id, revision: 1 },
 				(guard, now) => [
 					stmt(
-						`INSERT INTO mutation_guards VALUES (?, CASE WHEN NOT EXISTS (SELECT 1 FROM opportunities WHERE id = ?) AND (SELECT count(*) FROM clients WHERE id IN (${linkedIds.map(() => "?").join(",")}) AND archived_at IS NULL) = ? AND EXISTS (SELECT 1 FROM checklist_templates WHERE type = ? AND stage = ?) THEN 1 ELSE 0 END)`,
+						`INSERT INTO mutation_guards VALUES (?, CASE WHEN NOT EXISTS (SELECT 1 FROM opportunities WHERE id = ?) AND ${clientCountGuard(linkedIds)} AND EXISTS (SELECT 1 FROM checklist_templates WHERE type = ? AND stage = ?) THEN 1 ELSE 0 END)`,
 						guard,
 						value.id,
-						...linkedIds,
-						linkedIds.length,
+						...clientCountParams(linkedIds),
 						value.type,
 						value.stage,
 					),
@@ -426,13 +437,19 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				.from(recordReferences)
 				.where(eq(recordReferences.opportunityId, value.id));
 			const after = { ...before, ...value };
+			const clientIds = value.clientIds ?? [];
+			const clientIdList = clientIds.map(() => "?").join(",");
+			const clientCountSql = clientIdList
+				? `(SELECT count(*) FROM clients WHERE id IN (${clientIdList}) AND (archived_at IS NULL OR id IN (SELECT client_id FROM opportunity_clients WHERE opportunity_id = ?))) = ?`
+				: "0 = 0";
+			const clientParams = clientIdList ? [...clientIds, value.id, clientIds.length] : [];
 			return mutation(
 				value.requestId,
 				{ operation: "save-opportunity", ...value },
 				{ id: value.id, revision: value.revision + 1 },
 				(guard, now) => [
 					stmt(
-						`UPDATE opportunities SET title = ?, type = ?, stage = ?, timeline = ?, address = ?, budget_cents = ?, notes = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL AND (SELECT count(*) FROM clients WHERE id IN (${value.clientIds.map(() => "?").join(",")}) AND (archived_at IS NULL OR id IN (SELECT client_id FROM opportunity_clients WHERE opportunity_id = ?))) = ?`,
+						`UPDATE opportunities SET title = ?, type = ?, stage = ?, timeline = ?, address = ?, budget_cents = ?, notes = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL AND ${clientCountSql}`,
 						value.title,
 						after.type,
 						after.stage,
@@ -443,9 +460,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						now,
 						value.id,
 						value.revision,
-						...value.clientIds,
-						value.id,
-						value.clientIds.length,
+						...clientParams,
 					),
 					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
 					stmt(
@@ -453,7 +468,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						value.id,
 						guard,
 					),
-					...value.clientIds.map((clientId) =>
+					...clientIds.map((clientId) =>
 						stmt(
 							"INSERT INTO opportunity_clients (opportunity_id, client_id) SELECT ?, ? WHERE " +
 								guardExists,
