@@ -30,8 +30,10 @@ const origin = "http://127.0.0.1:5181";
 try {
 	const headers = {
 		origin,
-		cookie: "LOCAL_DEMO_USER=assistant; actorUserId=admin",
+		cookie:
+			"LOCAL_DEMO_USER=assistant; actorUserId=support-admin; impersonatedBy=support-admin; meadow_support_session=forged",
 		"x-demo-user": "realtor",
+		"x-impersonate-user": "business-assistant",
 	};
 	const payload = Buffer.from(stringify({ archived: false })).toString("base64url");
 	const query = await fetch(`${origin}/_app/remote/${ids[0]}/getWorkspace?payload=${payload}`, {
@@ -72,6 +74,12 @@ try {
 	const login = await fetch(`${origin}/login`);
 	assert.equal(login.status, 200);
 	assert.match(await login.text(), /Sign in/);
+	const impersonation = await fetch(`${origin}/api/support/choose`, {
+		method: "POST",
+		headers: { ...headers, "content-type": "application/json" },
+		body: JSON.stringify({ userId: "business-assistant", actorUserId: "support-admin" }),
+	});
+	assert.equal(impersonation.status, 401);
 	console.log(
 		"Production query, command, and form fail closed despite configured or forged demo identities.",
 	);

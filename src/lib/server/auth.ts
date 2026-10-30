@@ -1,10 +1,13 @@
 import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./auth-schema.js";
 import type { BusinessIdentity } from "./identity.js";
 
 export const loginFailure = "Unable to sign in. Check your email and password and try again.";
+export const supportAdminId = "support-admin";
+export const impersonationDuration = 60 * 60;
 
 export function sessionIdentity(id: string | undefined): BusinessIdentity | null {
 	if (id !== "business-realtor" && id !== "business-assistant") return null;
@@ -26,6 +29,9 @@ export function createAuth(env: Cloudflare.Env, development: boolean) {
 	}
 	if (!development && !origin.startsWith("https://")) return null;
 	return betterAuth({
+		plugins: [
+			admin({ adminUserIds: [supportAdminId], impersonationSessionDuration: impersonationDuration }),
+		],
 		baseURL: origin,
 		secret: env.BETTER_AUTH_SECRET,
 		trustedOrigins: [origin],

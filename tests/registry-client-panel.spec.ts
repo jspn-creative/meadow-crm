@@ -55,7 +55,7 @@ test("client panel creates a client, saves every field and reopens it with the s
 	await expect(dialog.getByText("marked as not to be contacted", { exact: false })).toBeVisible();
 	await expect(dialog.getByText("No opportunities yet.", { exact: true })).toBeVisible();
 	await dialog.getByText("History", { exact: true }).click();
-	await expect(dialog.getByText(/edit · business-realtor/).first()).toBeVisible();
+	await expect(dialog.getByText(/edit · Realtor/).first()).toBeVisible();
 });
 
 test("client panel closes on Escape and returns focus to the client that opened it", async ({

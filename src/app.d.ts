@@ -1,5 +1,6 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { DataService } from "#lib/server/data.js";
+import type { SupportState } from "#lib/server/support.js";
 
 // See https://svelte.dev/docs/kit/types#app.d.ts for information about these interfaces.
 declare global {
@@ -17,6 +18,7 @@ declare global {
 		interface Locals {
 			data: DataService | null;
 			requestOrigin: string;
+			support: SupportState | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

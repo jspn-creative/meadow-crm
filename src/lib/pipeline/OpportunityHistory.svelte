@@ -6,7 +6,7 @@
 	let { workspace, changes }: { workspace: Workspace; changes: Change[] } = $props();
 
 	const fieldNames: Record<string, string> = { title: "title", timeline: "timeline", address: "property address", budgetCents: "budget", notes: "notes", clientIds: "clients", references: "references" };
-	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant" })[id] ?? id;
+	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 	const list = (words: string[]) => (words.length < 2 ? words.join("") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`);
 	const comparable = (key: string, value: unknown) => (key === "references" && Array.isArray(value) ? value.map((reference) => reference?.label).join("|") : key === "clientIds" && Array.isArray(value) ? [...value].sort().join("|") : JSON.stringify(value ?? null));
 	let itemTitles = $derived(new Map(workspace.checklists.flatMap((checklist) => checklist.items.map((item) => [item.id, item.title]))));

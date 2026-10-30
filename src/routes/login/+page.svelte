@@ -2,6 +2,7 @@
 	import { page } from "$app/state";
 	import { ArrowRight } from "@lucide/svelte";
 	import { onMount } from "svelte";
+	import { replaceSession } from "#lib/shell/session-navigation.js";
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;
@@ -24,7 +25,7 @@
 			const response = await fetch("/api/auth/sign-in/email", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: form.get("email"), password: form.get("password") }) });
 			if (!response.ok) throw new Error();
 			// A full navigation drops all previously cached workspace data.
-			window.location.assign(destination());
+			replaceSession(destination());
 		} catch {
 			error = "Unable to sign in. Check your email and password and try again.";
 			pending = false;

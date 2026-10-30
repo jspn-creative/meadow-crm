@@ -1,4 +1,4 @@
-/** Create: pipe JSON {"role":"realtor"|"assistant","email":"…","password":"…"} to vp run auth:create. Reset: pipe JSON {"role":"…","password":"…"} to vp run auth:reset-password. Use a password manager or protected stdin, not command-line arguments; passwords must be 12–128 characters. Local D1 is the default, uses the same state as vp dev, and requires db:migrate first. Production, only after explicit approval: append -- --remote and supply CLOUDFLARE_ACCOUNT_ID, MEADOW_D1_DATABASE_ID and a D1-edit CLOUDFLARE_API_TOKEN as environment secrets. Verify those IDs before running; this script never provisions, migrates, deploys, or prints credentials. Reset revokes all sessions. */
+/** Create: pipe JSON {"role":"realtor"|"assistant"|"support-admin","email":"…","password":"…"} to vp run auth:create. Reset: pipe JSON {"role":"…","password":"…"} to vp run auth:reset-password. Use a password manager or protected stdin, not command-line arguments; passwords must be 12–128 characters. Local D1 is the default, uses the same state as vp dev, and requires db:migrate first. Production, only after explicit approval: append -- --remote and supply CLOUDFLARE_ACCOUNT_ID, MEADOW_D1_DATABASE_ID and a D1-edit CLOUDFLARE_API_TOKEN as environment secrets. Verify those IDs before running; this script never provisions, migrates, deploys, or prints credentials. Reset revokes all sessions, including impersonation. */
 import { getPlatformProxy } from "wrangler";
 import { hashPassword } from "better-auth/crypto";
 import type { D1Database } from "@cloudflare/workers-types";
@@ -23,13 +23,13 @@ try {
 }
 if (
 	!data ||
-	!["realtor", "assistant"].includes(data.role) ||
+	!["realtor", "assistant", "support-admin"].includes(data.role) ||
 	typeof data.password !== "string" ||
 	data.password.length < 12 ||
 	data.password.length > 128
 )
-	throw new Error("A business role and a 12–128 character password are required.");
-const id = `business-${data.role}`;
+	throw new Error("A valid account role and a 12–128 character password are required.");
+const id = data.role === "support-admin" ? "support-admin" : `business-${data.role}`;
 const now = Date.now();
 const hash = await hashPassword(data.password);
 const statements: Statement[] = [];
@@ -39,8 +39,19 @@ if (command === "create") {
 		throw new Error("A valid email is required.");
 	statements.push(
 		{
-			sql: "INSERT INTO auth_user (id, name, email, email_verified, created_at, updated_at) VALUES (?, ?, ?, 0, ?, ?)",
-			params: [id, data.role === "realtor" ? "Realtor" : "Assistant", email, now, now],
+			sql: "INSERT INTO auth_user (id, name, email, email_verified, created_at, updated_at, role) VALUES (?, ?, ?, 0, ?, ?, ?)",
+			params: [
+				id,
+				data.role === "support-admin"
+					? "Support admin"
+					: data.role === "realtor"
+						? "Realtor"
+						: "Assistant",
+				email,
+				now,
+				now,
+				data.role === "support-admin" ? "admin" : "user",
+			],
 		},
 		{
 			sql: "INSERT INTO auth_account (id, account_id, provider_id, user_id, password, created_at, updated_at) VALUES (?, ?, 'credential', ?, ?, ?, ?)",
@@ -53,7 +64,7 @@ if (command === "create") {
 			sql: "UPDATE auth_account SET password = ?, updated_at = ? WHERE user_id = ? AND provider_id = 'credential' RETURNING id",
 			params: [hash, now, id],
 		},
-		{ sql: "DELETE FROM auth_session WHERE user_id = ?", params: [id] },
+		{ sql: "DELETE FROM auth_session WHERE user_id = ? OR impersonated_by = ?", params: [id, id] },
 	);
 }
 if (args.includes("--remote")) {
@@ -107,6 +118,4 @@ if (args.includes("--remote")) {
 		await proxy.dispose();
 	}
 }
-console.log(
-	`Business account ${command} complete (${args.includes("--remote") ? "remote" : "local"}).`,
-);
+console.log(`Account ${command} complete (${args.includes("--remote") ? "remote" : "local"}).`);

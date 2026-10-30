@@ -6,7 +6,6 @@ What is left to build, in order. [SPEC.md](./SPEC.md) says what the product does
 
 The goal is to deploy as soon as possible so the business can start using Meadow CRM and giving feedback. Only these items block the release; the scope decisions behind them are in [SPEC.md's First release](./SPEC.md#first-release). Visual redesign is not part of this work.
 
-3a. Support admin account and impersonation, with both identities in history, moved up from after the release. The account is created by the same script as the business users. Done when ordinary users and forged requests cannot impersonate, no change is possible before choosing a business user, impersonation expires, history shows both identities, and switching or exiting clears cached data.
 4. Release tidy: remove demo and "not implemented" copy from production views, and hide Settings controls that cannot save. No new features.
 5. Import the business's real client data from `docs/client-data.csv` with a one-time script, rehearsed against local D1 first, with counts and skipped rows reported to the developer.
 6. Release checks: `vp run check`, the relevant automated tests, a production build, and a short phone and desktop pass of login, Pipeline, Registry, and tasks.

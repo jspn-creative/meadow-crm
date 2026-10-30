@@ -3,6 +3,7 @@
 	import { page } from "$app/state";
 	import { createClient, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
+	import ImpersonationIndicator from "#lib/shell/ImpersonationIndicator.svelte";
 	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
 	const remote = getWorkspace({ archived: page.url.searchParams.get("archived") === "true" });
 	let workspace = $derived(await remote);
@@ -18,6 +19,7 @@
 	let failure = $state("");
 	let saved = $state("");
 	let ready = $state(false);
+	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 	onMount(() => {
 		ready = true;
 		const client = page.url.searchParams.get("client");
@@ -81,6 +83,7 @@
 </div>
 
 <dialog bind:this={dialog} {onclose} aria-labelledby="client-panel-heading" class="dialog" data-placement="side">
+	<ImpersonationIndicator />
 	<div class="@container/client-panel p-5 sm:p-8">
 		<div class="mb-6 flex items-start justify-between gap-4">
 			<h2 id="client-panel-heading" class="font-display min-w-0 text-3xl wrap-anywhere">{creating ? "New client" : draft?.name || "Client"}</h2>
@@ -123,7 +126,7 @@
 				<summary class="min-h-11 cursor-pointer font-medium">History</summary>
 				<ol class="mt-3 space-y-4">
 					{#each changes as change (change.id)}<li class="min-w-0 text-xs">
-							<p class="font-medium wrap-anywhere">{change.action} · {change.effectiveUserId}{change.actorUserId !== change.effectiveUserId ? ` (acting user: ${change.actorUserId})` : ""}</p>
+							<p class="font-medium wrap-anywhere">{change.action} · {person(change.effectiveUserId)}{change.actorUserId !== change.effectiveUserId ? ` (acting user: ${person(change.actorUserId)})` : ""}</p>
 							<time class="text-muted" datetime={change.createdAt}>{new Date(change.createdAt).toLocaleString("en-US", { timeZone: workspace.settings?.timezone ?? "America/New_York" })}</time>
 							<details class="mt-2">
 								<summary class="cursor-pointer py-2">Changed data</summary>
