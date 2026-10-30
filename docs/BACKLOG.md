@@ -6,8 +6,6 @@ What is left to build, in order. [SPEC.md](./SPEC.md) says what the product does
 
 The goal is to deploy as soon as possible so the business can start using Meadow CRM and giving feedback. Only these items block the release; the scope decisions behind them are in [SPEC.md's First release](./SPEC.md#first-release). Visual redesign is not part of this work.
 
-4. Release tidy: remove demo and "not implemented" copy from production views, and hide Settings controls that cannot save. No new features.
-5. Import the business's real client data from `docs/client-data.csv` with a one-time script, rehearsed against local D1 first, with counts and skipped rows reported to the developer.
 6. Release checks: `vp run check`, the relevant automated tests, a production build, and a short phone and desktop pass of login, Pipeline, Registry, and tasks.
 7. Alchemy, the last step before deploying: prove it on a non-production stage, then adopt it if it passes the criteria in [WORKFLOW.md](./WORKFLOW.md#alchemy).
 8. Deploy: after the developer answers "lgtm ready to deploy?", provision production, deploy, apply migrations, create the two accounts, run the import, and confirm login on the production URL.

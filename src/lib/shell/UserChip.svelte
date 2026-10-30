@@ -3,6 +3,7 @@
 	import { onMount } from "svelte";
 	import { page } from "$app/state";
 	import { replaceSession } from "./session-navigation.js";
+	import { dev } from "$app/env";
 	import { BookOpen, LogOut, KeyRound, Settings2 } from "@lucide/svelte";
 	import { themes, chooseTheme } from "./themes.js";
 	let theme = $state("pop");
@@ -75,7 +76,7 @@
 	</button>
 	<div class="account-menu surface surface-floating menu max-h-[70dvh] overflow-y-auto" inert={!open}>
 		{#if !accountOnly}
-			<a href="/settings" class="menu-item"><Settings2 size={16} aria-hidden="true" />Settings</a>
+			{#if dev}<a href="/settings" class="menu-item"><Settings2 size={16} aria-hidden="true" />Settings</a>{/if}
 			<a href="/glossary" class="menu-item"><BookOpen size={16} aria-hidden="true" />Glossary</a>
 			<fieldset class="border-hairline my-2 border-y py-2">
 				<legend class="text-muted px-2 text-xs">Theme</legend>

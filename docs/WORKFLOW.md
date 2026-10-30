@@ -14,8 +14,8 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 - Better Auth login uses persisted D1 sessions for the two business users, fixed business identities, a disabled public signup, logout, and account-menu password change. `scripts/auth-users.ts` creates accounts and resets forgotten passwords by hand; resets revoke existing sessions. Real login is the local default; the loopback identity stub requires explicit `LOCAL_IDENTITY_STUB=true` and is ignored in production.
 - The support admin account uses the same account script with `role: "support-admin"`. Better Auth's admin plugin issues one-hour impersonation sessions; every CRM request verifies their binding to a live support-admin session. Before choosing a business user, after exiting, and after expiry, no CRM data is available. History records both identities; switching and exiting revoke the previous impersonated session and clear document caches, including other tabs.
 - Registry is a simple list with name search and a client side panel; usable for the release.
-- Settings shows template and preference views that cannot save.
-- No import script for `docs/client-data.csv`.
+- Settings is development-only; production returns 404 and the account menu omits it.
+- `vp run db:import-clients` dry-runs by default and applies to local D1 with `-- --apply`; it is local-only until Backlog 8.
 - `wrangler.jsonc` is local-only: placeholder D1 ID, `remote: false`, `LOCAL_DEMO_USER`.
 
 ## Cloudflare resources (read-only check, account JSPN, 2026-10-30)
@@ -31,7 +31,7 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 - [x] Backlog 1-2: tasks and release dashboard implemented; `vp run check` passes (2026-10-30; DB tests, Playwright shell suite, and build also pass).
 - [x] Backlog 3: login implemented and every route and remote function refuses unauthenticated requests; `vp run check`, DB tests, Playwright shell suite, build, prebuilt production denial smoke, and local browser login/password change/logout pass (2026-10-30, verified by the orchestrator).
 - [x] Backlog 3a: support admin and impersonation implemented; check, build, prebuilt production forgery smoke, and local browser selection, both identities in history, switch/replay denial, exit, expiry, and business-user denial pass (2026-10-30). Verification tasks were deleted; no Cloudflare changes.
-- [ ] Backlog 4-5: release tidy done; import rehearsed locally with counts reported to the developer.
+- [x] Backlog 4-5: release tidy done; import rehearsed locally with counts reported to the developer (2026-10-30: Settings hidden in production; 827 of 840 clients import, 3 test records and 10 nameless skipped; unmapped columns go to the read-only Imported data field).
 - [ ] Backlog 6: release checks pass (check, relevant tests, build, short phone and desktop pass).
 - [ ] Backlog 7: Alchemy go or no-go decided by the developer from the spike's evidence.
 - [ ] Developer answers "lgtm ready to deploy?" with approval.
@@ -56,7 +56,7 @@ The developer wants Alchemy adopted as the last step before deploying, while pro
 - `Cloudflare.D1.Database` applies numbered SQL migrations from a directory, tracks them in `__alchemy_migrations`, and is documented to adopt Drizzle and Wrangler history; confirm `drizzle/` naming fits.
 - Worker secrets use `Config.Redacted`; `ALCHEMY_PASSWORD` encrypts secrets in state and is separate from Worker secrets. OAuth or `CLOUDFLARE_API_TOKEN` authenticate.
 
-Spike on a non-production stage, timeboxed to two focused attempts. Go only if all hold:
+The developer approved the spike on 2026-10-30: a temporary `spike`-suffixed Worker, D1, and Worker secret on account JSPN with fictional data only, destroyed afterwards. Spike on a non-production stage, timeboxed to two focused attempts. Go only if all hold:
 
 1. Alchemy builds and deploys this app with the Vite+ override in place, and `vp dev`, `vp build`, and `vp run check` still work unchanged locally.
 2. A stage D1 is created and `drizzle/` migrations apply in order.
@@ -74,4 +74,4 @@ The orchestrating session keeps cross-item decisions and final verification. Use
 
 ## Next
 
-Orchestration session running Backlog 1-8, through deployment and not beyond. Next: the client Imported data field, which the import script (`scripts/import-clients.ts`, rehearsed locally, uncommitted) writes; then the release tidy. Import decisions are in SPEC's Getting data in.
+Orchestration session running Backlog 1-8, through deployment and not beyond. Next: Backlog 6 release checks, then the approved Alchemy spike (Backlog 7).

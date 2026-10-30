@@ -30,7 +30,8 @@
 		"db:migrate": "node --experimental-strip-types scripts/local-db.ts migrate",
 		"db:seed": "node --experimental-strip-types scripts/local-db.ts seed",
 		"db:seed-fictional": "node --experimental-strip-types scripts/local-db.ts seed-fictional",
-		"db:reset-fictional": "node --experimental-strip-types scripts/local-db.ts reset-fictional"
+		"db:reset-fictional": "node --experimental-strip-types scripts/local-db.ts reset-fictional",
+		"db:import-clients": "node --experimental-strip-types scripts/import-clients.ts"
 	},
 	"dependencies": {
 		"@better-auth/drizzle-adapter": "^1.7.7",

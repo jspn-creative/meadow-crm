@@ -18,6 +18,7 @@
 		pending?: boolean;
 	} = $props();
 	let failure = $state("");
+	let clientRecord = $derived(workspace.clients.find((client) => client.id === draft.id));
 	let previousPayload = "";
 	let requestId = "";
 	const methods = [
@@ -190,6 +191,17 @@
 			<h3 id="client-notes" class="font-display text-2xl">Notes</h3>
 			<label class="block space-y-2"><span class="sr-only">Notes</span><textarea class="field" rows="5" bind:value={draft.notes} maxlength="20000"></textarea></label>
 		</section>
+		{#if clientRecord?.importedData.length}
+			<details class="min-w-0">
+				<summary class="min-h-11 cursor-pointer content-center font-medium">Imported data <span class="text-muted font-normal">· {clientRecord.importedData.length} from the previous CRM, read-only</span></summary>
+				<dl class="surface mt-2 grid min-w-0 grid-cols-1 gap-x-4 px-4 py-2 text-sm/6 @min-[28rem]/client:grid-cols-[minmax(0,auto)_minmax(0,1fr)]">
+					{#each clientRecord.importedData as item (item.label)}
+						<dt class="text-muted wrap-anywhere @max-[28rem]/client:not-first:mt-2 @min-[28rem]/client:py-0.5">{item.label}</dt>
+						<dd class="min-w-0 wrap-anywhere whitespace-pre-wrap @min-[28rem]/client:py-0.5">{item.value}</dd>
+					{/each}
+				</dl>
+			</details>
+		{/if}
 	</fieldset>
 	{#if failure}<p class="text-urgent" role="alert">{failure}</p>{/if}
 	<div class="flex flex-wrap gap-2"><button class="control" data-variant="primary" disabled={pending}>{pending ? "Saving…" : "Save client"}</button></div>

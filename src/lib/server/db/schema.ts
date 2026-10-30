@@ -57,6 +57,10 @@ export const clients = sqliteTable(
 		address: text("address"),
 		leadSource: text("lead_source"),
 		notes: text("notes").notNull().default(""),
+		importedData: text("imported_data", { mode: "json" })
+			.$type<{ label: string; value: string }[]>()
+			.notNull()
+			.default(sql`'[]'`),
 		preferences: text("preferences").notNull().default(""),
 		preferredContactMethod: text("preferred_contact_method", {
 			enum: ["call", "text", "email", "mail"],
