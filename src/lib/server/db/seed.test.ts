@@ -42,7 +42,6 @@ test("production defaults exactly preserve all 16 documented checklists and do n
 	);
 	expect((await db.prepare("SELECT name FROM tags ORDER BY name").all()).results).toEqual([
 		{ name: "nurture" },
-		{ name: "referral" },
 		{ name: "sphere" },
 	]);
 	for (const table of ["clients", "opportunities", "tasks", "stage_checklists", "history"])
@@ -181,7 +180,7 @@ test("reset refuses user-owned dependencies and otherwise retains non-fictional 
 	expect((await db.prepare("SELECT name FROM clients").first())?.name).toBe("User created");
 	expect((await db.prepare("SELECT count(*) AS n FROM opportunities").first())?.n).toBe(1);
 	expect((await db.prepare("SELECT count(*) AS n FROM checklist_templates").first())?.n).toBe(16);
-	expect((await db.prepare("SELECT count(*) AS n FROM tags").first())?.n).toBe(3);
+	expect((await db.prepare("SELECT count(*) AS n FROM tags").first())?.n).toBe(2);
 	await seedFictional(db, "2026-12-01");
 	expect(
 		(await db.prepare("SELECT due_date FROM tasks WHERE id = 'fictional-task-call'").first())

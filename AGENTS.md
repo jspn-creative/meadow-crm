@@ -66,17 +66,23 @@ When a request is ambiguous between "change the app" and "change something on Cl
 
 ## Styling
 
-Tailwind CSS v4, wired via `@tailwindcss/vite` and `@import "tailwindcss"` in `src/routes/layout.css`. Follow whatever Tailwind guidance is already loaded in your context, in full, before editing any styling.
+`src/routes/layout.css` is the Tailwind entry that imports `themes.css` (themes and semantic tokens) and `components.css` (shared primitives); follow whatever Tailwind guidance is already loaded in your context, in full, before editing any styling.
 
 `src/routes/layout.css` owns the product's design tokens, base resets, and CSS-first shared native control and work-row classes. Start buttons and fields as native elements using the existing `control` and `field` patterns; create reusable Svelte components only when current behavior or repeated composition needs them, not as up-front scaffolding. Dashboard widgets share `src/lib/dashboard/DashboardCard.svelte` for their boundary, heading, optional action, and gutters; keep widget content and layout in its children rather than growing a universal card system. Reuse `TaskList` and `DueBadge` for their existing repeated composition and due-state semantics instead of cloning the dashboard widget onto other pages. Widget item titles use the shared `item-title` class: a title designed to sit on one line keeps tight leading so that wrapping never costs more vertical space than the row budgeted.
 
+`DESIGN.md` records the visual intent behind those tokens and classes. The development-only `/style-guide` route renders them with a variant toolbar for trying alternatives; its experiments live in `src/routes/style-guide/style-guide.css` and never ship to other views. When a shared token, control, or chip changes, check it there as well as on the affected view.
+
 ### Content responsiveness
 
-Use named Tailwind container queries for content layouts that depend on the space left inside the workspace: dashboard grids and summaries, pipeline columns, and reusable widget interiors. Keep viewport breakpoints for the shell's desktop rail versus phone/tablet navigation. Choose thresholds from readable minimum content widths, not device names; make narrow layouts the default, use `min-w-0` on shrinking grid/flex children, and check both expanded and collapsed sidebar states plus resizing across the rail breakpoint. A reusable component should own its interior query container when it can appear in different layouts; name outer layout containers explicitly when descendants must respond to them. Prefer CSS queries to JavaScript size observers for purely visual layout.
+Use named Tailwind container queries for content layouts that depend on the space left inside the workspace: dashboard grids and summaries, pipeline columns, and reusable widget interiors. Keep viewport breakpoints for the shell's desktop rail versus phone/tablet navigation. Choose thresholds from readable minimum content widths, not device names; make narrow layouts the default and use `min-w-0` on shrinking grid/flex children. When changing layout behavior, inspect the sidebar states and breakpoint transitions relevant to that change under UI acceptance; do not repeat the full matrix for unrelated presentation edits. A reusable component should own its interior query container when it can appear in different layouts; name outer layout containers explicitly when descendants must respond to them. Prefer CSS queries to JavaScript size observers for purely visual layout.
+
+## Design comparisons
+
+Read [src/lib/dev/README.md](src/lib/dev/README.md) before using the variant helpers. Use `VariantPicker` for alternate markup or `variantSetting` for whole-page options, with one `VariantHost` for shared controls. Keep the helper portable: its dropdown chevron is inline SVG, not an icon-package import.
 
 ## Documentation
 
-Product requirements live under `docs/`; `PRODUCT.md` is a short design-context summary. Read before building:
+Product requirements live under `docs/`; `PRODUCT.md` is a short design-context summary and `DESIGN.md` describes the visual language. Read before building:
 
 - `docs/SPEC.md`: what the MVP is, the record model, the pipeline, modules, settings, out of scope, settled decisions, and open questions. The primary document.
 - `docs/BACKLOG.md`: what to build next, one item per session, and which work waits on an open question.
@@ -143,6 +149,7 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | --- | --- | --- | --- | --- |
 | View | Concept |  | Something a user navigates to that shows records or tools. Most views belong to a module, and a module can have several. A few views belong to no module, such as Settings and the Glossary. | page, screen |
 | View options | Concept | View | A discreet panel on a view that chooses what the view shows, such as which details the board's opportunity cards show. Saved in the user's browser. | display settings, settings |
+| Theme | Field | View | The colors and type the app is drawn in, chosen from the account menu and saved in the user's browser. | palette, skin, color scheme |
 
 ### Record
 
@@ -153,6 +160,7 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | History | Field | Record | The saved list of changes to a record: what changed, when, by whom, and as whom when impersonating. Shown in the record's detail view. | audit log, changelog |
 | Archive | Action | Record | Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. A record created by mistake is deleted, not archived. | delete, remove, close |
 | Delete | Action | Record | Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly. Clients can be deleted, only from the Registry; opportunities and tasks can be deleted too. | archive |
+| Bookmark | Action | Record | Keep an opportunity at hand in the sidebar's Bookmarks stack, which fans out on click so one can be opened from any view. Each user has their own bookmarks, saved in their browser, and only that user removes them. | favorite, pin, star, quick access |
 
 ### Dashboard
 
@@ -178,6 +186,7 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | Stage | Field | Opportunity | A fixed position in the pipeline, in order: New lead (an inquiry not yet worked in depth), Active lead (committed and underway: qualifying, searching, showing, negotiating), Under contract (a signed agreement in force, through due diligence and closing), Closed (the engagement completed). | status, column, phase, step |
 | Lead | Value | Stage | Appears only inside the stage names New lead and Active lead. Never call a client or an opportunity "a lead". |  |
 | Timeline | Field | Opportunity | The client's stated horizon: 1-3 mo, 3-6 mo, or 6+ mo. Optional; used to prioritize, filter, and sort, never to gate or judge. | urgency, priority, deadline, temperature |
+| Pin | Action | Opportunity | Keep an opportunity at the top of its stage's column on the board, for both users, until someone unpins it. Pinning is recorded in the opportunity's history. | bookmark, favorite, star, sticky |
 | Checklist | Field | Opportunity | An opportunity's checklist items for one stage. Each stage keeps its own checklist, so returning to a stage shows it as it was left. A checklist starts from its checklist template and keeps following it: template changes reach every opportunity, except items that were added, renamed, removed, or reordered on that opportunity, which keep their local version. | to-do list, task list |
 | Checklist item | Value | Checklist | One line of a checklist. It can be checked off, and giving it a date or a due date promotes it to a task. | step, to-do |
 | Promote | Action | Checklist item | Turn a checklist item into a task on the realtor's task list by giving it a date or a due date. Behind the scenes this creates a task linked to the item. The two always share one title, so renaming either renames both, and completing, reopening, or deleting either one does the same to the other. When the opportunity moves to another stage, each open task promoted from the current stage's checklist can be completed, deleted, or ignored. | convert, escalate |

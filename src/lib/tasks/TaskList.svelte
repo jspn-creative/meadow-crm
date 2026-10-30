@@ -8,7 +8,7 @@
 <div data-tasks class="@container/tasks space-y-(--card-gap)">
 	{#each items as task (task.id)}
 		{@const Icon = task.icon ?? CheckSquare2}
-		<details data-task-id={task.id} data-interactive="row" style:--item-hue={task.tone ? `var(--color-${task.tone}-soft)` : "var(--color-paper)"} style:--item-ink={task.tone ? `var(--color-${task.tone})` : "var(--color-muted)"} class="work-row group open:bg-paper/50">
+		<details data-task-id={task.id} data-interactive="row" style:--item-hue={task.tone ? `var(--color-${task.tone}-soft)` : "var(--color-paper)"} style:--item-ink={task.tone ? `var(--color-${task.tone})` : "var(--color-muted)"} class="work-row group open:bg-selected">
 			<summary class="flex cursor-pointer list-none items-start gap-(--row-pad) px-(--row-pad) py-(--row-pad) [&::-webkit-details-marker]:hidden">
 				<span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-(--item-hue) text-(--item-ink)"><Icon size={14} aria-hidden="true" /></span>
 				<span class="min-w-0 flex-1">

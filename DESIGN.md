@@ -1,284 +1,117 @@
----
-name: Meadow CRM — Soft Signal
-description: A distinctly digital workspace with floating rounded surfaces, generative linework, and purposeful pastel accents.
-colors:
-  paper: "#f2efe3"
-  paper-pill: "#e6e0cd"
-  canvas: "#fdfcf9"
-  hairline: "#e9e4d6"
-  muted: "#756d60"
-  ink: "oklch(0.216 0.006 56.043)"
-  white: "#ffffff"
-  shell: "rgb(255 255 255 / 0.7)"
-  field: "#4c7a2f"
-  field-deep: "#3a6122"
-  info-soft: "#e7eef0"
-  info: "#456775"
-  pending-soft: "#f3ead6"
-  pending: "#806126"
-  tour-soft: "#eee9f1"
-  tour: "#715c83"
-  success-soft: "#e8eddf"
-  success: "#50683d"
-  urgent-soft: "#f4e5df"
-  urgent: "#98543f"
-  pastel-amber: "oklch(0.962 0.059 95.617)"
-  pastel-amber-ink: "oklch(0.414 0.112 45.904)"
-  pastel-amber-edge: "oklch(0.879 0.169 91.605)"
-  pastel-violet: "oklch(0.943 0.029 294.588)"
-  pastel-violet-ink: "oklch(0.38 0.189 293.745)"
-  pastel-violet-edge: "oklch(0.811 0.111 293.571)"
-  pastel-sky: "oklch(0.951 0.026 236.824)"
-  pastel-sky-ink: "oklch(0.391 0.09 240.876)"
-  pastel-sky-edge: "oklch(0.828 0.111 230.318)"
-typography:
-  display:
-    fontFamily: '"Newsreader", Georgia, serif'
-    fontSize: "36px"
-    fontWeight: 400
-    lineHeight: "40px"
-    letterSpacing: "-0.025em"
-  headline:
-    fontFamily: '"Newsreader", Georgia, serif'
-    fontSize: "30px"
-    fontWeight: 400
-    lineHeight: "36px"
-    letterSpacing: "-0.025em"
-  title:
-    fontFamily: '"Newsreader", Georgia, serif'
-    fontSize: "20px"
-    fontWeight: 400
-    lineHeight: "28px"
-    letterSpacing: "-0.025em"
-  body:
-    fontFamily: '"DM Sans", system-ui, sans-serif'
-    fontSize: "14px"
-    fontWeight: 400
-    lineHeight: "20px"
-  compact:
-    fontFamily: '"DM Sans", system-ui, sans-serif'
-    fontSize: "12px"
-    fontWeight: 400
-    lineHeight: "16px"
-  label:
-    fontFamily: '"DM Sans", system-ui, sans-serif'
-    fontSize: "11px"
-    fontWeight: 600
-    letterSpacing: "0.14em"
-rounded:
-  badge: "6px"
-  date: "8px"
-  row: "12px"
-  card: "16px"
-  panel: "24px"
-  pill: "9999px"
-spacing:
-  tight: "4px"
-  small: "8px"
-  row: "12px"
-  control: "16px"
-  widget: "20px"
-  card: "24px"
-  section: "32px"
-  desktop-gutter: "40px"
-components:
-  button-primary:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.white}"
-    typography: "{typography.compact}"
-    rounded: "{rounded.pill}"
-    padding: "6px 16px"
-  button-primary-hover:
-    backgroundColor: "{colors.field}"
-    textColor: "{colors.white}"
-  button-secondary:
-    textColor: "{colors.ink}"
-    typography: "{typography.compact}"
-    rounded: "{rounded.pill}"
-    padding: "6px 16px"
-  card:
-    backgroundColor: "{colors.white}"
-    rounded: "{rounded.card}"
-    padding: "24px"
-  status-chip:
-    backgroundColor: "{colors.success-soft}"
-    textColor: "{colors.success}"
-    rounded: "{rounded.badge}"
-    padding: "2px 6px"
-  navigation-selected:
-    backgroundColor: "{colors.paper-pill}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.pill}"
-    padding: "8px 16px"
-  segmented-control:
-    backgroundColor: "{colors.paper}"
-    rounded: "{rounded.pill}"
-    padding: "4px"
----
+# Design: Meadow CRM
 
-# Design System: Meadow CRM
+This records the intent behind the visual language. Tokens and themes live in `src/routes/layout.css` and the stylesheets it imports, shared primitives are CSS classes in its components layer, and the development-only `/style-guide` route renders all of them. Product scope and vocabulary stay in [docs/SPEC.md](docs/SPEC.md) and the Vocabulary section of [AGENTS.md](AGENTS.md#vocabulary).
 
-## Overview
+## Character
 
-**Creative North Star: "Soft Signal"**
+**Soft Signal.** A distinctly digital workspace: softly rounded surfaces float over a continuous background, and precise SVG linework adds a generative signature. This is not a paper, stationery, or physical-material metaphor.
 
-A distinctly digital workspace: softly rounded content surfaces float over a continuous background, with precise SVG linework adding a generative signature. Newsreader gives headings character while DM Sans keeps controls and record information clear and contemporary. This is not a paper, stationery, or physical-material metaphor.
+- The navigation rail is part of the continuous viewport background; the main content is a floating surface.
+- Hierarchy comes from layout, type, tone, and hairlines before shadows.
+- Color signals action, status, or category before decoration.
 
-The visual source is [Quiet Cream](static/dashboards/04-quiet-cream.html), interpreted with the user's confirmed direction: use DM Sans instead of Inter, keep the digital shell composition, and make the Commission Split widget's brighter pastels available as an alternative to its muted accents. The existing beige/yellow background is provisional, not an immutable brand color. Frontmatter captures reference values for reproducibility; it does not settle the future background hue.
+## Themes
 
-This documents visual language, not dashboard requirements. [PRODUCT.md](PRODUCT.md), [docs/SPEC.md](docs/SPEC.md), and the Vocabulary section of [AGENTS.md](AGENTS.md#vocabulary) remain authoritative for product scope and vocabulary. The source HTML is unchanged and still uses Inter; this document specifies DM Sans for subsequent implementation, including charts.
+A theme sets the palette and type pairing for the whole app. It is chosen in the account menu, saved in the user's browser, and applied as `data-theme` on `<html>` before first paint. Cream is the default; Evening is the dark theme. Cream, Pop, and Evening must be fully correct; Sage & clay, Lilac, and Butter are offered but only need to be coherent.
 
-**Key Characteristics:**
-- Floating main surface with rounded left corners and a background-integrated navigation rail.
-- Precise, cropped generative SVG geometry rather than physical texture.
-- Serif headings paired with digital sans-serif controls and data.
-- Hairline-separated content, with structural elevation reserved for the shell and overlays.
-- Two evidenced accent registers: muted semantic pairs and brighter categorical pastels.
+Every theme defines the same complete set of semantic tokens below; no token exists outside the themes, and no theme leans on another's values or on fixed colors. Each theme supplies a short list of inputs (its neutrals, accent, status hues, category hues, and shade) and derives the rest with the same rules, so components only ever read semantic tokens:
 
-## Colors
+- **Neutrals:** `canvas` (viewport), `paper` (tonal fill), `paper-pill`, `hairline`, `muted`, `ink`, and `white`, which is the theme's solid surface rather than literal white.
+- **Accent:** `field` and `field-deep`. The accent marks links, text actions, focus, checked controls, and caret. It is the only hue interaction states use.
+- **Primary:** `primary`, `primary-hover`, `on-primary` for the filled button.
+- **Interaction:** `highlight` is the transient wash under a hovered or keyboard-active row, option, or segment. `selected` and `on-selected` mark persistent selection: the current navigation item, a selected option, a checked segment. Every theme defines both from its accent, mixed in oklch so the accent's hue holds: `selected` is a clear, opaque accent tint, and `highlight` is the accent at low opacity (about a third of `selected`'s strength) so it tints whatever it sits on and reads as the same hue on the warm rail and on white menus. Components read `highlight` and `selected`, never `paper` or `paper-pill`, for interaction states.
+- **Status pairs:** `info`, `pending`, `tour`, `success`, `urgent`, each with `-soft`.
+- **Category families:** `category-sky`, `category-amber`, `category-violet`, `category-teal`, each a wash (the bare name), `-ink`, and `-edge`. Every theme derives them from its own four category hues, tuned in chroma and lightness to sit in that theme's palette (soft on Cream, saturated on Pop, deep on Evening), so categories never read as pasted-in pastels.
+- **Shadow shade:** shadows take the theme's shade, so a dark theme deepens them instead of glowing.
 
-The reference pairs warm light surfaces with green actions and softly differentiated accents; its brighter amber, violet, and sky colors offer a second, more luminous register without changing the shell's geometry.
+**The One-Hue Rule.** Interaction states (hover washes, highlight, selection, focus, checked checkboxes and radios, text selection, `[data-interactive]` washes) use the accent family only. Status and category hues appear only on the things they classify: chips, stage marks, cards' category washes. Never put an accent control on a status-colored fill or tint a selected row with a status color; in Pop that is how green and violet collide. A checked checklist row reads as done through its muted, struck title, not a green wash.
 
-### Primary
+**The Signal Rule.** Pair status color with readable words or icons; never make hue the only signal. Keep one color meaning per component family, and check contrast on the actual surface, especially tinted ink on washes.
 
-- **Field green** (`field`): action links, confirmation feedback, focus outlines, and the reference's primary chart series. **Deep field** (`field-deep`) supplies stronger interactive emphasis.
-- **Ink** (`ink`): primary content, selected underline tabs, wordmark marker, and default filled action buttons. Green is an action accent, not a requirement that every primary button be green at rest.
+Current mappings, which any palette change must preserve as distinct signals:
 
-### Secondary
+- Stages: New lead `info`, Active lead `pending`, Under contract `tour`, Closed `success`.
+- Due state (`DueBadge`): overdue `urgent`, today `pending`, upcoming `info`, undated neutral.
+- Opportunity types: Buyer sky, Seller amber, Estate Sale violet, Construction teal.
 
-- **Muted blue** (`info`, `info-soft`): informational badges and activity cues.
-- **Muted ochre** (`pending`, `pending-soft`): pending or due-related cues.
-- **Muted lavender** (`tour`, `tour-soft`): the reference's tour/category cues; the name does not commit a Calendar module or a new pipeline stage.
-- **Muted sage** (`success`, `success-soft`): completed or confirmed states.
-- **Muted clay** (`urgent`, `urgent-soft`): urgency and destructive emphasis.
+## Type
 
-### Tertiary
+Each theme has its own pairing of a display face and a sans, set as `--font-display` and `--font-sans`:
 
-- **Bright pastel amber**, **bright pastel violet**, and **bright pastel sky**: the Commission Split widget's category backgrounds, with corresponding darker ink and stronger edge tokens. Preserve the source Tailwind v4 OKLCH values rather than substituting approximate hex colors.
-- This is an available alternative accent register, not an instruction to mix both sets arbitrarily. Use a consistent register within a component family. Category colors do not automatically acquire success, error, or urgency meanings.
-- The source uses tinted category text at 70% opacity and 2px colored explanatory rules. Those are observed treatments, not permission to reduce text contrast or give every card a colored rail. Check the actual background/text combination before reuse.
+| Theme | Display | Sans |
+| --- | --- | --- |
+| Pop | Bricolage Grotesque | Bricolage Grotesque |
+| Cream | Newsreader | DM Sans |
+| Evening | Instrument Serif | Instrument Sans |
+| Sage & clay | Young Serif | Work Sans |
+| Lilac | Fraunces | Figtree |
+| Butter | Fredoka | Nunito |
 
-### Neutral
+Load only the active theme's faces where practical. The display face is for page titles, widget and section headings, opportunity titles, and prominent figures. The sans (weights 400, 500, and 600) is for everything else, including charts. There is no mono or label family.
 
-- **Background** (`paper`): the reference's continuous viewport background; the token name is historical, not a material metaphor. It grades toward **canvas** (`canvas`). Its beige hue remains open to revision.
-- **Selected fill** (`paper-pill`): navigation selection and scrollbar thumb.
-- **Hairline** (`hairline`): subtle 1px content boundaries and dividers.
-- **Muted ink** (`muted`): supporting information and inactive navigation.
-- **White** (`white`) and **translucent shell** (`shell`): solid content surfaces and the floating main container respectively. Shell translucency does not imply pervasive glass blur.
-
-**The Signal Rule.** Color communicates action, status, or category before decoration. Pair status color with readable words or icons; never make hue the only signal.
-
-## Typography
-
-**Display font:** Newsreader, with Georgia and serif fallbacks. **UI and chart font:** DM Sans, with system-ui and sans-serif fallbacks. There is no separate mono or label family.
-
-The pairing is expressive but digital: Newsreader is concentrated in headings and prominent figures; DM Sans carries navigation, controls, record names, labels, supporting text, and chart legends/tooltips. Load DM Sans weights 400, 500, and 600 and Newsreader's optical-size range (6–72) with regular display weights. Do not retain Inter in chart defaults or embedded component previews.
-
-### Hierarchy
-
-- **Display:** prominent figures, using the frontmatter display role; secondary figures step down to 24px/32px.
-- **Headline:** page titles and greeting; the greeting's observed line-height is 1.08 rather than the page title's default line-height.
-- **Title:** section headings; the wordmark uses a smaller Newsreader treatment (16px/24px).
-- **Body:** record names and navigation, with medium weight (500) for interactive labels.
-- **Compact:** supporting details and compact actions; descriptive row text often uses a more open 20px line-height.
-- **Label:** compact metadata, with tracked uppercase reserved for the reference's category labels. Metadata also appears at weight 400 with 0.1em tracking; avoid treating every small text element as an uppercase kicker.
-
-The source includes 9–10px icon, badge, and date micro-labels. These are reference details, not minimum text sizes for shipped workflows. Preserve legibility and enlarge text or hit areas when the actual use scene requires it.
+Body text is 14px; supporting details are 12px. Interactive labels use weight 500. Single-line item titles use `.item-title` so wrapping never costs more height than the row budgeted. `text-2xs` is for badges only; use tracked uppercase sparingly.
 
 ## Layout
 
-The viewport background surrounds the main content, including behind navigation. On desktop, the rail is transparent and full-height (256px wide), not a separately boxed beige sidebar. The main surface reaches the right edge, sits 12px from the top, bottom, and rail, and rounds only its left corners (24px). Its internal scroll is independent of the fixed rail. There is no centered marketing-style maximum-width container.
+The desktop rail is transparent and 16rem wide, collapsing to 5rem. The main surface sits 12px from the top, bottom, and rail, reaches the right edge, scrolls independently, and rounds only its left corners. Main gutters step from 20px to 32px at 640px and to 40px at 1024px. There is no centered max-width container.
 
-Main horizontal gutters step from 20px to 32px at 640px, then 40px at 1024px. Cards use 24px padding; compact secondary cards use 20px. Widget spacing defaults to 20px, while row groups use tighter 12px spacing. Preserve relationships rather than copying the prototype's widget inventory.
+Below 64rem the rail becomes a header with horizontally scrolling section pills, the account chip moves into the wordmark row, and the greeting collapses after 24px of scrolling. Short desktop viewports shed the greeting, then the collapse button, before anything else.
 
-The source's responsive breakpoints are 640px, 1024px, and 1280px. Below 1024px, navigation becomes a header block with horizontally scrolling section pills, and the identity control moves into the wordmark row. Main left corners reduce to 16px. The greeting collapses immediately after more than 24px of main-panel scrolling to reclaim space; desktop remains unchanged. Summary columns progress from one to two to four; the work area adopts a two-thirds/one-third split at desktop; charts become two columns at desktop. These are source compositions, not mandatory layouts for all screens.
+Content layouts follow the container-query rules in AGENTS.md. Shipped actions must stay usable on phones and with a keyboard: 44px targets on coarse pointers, visible focus, and no fixed tuning panels. Every scrollable area gets an overflow fade.
 
-The app deliberately keeps a roomier 3:2 attention/task split rather than squeezing tasks into the source's one-third column. Its scorecards retain compact dimensions, with 36px serif figures in the existing 32px line box. Phone chrome and score padding are tighter than desktop. Named content containers govern two/four-column summaries, dashboard work grids, pipeline columns, and widget interiors; viewport breakpoints govern the shell navigation mode. Test content after both sidebar expansion and collapse, not just at device-sized viewports.
+## Shape
 
-Use zero minimum width on chart/grid children where intrinsic canvas dimensions would otherwise force overflow. Shipped CRM actions must remain usable on phones and keyboards; small controls and fixed prototype tuning panels are not production mobile patterns.
+Every corner derives from one token, `--radius` (14px). The scale is computed from it: `rounded-3xl` = `--radius`, `2xl` 0.8×, `xl` 0.6×, `lg` 0.4×, `md` 0.3×, `sm` 0.2× (about 14, 11, 8, 6, 4, 3px). Changing `--radius` reshapes the whole app. The main surface and dialogs use `3xl`, cards and floating surfaces `2xl`, controls, fields, and rows `xl`, chips `md`. Only true circles stay round: checkboxes, radios, avatars, dots, and a collapsed stage mark.
 
-## Elevation & Depth
+Padding is tokenized so nested corners can be computed rather than guessed. A container that holds rounded children sets `--radius-outer` (its own corner) and `--inset` (its padding, applied with `p-(--inset)`), and a child that sits on that padding uses `rounded-nested`: `max(0px, var(--radius-outer) − var(--inset))`. Surfaces, menus, field groups, and segmented tracks set both, so their rows, segments, and compartments stay concentric at any `--radius`. Never hardcode a nested radius.
 
-Depth is digital and structural: the main panel floats over the viewport background; content cards remain flat and separated by fine borders. Selected segmented tabs lift slightly, while dialogs and notification overlays receive a larger soft shadow. Exact shadow values live in `.impeccable/design.json` because the frontmatter schema cannot represent them.
+## Surfaces
 
-The sidecar's tonal ramps are synthesized preview aids for the principal palette families, not approved replacement colors or a settled background palette. Normative colors remain in the frontmatter.
+Two surface treatments, plus one elevation for anything floating. Both are CSS primitives; never rebuild a boundary from utilities.
 
-### Shadow Vocabulary
+- **Standard** (`.surface`): the solid theme surface, a hairline edge, and a low resting elevation. It is the default for everything that structures a page: dashboard widgets, editor sections, panels, list containers, board columns. It should disappear into the layout.
+- **Framed** (`.surface[data-surface="framed"]`): the same surface inside a thin tinted bezel and an outer hairline, drawn with layered shadows so it needs no wrapper and its corners stay concentric. The bezel reads `--surface-frame`, a faint ink tint by default, and it takes color well: set it to an accent or category wash, or let Glass make it translucent. Use Framed for things that sit above the page or ask for attention: every floating layer (menus, listboxes, popovers, the account menu, dialogs) and featured cards. Several cards in a view may be framed, and peers can each take their own frame color: the dashboard scorecards are each framed in their own stage color. Never nest Framed inside Framed. Rows, chips, and the resting control itself stay unframed; a control's floating parts (dropdown and context menus, select pickers, combobox listboxes) are Floating surfaces and carry the frame. Because the bezel paints outside the box, give framed elements room and do not clip them with `overflow-hidden` ancestors.
+- **Floating** (`.surface-floating`): Framed plus the floating shadow. Menus, listboxes, popovers, and dialogs use it; dialogs add an `ink/30` backdrop with a 2px blur. Toasts stay ink pills.
 
-- **Card:** no resting shadow.
-- **Shell:** low ambient offset shadow establishing the main surface above the background.
-- **Tab:** small selected-state shadow within a filled segmented-control track.
-- **Panel:** broad offset shadow for overlays. The source dialog also uses a dark translucent backdrop with 4px blur; this is focus separation, not decorative blur on every surface.
-- **Score hover:** a temporary lift shadow from the prototype's interactive experiments, not a default card elevation.
+The backdrop decoration (`Motif`) changes with the theme: concentric rings (a precise generated SVG), a dot field, or a fine grid, each heavily cropped off the upper-left edge and dissolved with the same masks, drawn in the theme's ink at low opacity. Pop and Lilac use dots, Cream and Sage & clay rings, Evening and Butter the grid. It stays in the background, is never interactive, and is hidden from assistive technology.
 
-**The Structural Depth Rule.** Reserve resting shadows for the shell, selected segmented tabs, and overlays. Content hierarchy comes from layout, type, boundaries, and tone, not a shadow on every widget.
+## Material
 
-## Shapes
+Controls have a material, set as `data-material` on `<html>`. Glass and Tactile are both still candidates; a development-only toolbar setting switches them on every view, and production uses Glass until one is chosen. A material may only restyle the primitives below, never a component directly. It restyles primary controls too, so the two materials differ on every kind of control; ghost buttons and text actions have no material.
 
-Soft corners distinguish digital surfaces: compact badges have 6px corners, date tiles 8px, internal rows 12px, content cards 16px, and desktop main/overlay panels 24px. Controls and small identity/navigation elements use full pills or circles. Keep large containers as rounded panels rather than oversized pills.
+- **Glass:** translucent controls and floating surfaces that blur what is behind them, edged with light.
+- **Tactile:** controls lit from above with a top sheen and a heavier lower edge that press in; fields are recessed wells.
 
-The signature decoration is precise SVG geometry: concentric irregular rings or a golden-angle phyllotaxis fragment, heavily cropped off the upper-left viewport edge and dissolved with composited masks. It occupies the background, never the data surface, and stays noninteractive and hidden from assistive technology. Preserve its sense of a generated fragment entering the interface; avoid centering it like a logo or replacing it with paper grain, botanical illustration, or a generic grid.
+## Focus
 
-## Components
+One treatment, **Glow**, on `:focus-visible` for every element: a soft accent bloom, with no hard ring; an element with an edge also turns that edge accent. Text entry (`.field`, `.field-group`, native selects) shows it whenever focused, since browsers treat a focused text input as focus-visible; buttons and other controls focused by pointer show nothing, because the base layer resets `:focus:not(:focus-visible)`. Bare inputs inside a group never draw their own focus; the group glows. Scroll and overflow containers leave room for the glow so it is never clipped. Forced colors use a 2px `Highlight` outline.
 
-### Buttons
+## Primitives
 
-Compact and clear. Filled actions use ink with white text, medium DM Sans, full rounding, and compact padding. Green supplies the source's hover emphasis. Secondary actions use a hairline border and a neutral hover fill; tertiary actions are text-led. Icon buttons use circular boundaries; the reference's small quick-accept control changes from green-on-white to white-on-green on hover.
+Every control is built from these classes. A component may add layout utilities, but it must not restate a primitive's color, border, radius, height, hover, or focus. If a component needs a look the primitives lack, add a variant to the primitive instead.
 
-Visible keyboard focus uses a green 2px outline with 2px offset. Disabled controls lose the active cursor; completed task controls are disabled and the row becomes subdued. The source does not establish a complete loading/error button system; specify those when implementing real save flows rather than pretending the prototype already covers them.
+- **Buttons — `.control`:** 44px, `rounded-xl`, solid surface with a hairline edge; hover fills `highlight`, presses compress slightly on pointer input. `data-variant`: `primary` (filled `primary`), `ghost` (no edge or fill; text in `--action-color`, the accent by default, so a context such as a bookmark card or a toned alert can tint it; hover deepens the text and adds a soft tint of the same color) is the quiet button: the secondary action beside a primary one, such as a dialog's Cancel, an alert's actions, and inline edit icons beside a value, such as a bookmark's note or an opportunity's budget and address. `danger` is a ghost in the urgent color, such as the archived view's Delete. `data-size="sm"` is 36px for toolbars and board columns, keeping a 44px hit area on coarse pointers. `data-icon` makes it square; `data-reveal` hides the label until hover or focus on fine pointers. `aria-busy` shows a wait cursor and the label says "Saving…". Not every button is a `.control`: commands in toolbars, forms, and dialogs are; a button that is part of a component's own anatomy (an opportunity card's title, a collapsed rail, a bookmark card) is a plain `<button>` styled by that component.
+- **Text actions — `.text-action`:** an inline action inside content, such as Add item or Add reference: accent text (or the container's tone ink via `--action-color`), no box, underline on hover.
+- **Fields:** `.field` for inputs, textareas, and selects (44px, `rounded-xl`, `aria-invalid` turns the edge urgent). `.field-group` wraps a `.field-bare` input with `.field-addon` compartments or chips, sharing one boundary and one glow. `.field-inset` puts a small label inside the boundary. `.select` wraps a native select with its chevron in a trailing compartment and becomes a customizable select where supported. `.select-pill` is the compact filter select; when set to anything other than its default (`data-active`) it shows accent text and an accent edge, and keeps the same hover and focus as at rest. Every select, in the app and the style guide, renders through the shared `Select` component.
+- **Choices:** `.check` is the round checkbox and `.radio` the round radio, both filled with the accent when checked. `.segmented` is a radio group on a `paper` track; the checked segment takes `selected`, hover takes `highlight`. `.choice` is a larger option row with its own radio for choices that need a description.
+- **Chips — `.chip`:** a 24px, `rounded-md` badge describing state or category, not an action. `data-tone` picks a status pair or a category family, defaulting to neutral on `paper`; `data-dot` leads with a `--dot` color, `data-due-state` leads with the due icon. Tags are neutral chips with their tag's dot. A removable chip ends with `.chip-remove`. Client chips lead with a small client icon tile, not initials or an avatar.
+- **Menus — `.menu` and `.menu-item`:** a floating surface of 36px rows (44px on coarse pointers). Hover and the keyboard-active option take `highlight`; `aria-selected`, `aria-checked`, or `aria-current` take `selected` with a trailing accent check where it helps. `data-tone="danger"` uses urgent text and `urgent-soft`. Listboxes (combobox, customizable select) use the same rows.
+- **Rows:** `.work-row` is a tonal row; `[data-interactive]` adds the translucent accent wash on hover and focus.
+- **Cards:** `DashboardCard` owns a widget's surface, heading, optional action, and gutters. `TaskList` and `DueBadge` own task rows and due semantics everywhere.
+- **Dialogs:** native `<dialog>` on a floating surface with `3xl` corners, a sticky header carrying the Pipeline crumb, and icon actions. Escape is blocked while a save is pending, and dismissal restores trigger focus.
+- **Tabs:** underline tabs reserve their 2px border, so selection does not shift layout.
+- **Feedback:** toasts are ink pills at the bottom center. Inline alerts use `urgent-soft`, retained drafts `pending-soft`, and context notes `tour-soft`; all three share one layout, with the message beside small ghost buttons that each carry an icon and wrap below it when space runs short. Empty states are a dashed hairline box with one line of guidance. Never confirm an action that did not happen.
 
-### Chips
+## Motion
 
-Compact rounded badges pair a light colored surface with darker same-family text. They describe state or category, not interchangeable actions. The bright pastel alternative uses the Commission Split color families and tinted ink; it should retain readable contrast and consistent semantic mapping.
+`--ease-shell` (`cubic-bezier(0.23, 1, 0.32, 1)`) is the shared curve. Control color changes take about 120ms, overlays 140–200ms, and route and widget entrances 300–560ms, with widget order taken from explicit metadata. Hover effects require a fine pointer, and keyboard focus gets the same washes. Reduced motion removes movement, entrances, and lifts.
 
-### Cards / Containers
+Choose motion for interaction feedback. Card lifts, animated names, and staggered entrances are not defaults for every new surface.
 
-Solid white content cards use a hairline boundary, 16px corners, and generous internal padding without resting shadows. Internal queue rows use canvas or a lightly tinted expanded surface with 12px corners. Preserve the floating main panel as a distinct shell layer, not another repeated widget card.
+## Don't
 
-Dashboard widgets use `src/lib/dashboard/DashboardCard.svelte` for a consistent boundary, named heading, optional supporting description/action, and container-responsive 16–20px gutters. It does not prescribe widget body composition, heights, or page-wide containers. `TaskList` is independent of that wrapper so task pages do not inherit dashboard-only headings or self-links. Shared work rows use tonal fill rather than another resting border; metadata wraps naturally within each available width. `DueBadge` uses clay for overdue, ochre for due today, blue for upcoming, and quiet neutral styling for undated work, independent of category colors. Task icons, tones, and notes travel with their presentation data, with neutral defaults when omitted.
-
-### Inputs / Fields
-
-Observed controls are native checkboxes and prototype range sliders; no text-field design is established by this reference. Checkbox/range accents should follow the action color in future implementation; the source's task checkboxes currently use stock lime instead. Keep labels, visible focus, and reachable hit areas. Do not infer a complete form system from tuning controls.
-
-### Navigation
-
-Transparent rail, muted inactive entries, and a filled neutral pill for the current destination. Each entry aligns icon and label; selected text stays ink. The main section tabs use a 2px underline with reserved border space, while the compact queue/task switch uses a neutral pill track and a white selected tab. Mobile navigation scrolls horizontally without displaying a decorative scrollbar. Real tabs need keyboard navigation and correct panel relationships, not merely the source's visual ARIA states.
-
-### Overlays and Feedback
-
-The source notification panel has a solid white surface, rounded corners, and structural shadow. The native dialog uses canvas, 24px corners, a width capped at 640px with 16px viewport gutters, and a maximum height of 85vh. Dialog dismissal restores trigger focus. Toasts are compact ink pills with white text and meaningful status icons; do not reproduce success feedback for actions that did not happen.
-
-### Charts and Generative Detail
-
-When charts are actually specified, retain clear DM Sans labels, understated axes, rounded green bars, and coordinated category colors. Prototype charts are visual evidence only, not an MVP reporting commitment. The background SVG is a durable visual signature; tying its variant to “Mark all read” is a prototype comparison trick, not notification behavior.
-
-### Motion
-
-The reference uses ease-out control feedback, small press compression, soft overlay entrances, and optional hover color washes. Motion parameters are recorded in the sidecar. Pointer hover effects require a fine pointer; keyboard input disables animated button compression and programmatic entrances where the source supports it. Reduced-motion preferences suppress movement and discrete transitions.
-
-Card lifts, letter-by-letter animated names, staggered widget entrances, shared-element work-detail transitions, and the tuning/replay panel are observed experiments, not settled requirements for every CRM screen. Keep the digital character, but choose motion for actual interaction feedback rather than automatically animating all names and records.
-
-The app's dashboard entrance order is explicit widget metadata rather than a dependency on DOM position. Row washes respond to focused links and keyboard-focused disclosure summaries; the focus outline remains visible. Reduced motion disables the entrances, lifts, and disclosure-arrow transitions.
-
-## Do's and Don'ts
-
-### Do:
-
-- **Do** make the rail read as part of the continuous viewport background and the main content as a floating digital surface.
-- **Do** use Newsreader for display roles and DM Sans for UI, data, and charts.
-- **Do** preserve the precise, edge-cropped generative SVG signature without interfering with reading or input.
-- **Do** treat the current beige background as provisional and the bright pastel register as an evidenced alternative.
-- **Do** use consistent color meanings within a component family and verify contrast on the actual surface.
-- **Do** keep cards flat at rest and reserve structural shadows for the shell, selected tabs, and overlays.
-- **Do** follow product scope and glossary rather than adopting prototype widgets as features.
-
-### Don't:
-
-- **Don't** describe or implement this world as physical paper, stationery, or textured material.
-- **Don't** replace DM Sans with Inter, including in charts or preview snippets.
-- **Don't** lock the background to yellow/beige or invent an approved replacement hue.
-- **Don't** mix muted and brighter palettes randomly or assign category colors new status meanings without a decision.
-- **Don't** turn the SVG into a centered illustration or repeat its ornament across content cards.
-- **Don't** make prototype tuning controls, animated names, motif-switch tricks, or role switching mandatory product patterns.
-- **Don't** assume text fields, dark mode, loading/error states, or a production-ready mobile form system have already been designed.
+- Describe or build the interface as paper or textured material.
+- Restate a primitive's styling in a component, or style a `<button>` without a primitive.
+- Combine the accent with a status or category hue in one interaction state.
+- Mix the muted status pairs and the bright category families within one component family, or give category colors status meanings.
+- Present prototype tuning controls, motif switching, or role switching as product patterns.

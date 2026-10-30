@@ -107,6 +107,13 @@ export const vocabulary: Term[] = [
 					"A discreet panel on a view that chooses what the view shows, such as which details the board's opportunity cards show. Saved in the user's browser.",
 				not: ["display settings", "settings"],
 			},
+			{
+				term: "Theme",
+				kind: "Field",
+				meaning:
+					"The colors and type the app is drawn in, chosen from the account menu and saved in the user's browser.",
+				not: ["palette", "skin", "color scheme"],
+			},
 		],
 	},
 	{
@@ -150,6 +157,13 @@ export const vocabulary: Term[] = [
 				meaning:
 					"Remove a record permanently, as far as users can tell; behind the scenes it may be kept briefly. Clients can be deleted, only from the Registry; opportunities and tasks can be deleted too.",
 				not: ["archive"],
+			},
+			{
+				term: "Bookmark",
+				kind: "Action",
+				meaning:
+					"Keep an opportunity at hand in the sidebar's Bookmarks stack, which fans out on click so one can be opened from any view. Each user has their own bookmarks, saved in their browser, and only that user removes them.",
+				not: ["favorite", "pin", "star", "quick access"],
 			},
 		],
 	},
@@ -258,6 +272,13 @@ export const vocabulary: Term[] = [
 						meaning:
 							"The client's stated horizon: 1-3 mo, 3-6 mo, or 6+ mo. Optional; used to prioritize, filter, and sort, never to gate or judge.",
 						not: ["urgency", "priority", "deadline", "temperature"],
+					},
+					{
+						term: "Pin",
+						kind: "Action",
+						meaning:
+							"Keep an opportunity at the top of its stage's column on the board, for both users, until someone unpins it. Pinning is recorded in the opportunity's history.",
+						not: ["bookmark", "favorite", "star", "sticky"],
 					},
 					{
 						term: "Checklist",

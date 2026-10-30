@@ -45,10 +45,11 @@ test("moving an opportunity from the board moves it to the new stage's column", 
 	const newLead = page.locator("section[aria-label='New lead']");
 	await expect(newLead.getByRole("button", { name: new RegExp(title) })).toBeVisible();
 
-	// Move it to Active lead from the card's stage select.
+	// Move it to Active lead from the card's actions menu.
 	const activeLead = page.locator("section[aria-label='Active lead']");
-	const card = newLead.getByRole("button", { name: new RegExp(title) }).locator("..");
-	await card.getByLabel("Move to stage").selectOption("active-lead");
+	const card = newLead.getByRole("article").filter({ hasText: title });
+	await card.getByRole("button", { name: "More actions", exact: true }).click();
+	await page.getByRole("menuitemradio", { name: "Active lead", exact: true }).click();
 
 	// It appears in Active lead once the move completes, then leaves New lead.
 	await expect(activeLead.getByRole("button", { name: new RegExp(title) })).toBeVisible();

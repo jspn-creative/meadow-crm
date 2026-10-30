@@ -4,6 +4,7 @@ import {
 	archiveOpportunity,
 	deleteOpportunity,
 	moveStage,
+	pinOpportunity,
 	removeChecklistItem,
 	renameChecklistItem,
 	reorderChecklistItems,
@@ -16,6 +17,7 @@ export type StageMove = Parameters<typeof moveStage>[0];
 export type ArchiveOpportunity = Parameters<typeof archiveOpportunity>[0];
 export type DeleteOpportunity = Parameters<typeof deleteOpportunity>[0];
 export type RestoreOpportunity = Parameters<typeof restoreOpportunity>[0];
+export type PinOpportunity = Parameters<typeof pinOpportunity>[0];
 export type AddChecklistItem = Parameters<typeof addChecklistItem>[0];
 export type RemoveChecklistItem = Parameters<typeof removeChecklistItem>[0];
 export type RenameChecklistItem = Parameters<typeof renameChecklistItem>[0];
@@ -88,6 +90,19 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
+				})),
+			);
+		},
+		async pin(input: PinOpportunity) {
+			current();
+			await pinOpportunity(input).updates(
+				query.withOverride((snapshot) => ({
+					...snapshot,
+					opportunities: snapshot.opportunities.map((row) =>
+						row.id === input.id
+							? { ...row, pinnedAt: input.pinned ? new Date().toISOString() : null }
+							: row,
+					),
 				})),
 			);
 		},

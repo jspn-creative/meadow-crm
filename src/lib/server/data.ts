@@ -1,20 +1,26 @@
 import type { D1Database, D1PreparedStatement } from "@cloudflare/workers-types";
 import { drizzle } from "drizzle-orm/d1";
-import { eq, isNull, isNotNull } from "drizzle-orm";
+import { eq, inArray, isNull, isNotNull } from "drizzle-orm";
 import * as v from "valibot";
 import type { BusinessIdentity } from "./identity.ts";
 import { businessDate } from "../data/attention.ts";
 import {
 	businessSettings,
 	clients,
+	clientAddresses,
+	clientKeyDates,
+	clientPeople,
+	clientRelationships,
+	clientTags,
 	opportunities,
 	opportunityClients,
+	personEmails,
+	personPhones,
 	stageChecklists,
 	checklistItems,
 	checklistProgress,
 	recordReferences,
 	history,
-	clientTags,
 	tags,
 } from "./db/schema.ts";
 import {
@@ -24,12 +30,14 @@ import {
 	createClientInput,
 	createOpportunityInput,
 	deleteOpportunityInput,
+	pinOpportunityInput,
 	removeChecklistItemInput,
 	renameChecklistItemInput,
 	reorderChecklistItemsInput,
 	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
+	saveClientInput,
 	saveOpportunityInput,
 	workspaceInput,
 } from "./validation.ts";
@@ -39,6 +47,13 @@ export class DataConflict extends Error {
 		super(
 			"This record changed or a linked record is unavailable. Refresh and reselect before saving.",
 		);
+	}
+}
+
+// The record cannot be saved as it was asked for, whatever the stored state is.
+export class DataInvalid extends Error {
+	constructor(message: string) {
+		super(message);
 	}
 }
 
@@ -152,22 +167,19 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 	function writeReferences(
 		guard: string,
 		now: string,
-		opportunityId: string,
+		column: "opportunity_id" | "client_id",
+		ownerId: string,
 		references: v.InferOutput<typeof saveOpportunityInput>["references"],
 	) {
 		if (!references) return [];
 		return [
-			stmt(
-				"DELETE FROM record_references WHERE opportunity_id = ? AND " + guardExists,
-				opportunityId,
-				guard,
-			),
+			stmt(`DELETE FROM record_references WHERE ${column} = ? AND ` + guardExists, ownerId, guard),
 			...references.map((reference) =>
 				stmt(
-					"INSERT INTO record_references (id, opportunity_id, label, kind, url, target_client_id, target_opportunity_id, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE " +
+					`INSERT INTO record_references (id, ${column}, label, kind, url, target_client_id, target_opportunity_id, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE ` +
 						guardExists,
 					crypto.randomUUID(),
-					opportunityId,
+					ownerId,
 					reference.label,
 					reference.kind,
 					reference.kind === "url" ? reference.url : null,
@@ -198,6 +210,14 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				referenceClientRows,
 				referenceOpportunities,
 				clientTagRows,
+				clientPeopleRows,
+				personPhoneRows,
+				personEmailRows,
+				clientAddressRows,
+				clientRelationshipRows,
+				clientKeyDateRows,
+				tagRows,
+				clientTagAllRows,
 			] = await Promise.all([
 				orm
 					.select()
@@ -213,7 +233,10 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				orm.select().from(checklistItems),
 				orm.select().from(checklistProgress),
 				orm.select().from(recordReferences),
-				orm.select().from(history).where(eq(history.recordKind, "opportunity")),
+				orm
+					.select()
+					.from(history)
+					.where(inArray(history.recordKind, ["opportunity", "client"])),
 				orm
 					.select({ id: clients.id, name: clients.name, archivedAt: clients.archivedAt })
 					.from(clients),
@@ -234,6 +257,14 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					.from(clientTags)
 					.innerJoin(tags, eq(tags.id, clientTags.tagId))
 					.where(isNull(tags.retiredAt)),
+				orm.select().from(clientPeople),
+				orm.select().from(personPhones),
+				orm.select().from(personEmails),
+				orm.select().from(clientAddresses),
+				orm.select().from(clientRelationships),
+				orm.select().from(clientKeyDates),
+				orm.select().from(tags),
+				orm.select().from(clientTags),
 			]);
 			const tagsByClient = new Map<string, { id: string; name: string; color: string }[]>();
 			for (const row of clientTagRows) {
@@ -241,17 +272,53 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				list.push({ id: row.id, name: row.name, color: row.color });
 				tagsByClient.set(row.clientId, list);
 			}
+			// A client's people, addresses, relationships, key dates and tags hang off that client, so one record can never show another's rows.
+			const tagById = new Map(tagRows.map((tag) => [tag.id, tag]));
+			const clientRecords = clientRows.map((row) => ({
+				...row,
+				people: clientPeopleRows
+					.filter((person) => person.clientId === row.id)
+					.sort((a, b) => a.position - b.position)
+					.map((person) => ({
+						...person,
+						phones: personPhoneRows
+							.filter((phone) => phone.personId === person.id)
+							.sort((a, b) => a.position - b.position),
+						emails: personEmailRows
+							.filter((email) => email.personId === person.id)
+							.sort((a, b) => a.position - b.position),
+					})),
+				addresses: clientAddressRows
+					.filter((address) => address.clientId === row.id)
+					.sort((a, b) => a.position - b.position),
+				relationships: clientRelationshipRows.filter(
+					(relationship) => relationship.clientId === row.id,
+				),
+				keyDates: clientKeyDateRows.filter((keyDate) => keyDate.clientId === row.id),
+				tags: clientTagAllRows
+					.filter((link) => link.clientId === row.id)
+					.map((link) => tagById.get(link.tagId))
+					.filter((tag): tag is (typeof tagRows)[number] => tag !== undefined),
+			}));
 			return {
 				identity: user,
 				businessToday: businessDate(settings[0]?.timezone ?? "America/New_York"),
-				clients: clientRows,
+				clients: clientRecords,
 				opportunities: opportunityRows,
 				links: links.filter((link) => opportunityRows.some((row) => row.id === link.opportunityId)),
-				references: references.filter((reference) =>
-					opportunityRows.some((row) => row.id === reference.opportunityId),
+				references: references.filter(
+					(reference) =>
+						(reference.opportunityId !== null &&
+							opportunityRows.some((row) => row.id === reference.opportunityId)) ||
+						(reference.clientId !== null && clientRows.some((row) => row.id === reference.clientId)),
 				),
 				history: changes
-					.filter((change) => opportunityRows.some((row) => row.id === change.recordId))
+					.filter(
+						(change) =>
+							(change.recordKind === "opportunity" &&
+								opportunityRows.some((row) => row.id === change.recordId)) ||
+							(change.recordKind === "client" && clientRows.some((row) => row.id === change.recordId)),
+					)
 					.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
 				referenceClients: referenceClientRows.map((client) => ({
 					id: client.id,
@@ -260,6 +327,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					tags: tagsByClient.get(client.id) ?? [],
 				})),
 				referenceOpportunities,
+				tags: tagRows,
 				checklists: checklists
 					.filter((list) => opportunityRows.some((row) => row.id === list.opportunityId))
 					.map((list) => {
@@ -301,13 +369,20 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						value.id,
 					),
 					stmt(
-						"INSERT INTO clients (id, name, created_at, updated_at) SELECT ?, ?, ?, ? WHERE " +
+						"INSERT INTO clients (id, name, consent_call, consent_text, consent_email, consent_mail, created_at, updated_at) SELECT ?, ?, 1, 1, 1, 1, ?, ? WHERE " +
 							guardExists,
 						value.id,
 						value.name,
 						now,
 						now,
 						guard,
+					),
+					...writeReferences(
+						guard,
+						now,
+						"client_id",
+						value.id,
+						value.references as v.InferOutput<typeof saveOpportunityInput>["references"],
 					),
 					appendHistory(guard, now, "client", value.id, "create", { after: { name: value.name } }),
 				],
@@ -365,7 +440,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						value.stage,
 						guard,
 					),
-					...writeReferences(guard, now, value.id, value.references),
+					...writeReferences(guard, now, "opportunity_id", value.id, value.references),
 					appendHistory(guard, now, "opportunity", value.id, "create", { after: value }),
 				],
 			);
@@ -434,11 +509,13 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					),
 					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
 					stmt(
-						"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) SELECT ?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM checklist_items WHERE checklist_id = ?), ?, ? WHERE " +
+						// The checklist shows template and local items together, so a new item goes after both.
+						"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) SELECT ?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM checklist_items WHERE checklist_id = ? OR template_id = (SELECT template_id FROM stage_checklists WHERE id = ?)), ?, ? WHERE " +
 							guardExists,
 						crypto.randomUUID(),
 						value.checklistId,
 						value.title,
+						value.checklistId,
 						value.checklistId,
 						now,
 						now,
@@ -552,17 +629,28 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 							),
 						);
 					} else {
-						// Create a local copy with the new title.
+						// Create a local copy with the new title in the same place, carrying over its checked-off state and due date.
+						const copyId = crypto.randomUUID();
 						stmts.push(
 							stmt(
-								"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) WHERE " +
+								"INSERT INTO checklist_items (id, checklist_id, title, position, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ? WHERE " +
 									guardExists,
-								crypto.randomUUID(),
+								copyId,
 								value.checklistId,
 								value.title,
 								item.position,
 								now,
 								now,
+								guard,
+							),
+							stmt(
+								"INSERT INTO checklist_progress (checklist_id, item_id, completed_at, due_date, created_at, updated_at) SELECT checklist_id, ?, completed_at, due_date, ?, ? FROM checklist_progress WHERE checklist_id = ? AND item_id = ? AND " +
+									guardExists,
+								copyId,
+								now,
+								now,
+								value.checklistId,
+								value.itemId,
 								guard,
 							),
 						);
@@ -594,6 +682,20 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						),
 						stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
 					];
+					// Final positions overlap the current ones, so every affected item first vacates far above the list; the unique (template_id | checklist_id, position) indexes then never see a duplicate mid-update.
+					stmts.push(
+						stmt(
+							"UPDATE checklist_items SET position = position + 10000, updated_at = ? WHERE (checklist_id = ? OR template_id = ?) AND id IN (" +
+								value.itemIds.map(() => "?").join(",") +
+								") AND " +
+								guardExists,
+							now,
+							value.checklistId,
+							list.templateId,
+							...value.itemIds,
+							guard,
+						),
+					);
 					value.itemIds.forEach((itemId, index) => {
 						stmts.push(
 							stmt(
@@ -725,7 +827,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						after.stage,
 						guard,
 					),
-					...writeReferences(guard, now, value.id, value.references),
+					...writeReferences(guard, now, "opportunity_id", value.id, value.references),
 					appendHistory(guard, now, "opportunity", value.id, "edit", {
 						revision: value.revision,
 						before: {
@@ -777,6 +879,29 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					appendHistory(guard, now, "opportunity", value.id, "restore", {
 						revision: value.revision,
 						archivedAt: null,
+					}),
+				],
+			);
+		},
+		async pinOpportunity(input: unknown) {
+			const value = v.parse(pinOpportunityInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "pin-opportunity", ...value },
+				{ id: value.id, revision: value.revision + 1 },
+				(guard, now) => [
+					// Pinning an already-pinned opportunity (or unpinning an unpinned one) matches no row, so it conflicts like a stale revision.
+					stmt(
+						`UPDATE opportunities SET pinned_at = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL AND pinned_at IS ${value.pinned ? "NULL" : "NOT NULL"}`,
+						value.pinned ? now : null,
+						now,
+						value.id,
+						value.revision,
+					),
+					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					appendHistory(guard, now, "opportunity", value.id, value.pinned ? "pin" : "unpin", {
+						revision: value.revision,
+						pinnedAt: value.pinned ? now : null,
 					}),
 				],
 			);
@@ -850,6 +975,290 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						}),
 					]),
 				],
+			);
+		},
+		async saveClient(input: unknown) {
+			const value = v.parse(saveClientInput, input);
+			const before = await orm
+				.select()
+				.from(clients)
+				.where(eq(clients.id, value.id))
+				.then((rows) => rows[0]);
+			if (!before) throw new DataConflict();
+			// A field left out keeps what the record already holds; an explicit null clears it.
+			const leadSource = value.leadSource !== undefined ? value.leadSource : before.leadSource;
+			const preferences = value.preferences !== undefined ? value.preferences : before.preferences;
+			const preferredContactMethod =
+				value.preferredContactMethod !== undefined
+					? value.preferredContactMethod
+					: before.preferredContactMethod;
+			// Referred by is one value in two forms: naming a form replaces the other, and the record never holds both.
+			const linkProvided = value.referredByClientId !== undefined;
+			const nameProvided = value.referredByName !== undefined;
+			const linkGiven = linkProvided && value.referredByClientId !== null;
+			const nameGiven = nameProvided && !!value.referredByName?.trim();
+			if (linkGiven && nameGiven)
+				throw new DataInvalid("Referred by is either a linked client or a typed name, not both.");
+			let referredByClientId = before.referredByClientId;
+			let referredByName = before.referredByName;
+			if (linkGiven) {
+				referredByClientId = value.referredByClientId ?? null;
+				referredByName = null;
+			} else if (nameGiven) {
+				referredByClientId = null;
+				referredByName = value.referredByName!.trim();
+			} else if (linkProvided && nameProvided) {
+				referredByClientId = null;
+				referredByName = null;
+			} else if (linkProvided) {
+				referredByClientId = null;
+			} else if (nameProvided) {
+				referredByName = null;
+			}
+			const consentCall = value.consentCall !== undefined ? value.consentCall : before.consentCall;
+			const consentText = value.consentText !== undefined ? value.consentText : before.consentText;
+			const consentEmail = value.consentEmail !== undefined ? value.consentEmail : before.consentEmail;
+			const consentMail = value.consentMail !== undefined ? value.consentMail : before.consentMail;
+			const notes = value.notes !== undefined ? value.notes : before.notes;
+			const people = value.people;
+			const addresses = value.addresses;
+			const relationships = value.relationships;
+			const keyDates = value.keyDates;
+			const tagIds = value.tagIds;
+			const references = value.references;
+			if (referredByClientId === value.id)
+				throw new DataInvalid("A client cannot be the client that referred it.");
+			for (const relationship of relationships ?? [])
+				if (relationship.relatedClientId === value.id)
+					throw new DataInvalid("A client cannot be related to itself.");
+			if (referredByClientId) {
+				const referredBy = await orm
+					.select({ id: clients.id })
+					.from(clients)
+					.where(eq(clients.id, referredByClientId))
+					.then((rows) => rows[0]);
+				if (!referredBy) throw new DataConflict();
+			}
+			const relatedIds = [...new Set((relationships ?? []).map((row) => row.relatedClientId))];
+			if (relatedIds.length) {
+				const found = await orm
+					.select({ id: clients.id })
+					.from(clients)
+					.where(inArray(clients.id, relatedIds))
+					.then((rows) => rows.map((row) => row.id));
+				if (found.length !== relatedIds.length) throw new DataConflict();
+			}
+			const beforePeople = await orm
+				.select()
+				.from(clientPeople)
+				.where(eq(clientPeople.clientId, value.id));
+			const beforeAddresses = await orm
+				.select()
+				.from(clientAddresses)
+				.where(eq(clientAddresses.clientId, value.id));
+			const beforeRelationships = await orm
+				.select()
+				.from(clientRelationships)
+				.where(eq(clientRelationships.clientId, value.id));
+			const beforeKeyDates = await orm
+				.select()
+				.from(clientKeyDates)
+				.where(eq(clientKeyDates.clientId, value.id));
+			const beforeTags = await orm
+				.select({ tagId: clientTags.tagId })
+				.from(clientTags)
+				.where(eq(clientTags.clientId, value.id));
+			return mutation(
+				value.requestId,
+				{ operation: "save-client", ...value },
+				{ id: value.id, revision: value.revision + 1 },
+				(guard, now) => {
+					const stmts: D1PreparedStatement[] = [];
+					stmts.push(
+						stmt(
+							"UPDATE clients SET name = ?, lead_source = ?, preferences = ?, preferred_contact_method = ?, referred_by_client_id = ?, referred_by_name = ?, consent_call = ?, consent_text = ?, consent_email = ?, consent_mail = ?, notes = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?",
+							value.name,
+							leadSource,
+							preferences,
+							preferredContactMethod,
+							referredByClientId,
+							referredByName,
+							consentCall ? 1 : 0,
+							consentText ? 1 : 0,
+							consentEmail ? 1 : 0,
+							consentMail ? 1 : 0,
+							notes,
+							now,
+							value.id,
+							value.revision,
+						),
+					);
+					stmts.push(stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard));
+					// A collection that is left out keeps its rows; one that is sent replaces them.
+					if (people !== undefined) {
+						stmts.push(
+							stmt(
+								"DELETE FROM person_phones WHERE person_id IN (SELECT id FROM client_people WHERE client_id = ?)",
+								value.id,
+							),
+							stmt(
+								"DELETE FROM person_emails WHERE person_id IN (SELECT id FROM client_people WHERE client_id = ?)",
+								value.id,
+							),
+							stmt("DELETE FROM client_people WHERE client_id = ?", value.id),
+						);
+						people.forEach((person, personIndex) => {
+							stmts.push(
+								stmt(
+									"INSERT INTO client_people (id, client_id, name, birthday, position, revision, created_at, updated_at) SELECT ?, ?, ?, ?, ?, 1, ?, ? WHERE " +
+										guardExists,
+									person.id,
+									value.id,
+									person.name,
+									person.birthday ?? null,
+									personIndex,
+									now,
+									now,
+									guard,
+								),
+							);
+							(person.phones ?? []).forEach((phone, phoneIndex) => {
+								stmts.push(
+									stmt(
+										"INSERT INTO person_phones (id, person_id, label, value, position, revision, created_at, updated_at) SELECT ?, ?, ?, ?, ?, 1, ?, ? WHERE " +
+											guardExists,
+										phone.id,
+										person.id,
+										phone.label,
+										phone.value,
+										phoneIndex,
+										now,
+										now,
+										guard,
+									),
+								);
+							});
+							(person.emails ?? []).forEach((email, emailIndex) => {
+								stmts.push(
+									stmt(
+										"INSERT INTO person_emails (id, person_id, label, value, position, revision, created_at, updated_at) SELECT ?, ?, ?, ?, ?, 1, ?, ? WHERE " +
+											guardExists,
+										email.id,
+										person.id,
+										email.label,
+										email.value,
+										emailIndex,
+										now,
+										now,
+										guard,
+									),
+								);
+							});
+						});
+					}
+					if (addresses !== undefined) {
+						stmts.push(stmt("DELETE FROM client_addresses WHERE client_id = ?", value.id));
+						addresses.forEach((address, addressIndex) => {
+							stmts.push(
+								stmt(
+									"INSERT INTO client_addresses (id, client_id, label, address, owned, position, revision, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, 1, ?, ? WHERE " +
+										guardExists,
+									address.id,
+									value.id,
+									address.label,
+									address.address,
+									address.owned ? 1 : 0,
+									addressIndex,
+									now,
+									now,
+									guard,
+								),
+							);
+						});
+					}
+					if (relationships !== undefined) {
+						stmts.push(stmt("DELETE FROM client_relationships WHERE client_id = ?", value.id));
+						relationships.forEach((relationship) => {
+							stmts.push(
+								stmt(
+									"INSERT INTO client_relationships (id, client_id, related_client_id, label, revision, created_at, updated_at) SELECT ?, ?, ?, ?, 1, ?, ? WHERE " +
+										guardExists,
+									relationship.id,
+									value.id,
+									relationship.relatedClientId,
+									relationship.label,
+									now,
+									now,
+									guard,
+								),
+							);
+						});
+					}
+					if (keyDates !== undefined) {
+						stmts.push(stmt("DELETE FROM client_key_dates WHERE client_id = ?", value.id));
+						keyDates.forEach((keyDate) => {
+							stmts.push(
+								stmt(
+									"INSERT INTO client_key_dates (id, client_id, name, date, revision, created_at, updated_at) SELECT ?, ?, ?, ?, 1, ?, ? WHERE " +
+										guardExists,
+									keyDate.id,
+									value.id,
+									keyDate.name,
+									keyDate.date,
+									now,
+									now,
+									guard,
+								),
+							);
+						});
+					}
+					if (tagIds !== undefined) {
+						stmts.push(stmt("DELETE FROM client_tags WHERE client_id = ?", value.id));
+						for (const tagId of tagIds) {
+							stmts.push(
+								stmt(
+									"INSERT INTO client_tags (client_id, tag_id) SELECT ?, ? WHERE " + guardExists,
+									value.id,
+									tagId,
+									guard,
+								),
+							);
+						}
+					}
+					stmts.push(...writeReferences(guard, now, "client_id", value.id, references));
+					stmts.push(
+						appendHistory(guard, now, "client", value.id, "edit", {
+							revision: value.revision,
+							before: {
+								...before,
+								people: beforePeople,
+								addresses: beforeAddresses,
+								relationships: beforeRelationships,
+								keyDates: beforeKeyDates,
+								tagIds: beforeTags.map((row) => row.tagId),
+							},
+							after: {
+								name: value.name,
+								leadSource,
+								preferences,
+								preferredContactMethod,
+								referredByClientId,
+								referredByName,
+								consentCall,
+								consentText,
+								consentEmail,
+								consentMail,
+								notes,
+								people: people ?? beforePeople,
+								addresses: addresses ?? beforeAddresses,
+								relationships: relationships ?? beforeRelationships,
+								keyDates: keyDates ?? beforeKeyDates,
+								tagIds: tagIds ?? beforeTags.map((row) => row.tagId),
+							},
+						}),
+					);
+					return stmts;
+				},
 			);
 		},
 	};

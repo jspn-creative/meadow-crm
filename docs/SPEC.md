@@ -46,9 +46,12 @@ The modules are Dashboard, Pipeline, and Registry, each with its own sidebar ite
 - A client is not required.
 - The timeline (1-3 mo, 3-6 mo, 6+ mo) is shown on the card and used to filter and sort. It never blocks a stage change or judges an opportunity.
 - An opportunity shows the combined tags of its clients, read-only. Tags are edited on the client.
-- The board can be filtered by type, timeline, and tag, and sorted by timeline.
+- The board can be filtered by type, timeline, and tag, and sorted by timeline. Type filters are buttons, one per type; selecting several shows opportunities of any selected type, combined with the timeline and tag filters.
+- Each stage's column can be collapsed. The choice lasts for the browser session; a new session starts with just enough columns collapsed, rightmost first, to keep every column visible. When expanded columns overflow the board, its scrolling edges fade.
+- A pinned opportunity stays at the top of its stage's column for both users until someone unpins it.
+- An opportunity can be bookmarked from its detail view. Bookmarks are a stack in the sidebar, kept per user in the browser and removed only by that user; clicking the stack fans it out, choosing one opens that opportunity, and clicking elsewhere closes the fan.
 - A card always shows its title, type, and timeline. It can also show client names, checklist progress for the current stage, an overdue marker when a task linked to the opportunity is overdue, and the budget or target price. Which of these appear is chosen in the board's view options, a discreet panel saved in the user's browser; losing that choice is acceptable. The card design and its options settle over several rounds of review with the developer.
-- Opening an opportunity shows its details, with its checklist in a sidebar beside them.
+- Opening an opportunity shows its details, with its checklist in a sidebar beside them. Each detail and the references can be added or changed in place, and the full editor stays available as a second way to edit.
 
 ### Checklists
 

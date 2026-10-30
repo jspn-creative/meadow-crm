@@ -4,7 +4,7 @@
 	let { title, headingId, description, descriptionInline = false, action, order = 0, children }: { title: string; headingId: string; description?: string; descriptionInline?: boolean; action?: { href: string; label: string }; order?: number; children: Snippet } = $props();
 </script>
 
-<section data-widget class="widget-card @container/card" aria-labelledby={headingId} style:--widget-order={order}>
+<section data-widget class="surface @container/card" aria-labelledby={headingId} style:--widget-order={order}>
 	<header class="flex min-h-14 flex-col justify-center px-(--card-pad) py-(--card-head-py)">
 		<div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 			<h2 id={headingId} class="font-display min-w-0 text-xl tracking-tight">{title}</h2>

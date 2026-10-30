@@ -53,6 +53,73 @@ export const createClientInput = v.strictObject({
 	requestId: id,
 	id,
 	name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	references: v.optional(v.pipe(v.array(reference), v.maxLength(50))),
+});
+
+const calendarDate = v.pipe(
+	v.string(),
+	v.regex(/^\d{4}-\d{2}-\d{2}$/),
+	v.check((date) => {
+		const parsed = new Date(`${date}T00:00:00Z`);
+		return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+	}, "Choose a valid calendar date."),
+);
+
+const personPhoneInput = v.strictObject({
+	id,
+	label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),
+	value: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+});
+const personEmailInput = v.strictObject({
+	id,
+	label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),
+	value: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+});
+const personInput = v.strictObject({
+	id,
+	name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	birthday: v.optional(v.nullable(calendarDate)),
+	phones: v.optional(v.array(personPhoneInput), []),
+	emails: v.optional(v.array(personEmailInput), []),
+});
+const addressInput = v.strictObject({
+	id,
+	label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),
+	address: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(1000)),
+	owned: v.optional(v.boolean(), false),
+});
+const relationshipInput = v.strictObject({
+	id,
+	relatedClientId: id,
+	label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),
+});
+const keyDateInput = v.strictObject({
+	id,
+	name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),
+	date: calendarDate,
+});
+
+export const saveClientInput = v.strictObject({
+	requestId: id,
+	id,
+	revision,
+	name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	leadSource: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(200)))),
+	preferences: v.optional(v.pipe(v.string(), v.maxLength(20000))),
+	preferredContactMethod: v.optional(v.nullable(v.picklist(["call", "text", "email", "mail"]))),
+	referredByClientId: v.optional(v.nullable(id)),
+	referredByName: v.optional(v.nullable(v.pipe(v.string(), v.trim(), v.maxLength(200)))),
+	consentCall: v.optional(v.boolean()),
+	consentText: v.optional(v.boolean()),
+	consentEmail: v.optional(v.boolean()),
+	consentMail: v.optional(v.boolean()),
+	notes: v.optional(v.pipe(v.string(), v.maxLength(20000))),
+	people: v.optional(v.array(personInput)),
+	addresses: v.optional(v.array(addressInput)),
+	relationships: v.optional(v.array(relationshipInput)),
+	keyDates: v.optional(v.array(keyDateInput)),
+	tagIds: v.optional(v.array(id)),
+	references: v.optional(v.pipe(v.array(reference), v.maxLength(50))),
 });
 export const moveStageInput = v.strictObject({ requestId: id, id, revision, stage });
 export const createOpportunityFormInput = v.strictObject({
@@ -116,6 +183,12 @@ export const bulkArchiveInput = v.strictObject({
 export const archiveOpportunityInput = v.strictObject({ requestId: id, id, revision });
 export const restoreOpportunityInput = v.strictObject({ requestId: id, id, revision });
 export const deleteOpportunityInput = v.strictObject({ requestId: id, id, revision });
+export const pinOpportunityInput = v.strictObject({
+	requestId: id,
+	id,
+	revision,
+	pinned: v.boolean(),
+});
 
 export const addChecklistItemInput = v.strictObject({
 	requestId: id,

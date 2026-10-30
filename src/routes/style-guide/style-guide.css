@@ -1,0 +1,55 @@
+@reference "../layout.css";
+
+@layer components {
+	.control {
+		&[data-sg-state="hover"]:not(:disabled) {
+			@apply bg-highlight;
+			&[data-variant="primary"] {
+				background: var(--color-primary-hover);
+			}
+			&:is([data-variant="ghost"], [data-variant="danger"]) {
+				@apply bg-transparent;
+				color: color-mix(in oklch, var(--action-color, var(--color-field)) 80%, var(--color-ink));
+			}
+			&[data-variant="danger"] {
+				@apply bg-urgent-soft;
+			}
+		}
+		&[data-sg-state="active"]:not(:disabled) {
+			transform: scale(0.97);
+			@media (prefers-reduced-motion: reduce) {
+				transform: none;
+			}
+		}
+	}
+	.menu-item[data-sg-state="hover"]:not(:disabled, [aria-selected="true"], [aria-checked="true"]) {
+		@apply bg-highlight;
+		&[data-tone="danger"] {
+			@apply bg-urgent-soft;
+		}
+	}
+	[data-sg-state="focus"] {
+		@apply focus-glow;
+	}
+}
+
+/* Section motion is guide-only; primitives own every specimen's appearance. */
+.sg-section {
+	interpolate-size: allow-keywords;
+	&::details-content {
+		block-size: 0;
+		overflow: clip;
+		overflow-clip-margin: 1.5rem;
+		transition:
+			block-size 360ms var(--ease-shell),
+			content-visibility 360ms allow-discrete;
+	}
+	&[open]::details-content {
+		block-size: auto;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		&::details-content {
+			transition: none;
+		}
+	}
+}

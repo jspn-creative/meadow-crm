@@ -92,9 +92,9 @@
 			<button type="button" class="control" disabled={!ready || searching} aria-controls="glossary-results" onclick={() => (expanded = allExpanded ? {} : true)}>{allExpanded ? "Collapse all" : "Expand all"}</button>
 		</div>
 		{#if instead}
-			<p class="bg-pending-soft text-pending flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl px-4 py-2.5 text-sm">
+			<p class="bg-pending-soft text-pending flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl px-4 py-2.5 text-sm [--action-color:var(--color-pending)]">
 				<span>“{search.trim()}” isn't a Meadow word.</span>
-				<button type="button" class="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline disabled:opacity-60" disabled={!ready} onclick={() => setSearch(instead.term)}>Say {instead.term}<ArrowRight size={14} aria-hidden="true" /></button>
+				<button type="button" class="text-action" disabled={!ready} onclick={() => setSearch(instead.term)}>Say {instead.term}<ArrowRight size={14} aria-hidden="true" /></button>
 			</p>
 		{/if}
 		<p class="text-muted text-xs" role="status">{searching ? `${shown} matching ${shown === 1 ? "term" : "terms"}` : `${allTerms.length} terms`}</p>

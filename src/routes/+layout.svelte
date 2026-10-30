@@ -8,22 +8,43 @@
 	import { destinations } from "#lib/shell/navigation.js";
 	import Motif from "#lib/shell/Motif.svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
+	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
+	import PipelineView from "#lib/pipeline/PipelineView.svelte";
 	import VariantHost from "#lib/dev/VariantHost.svelte";
+	import { variantSetting } from "#lib/dev/variants.svelte.js";
+	import { guide, guideSections } from "./style-guide/guide.svelte.js";
+	import { overflowFade } from "#lib/attachments/overflow-fade.js";
 	import { motion, MotionConfig } from "@humanspeak/svelte-motion";
 	import { MediaQuery } from "svelte/reactivity";
 	import { onMount } from "svelte";
 
 	let { children } = $props();
+	const material = variantSetting("material", ["Glass", "Tactile"], { label: "Material" });
+	$effect(() => {
+		if (dev) document.documentElement.dataset.material = material.value.toLowerCase();
+	});
 	let collapsed = $state(false);
 	let ready = $state(false);
 	let mobileScrolled = $state(false);
+	let bookmarkedOpportunity = $state<{ id: string } | null>(null);
+	function openOpportunity(id: string) {
+		// Each click is a fresh request, even when reopening the same opportunity.
+		bookmarkedOpportunity = { id };
+	}
 	let isLogin = $derived(page.url.pathname === "/login");
-	let current = $derived(destinations.find((destination) => destination.href === page.url.pathname));
-	let title = $derived(current?.label ?? { "/settings": "Settings", "/glossary": "Glossary" }[page.url.pathname as "/settings" | "/glossary"] ?? "Workspace");
+	// The development-only style guide borrows the rail for its own sections.
+	let isGuide = $derived(dev && page.url.pathname === "/style-guide");
+	// A module's nested views, such as archived opportunities, still belong to that module's sidebar item.
+	let current = $derived(destinations.find((destination) => destination.href === page.url.pathname || (destination.href !== "/" && page.url.pathname.startsWith(`${destination.href}/`))));
+	let title = $derived(current?.label ?? { "/settings": "Settings", "/glossary": "Glossary", "/style-guide": "Style guide" }[page.url.pathname as "/settings" | "/glossary" | "/style-guide"] ?? "Workspace");
 	let transition: ViewTransition | undefined;
 	const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 	const desktop = new MediaQuery("(min-width: 64rem)");
 	let sidebarCollapsed = $derived(desktop.current && collapsed);
+	// The nav scrolls sideways below desktop, and vertically on desktop only for the style guide's longer list; the app's desktop nav never scrolls, so it skips the mask that would clip its focus rings.
+	const navFadeX = overflowFade({ axis: "x", fadePercent: 12 });
+	const navFadeY = overflowFade({ axis: "y", fadePercent: 12 });
+	let navFade = $derived(desktop.current ? (isGuide ? navFadeY : null) : navFadeX);
 	let greetingHidden = $derived(desktop.current ? collapsed : mobileScrolled);
 	onMount(() => {
 		ready = true;
@@ -63,7 +84,6 @@
 	<link rel="icon" href={favicon} />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet" />
 </svelte:head>
 
 {#if !dev}
@@ -77,12 +97,13 @@
 		<Motif />
 		<aside class="rail" aria-label={isLogin ? "Meadow Lane" : "Workspace navigation"}>
 			<div class="flex shrink-0 items-center justify-between gap-2">
-				<a href="/" aria-label="Meadow Lane dashboard" class="flex min-h-11 min-w-0 items-center gap-2.5 whitespace-nowrap">
+				<a href="/" aria-label="Meadow Lane dashboard" class="brand flex min-h-11 min-w-0 items-center gap-2.5 whitespace-nowrap">
 					<span class="bg-ink size-5 shrink-0 rounded-md" aria-hidden="true"></span>
 					<span class="brand-label font-display truncate text-base tracking-tight">Meadow Lane</span>
 				</a>
 				{#if !isLogin}
 					<div class="flex items-center gap-2 pr-8 lg:hidden">
+						<BookmarkStack variant="compact" {openOpportunity} />
 						<UserChip compact />
 					</div>
 				{/if}
@@ -98,23 +119,47 @@
 						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight text-balance sm:mt-8 sm:text-3xl/[1.08] lg:mt-10 lg:w-52">Good morning,<br class="hidden lg:block" /> Meadow Lane.</p>
 					</motion.div>
 				</MotionConfig>
+				{#snippet navLink(href: string, label: string, Icon: (typeof destinations)[number]["icon"], state: "page" | "true" | undefined, onclick?: (event: MouseEvent) => void)}
+					<a
+						{href}
+						aria-current={state}
+						aria-label={label}
+						title={sidebarCollapsed ? label : undefined}
+						{onclick}
+						class={[
+							"nav-destination hover:bg-highlight hover:text-ink aria-[current=page]:bg-selected aria-[current=page]:text-on-selected aria-[current=true]:bg-selected aria-[current=true]:text-on-selected flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-4 py-1.5 font-medium whitespace-nowrap",
+							state ? "text-ink" : "text-muted",
+						]}>
+						<Icon size={17} strokeWidth={1.8} class="shrink-0" aria-hidden="true" />
+						<span class="nav-label">{label}</span>
+					</a>
+				{/snippet}
 				<nav
 					id="workspace-nav"
-					aria-label="Sections"
-					class={["-mx-6 flex shrink-0 gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0", !desktop.current && mobileScrolled ? "mt-2 sm:mt-4" : "mt-4 sm:mt-8"]}>
-					{#each destinations as destination (destination.href)}
-						<a
-							href={destination.href}
-							aria-current={page.url.pathname === destination.href ? "page" : undefined}
-							aria-label={destination.label}
-							title={sidebarCollapsed ? destination.label : undefined}
-							class={["nav-destination hover:bg-paper-pill hover:text-ink aria-[current=page]:bg-paper-pill aria-[current=page]:text-ink flex min-h-10 shrink-0 items-center gap-3 rounded-full px-4 py-1.5 font-medium whitespace-nowrap", page.url.pathname === destination.href ? "text-ink" : "text-muted"]}>
-							<destination.icon size={17} strokeWidth={1.8} class="shrink-0" aria-hidden="true" />
-							<span class="nav-label">{destination.label}</span>
-						</a>
-					{/each}
+					aria-label={isGuide ? "Style guide sections" : "Sections"}
+					{@attach navFade}
+					class={[
+						// Below lg the row scrolls sideways, so its vertical padding (offset by the margins) keeps focus glows from being clipped.
+						"-mx-6 flex shrink-0 gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none max-lg:-mb-1.5 max-lg:py-1.5 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0",
+						!desktop.current && mobileScrolled ? "mt-0.5 sm:mt-2.5" : "mt-2.5 sm:mt-6.5 lg:mt-8",
+						// The style guide lists more sections than the app has modules, so on short viewports they scroll instead of pushing the account chip away.
+						isGuide && "lg:-mx-1 lg:min-h-0 lg:shrink lg:overflow-y-auto lg:px-1 lg:py-1",
+					]}>
+					{#if isGuide}
+						{#each guideSections as section (section.id)}
+							{@render navLink(`#${section.id}`, section.label, section.icon, guide.active === section.id ? "true" : undefined, (event) => {
+								event.preventDefault();
+								void guide.reveal(section.id);
+							})}
+						{/each}
+					{:else}
+						{#each destinations as destination (destination.href)}
+							{@render navLink(destination.href, destination.label, destination.icon, current === destination ? (page.url.pathname === destination.href ? "page" : "true") : undefined)}
+						{/each}
+					{/if}
 				</nav>
 				<div class="mt-auto hidden shrink-0 pt-8 lg:block">
+					<BookmarkStack variant="rail" {openOpportunity} />
 					<button type="button" class="control rail-collapse w-full" data-icon={collapsed || undefined} disabled={!ready} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="workspace-nav" onclick={() => (collapsed = !collapsed)}>
 						{#if collapsed}<PanelLeftOpen size={18} aria-hidden="true" />{:else}<PanelLeftClose size={18} aria-hidden="true" /><span>Collapse sidebar</span>{/if}
 					</button>
@@ -135,12 +180,24 @@
 				<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
 					<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
 						{title}{#if page.url.pathname === "/"}
-							<span class="text-muted ml-1">/ Overview</span>{/if}
+							<span class="text-muted ml-1">/ Overview</span>{:else if page.url.pathname === "/pipeline/archived"}
+							<span class="text-muted ml-1">/ Archived</span>{/if}
 					</h1>
 				</header>
 			{/if}
 			{@render children()}
 		</main>
 	</div>
+	{#if bookmarkedOpportunity && !isLogin}
+		{@const request = bookmarkedOpportunity}
+		{#key bookmarkedOpportunity}
+			<PipelineView
+				opportunity={request.id}
+				dialogOnly
+				onclose={() => {
+					if (bookmarkedOpportunity === request) bookmarkedOpportunity = null;
+				}} />
+		{/key}
+	{/if}
 {/if}
 <VariantHost />

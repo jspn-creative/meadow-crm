@@ -3,11 +3,21 @@
 	import { afterNavigate } from "$app/navigation";
 	import { onMount } from "svelte";
 	import { BookOpen, LogIn, Settings2 } from "@lucide/svelte";
+	import { themes, chooseTheme } from "./themes.js";
+	let theme = $state("pop");
 	let { compact = false }: { compact?: boolean } = $props();
 	let open = $state(false);
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;
+		const root = document.documentElement;
+		const sync = () => {
+			theme = root.dataset.theme ?? "pop";
+		};
+		sync();
+		const observer = new MutationObserver(sync);
+		observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+		return () => observer.disconnect();
 	});
 	afterNavigate(() => {
 		open = false;
@@ -24,13 +34,19 @@
 	}} />
 
 <div bind:this={root} class="user-chip" data-open={open} data-compact={compact}>
-	<button type="button" class="border-hairline flex min-h-11 w-full items-center gap-2.5 rounded-full border bg-white/70 p-1.5 text-left transition-colors hover:bg-white" disabled={!ready} aria-label="Workspace account" aria-expanded={open} onclick={() => (open = !open)}>
+	<button type="button" class="control w-full justify-start text-left" disabled={!ready} aria-label="Workspace account" aria-expanded={open} onclick={() => (open = !open)}>
 		<span class="bg-success-soft text-success flex size-8 shrink-0 items-center justify-center rounded-full"><span class="text-xs font-semibold" aria-hidden="true">ML</span></span>
 		<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">Meadow Lane</span><span class="text-2xs text-muted block">Shared workspace</span></span>
 	</button>
-	<div class="account-menu border-hairline shadow-panel rounded-xl border bg-white p-2">
-		<a href="/settings" class="text-muted hover:bg-paper hover:text-ink flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors"><Settings2 size={16} aria-hidden="true" />Settings</a>
-		<a href="/glossary" class="text-muted hover:bg-paper hover:text-ink flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors"><BookOpen size={16} aria-hidden="true" />Glossary</a>
-		<a href={`/login?next=${encodeURIComponent(page.url.pathname)}`} class="text-muted hover:bg-paper hover:text-ink flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors"><LogIn size={16} aria-hidden="true" />Demo login</a>
+	<div class="account-menu surface surface-floating menu max-h-[70dvh] overflow-y-auto" inert={!open}>
+		<a href="/settings" class="menu-item"><Settings2 size={16} aria-hidden="true" />Settings</a>
+		<a href="/glossary" class="menu-item"><BookOpen size={16} aria-hidden="true" />Glossary</a>
+		<fieldset class="border-hairline my-2 border-y py-2">
+			<legend class="text-muted px-2 text-xs">Theme</legend>
+			{#each themes as option (option.id)}
+				<label class="menu-item cursor-pointer"><input class="radio" type="radio" name={compact ? "theme-compact" : "theme-rail"} value={option.id} checked={theme === option.id} onchange={() => chooseTheme(option.id)} />{option.label}</label>
+			{/each}
+		</fieldset>
+		<a href={`/login?next=${encodeURIComponent(page.url.pathname)}`} class="menu-item"><LogIn size={16} aria-hidden="true" />Demo login</a>
 	</div>
 </div>

@@ -2,7 +2,8 @@
 	import { onDestroy, onMount } from "svelte";
 	import { getWorkspace, deleteOpportunity, restoreOpportunity } from "#lib/crm.remote.js";
 	import { workspaceData } from "#lib/data/workspace.js";
-	import { stageLabels, typeLabels } from "#lib/pipeline/labels.js";
+	import { ArchiveRestore, ArrowLeft, RefreshCw, Trash2 } from "@lucide/svelte";
+	import { stageLabels, stageTones, typeLabels, typeStyles } from "#lib/pipeline/labels.js";
 	const remote = getWorkspace({ archived: true });
 	await remote;
 	const data = workspaceData(remote);
@@ -56,40 +57,50 @@
 
 <svelte:head><title>Archived opportunities · Meadow Lane</title></svelte:head>
 
-<div class="surface-content @container/board">
-	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-		<h2 class="font-display text-2xl">Archived opportunities</h2>
-		<a class="control" href="/pipeline">Back to board</a>
+<div class="surface-content @container/board" data-tight>
+	<div class="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+		<a class="control" data-size="sm" href="/pipeline"><ArrowLeft size={15} aria-hidden="true" />Back to board</a>
+		<p class="text-muted max-w-xl min-w-0 flex-1 basis-72 text-sm">Hidden from the board with every field, link, and its history kept. Restore one to return it to its stage.</p>
 	</div>
-	<p class="text-muted max-w-lg">Opportunities hidden from the board. Restore one to bring it back to its stage.</p>
-	<p role="status" aria-live="polite" class="text-muted mb-3 text-xs">{status}</p>
-	{#if failure}<p role="alert" class="text-urgent mb-3 text-xs">{failure}</p>{/if}
-	<div class="space-y-3">
-		{#each workspace.opportunities as opportunity (opportunity.id)}
-			<div class="border-hairline rounded-xl border bg-white p-5">
-				<div class="flex flex-wrap items-start justify-between gap-3">
-					<div class="min-w-0">
-						<span class="text-info bg-info-soft inline-block rounded-md px-2 py-1 text-xs">{typeLabels[opportunity.type]}</span>
-						<span class="mt-2 block font-medium wrap-anywhere">{opportunity.title}</span>
-						<span class="text-muted mt-1 block text-xs wrap-anywhere">{stageLabels[opportunity.stage]}</span>
-						<span class="text-muted mt-1 block text-xs wrap-anywhere">{clientNames(opportunity) || "No linked clients"}</span>
-					</div>
-					<button type="button" class="control" disabled={!ready || pending} onclick={() => restore(opportunity)}>{pending ? "Restoring…" : "Restore"}</button>
-					<button type="button" class="control" disabled={!ready || pending} onclick={() => deleteOpportunityFn(opportunity)}>Delete</button>
-				</div>
-			</div>
-		{:else}
-			<p class="text-muted py-5 text-xs">No archived opportunities.</p>
-		{/each}
-	</div>
+	<p role="status" aria-live="polite" class="sr-only">{status}</p>
 	{#if failure}
-		<button
-			class="control"
-			type="button"
-			disabled={pending}
-			onclick={async () => {
-				await remote.refresh();
-				failure = "";
-			}}>Refresh records</button>
+		<div role="alert" class="bg-urgent-soft text-urgent mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-urgent)]">
+			<span class="min-w-0 flex-1 basis-60 py-1">{failure}</span>
+			<button
+				class="control -ml-3"
+				data-variant="ghost"
+				data-size="sm"
+				type="button"
+				disabled={pending}
+				onclick={async () => {
+					await remote.refresh();
+					failure = "";
+				}}><RefreshCw size={15} aria-hidden="true" />Refresh records</button>
+		</div>
 	{/if}
+	<h2 class="mb-3 flex items-baseline gap-2 text-sm font-semibold">Archived opportunities<span class="chip tabular-nums">{workspace.opportunities.length}</span></h2>
+	<ul class="space-y-2">
+		{#each workspace.opportunities as opportunity (opportunity.id)}
+			{@const style = typeStyles[opportunity.type]}
+			{@const Icon = style.icon}
+			{@const clients = clientNames(opportunity)}
+			<li class="surface flex flex-wrap items-center gap-x-4 gap-y-3 p-3 pr-4">
+				<span class="chip shrink-0" data-tone={style.tone}><Icon size={17} aria-hidden="true" /></span>
+				<div class="min-w-0 flex-1 basis-48">
+					<p class="font-medium wrap-anywhere">{opportunity.title}</p>
+					<p class="text-muted mt-0.5 flex flex-wrap items-center gap-x-2 text-xs leading-5">
+						<span>{typeLabels[opportunity.type]}</span><span aria-hidden="true">·</span>
+						<span class="chip" data-tone={stageTones[opportunity.stage]} data-dot>{stageLabels[opportunity.stage]}</span><span aria-hidden="true">·</span>
+						<span class="wrap-anywhere">{clients || "No linked clients"}</span>
+					</p>
+				</div>
+				<div class="flex shrink-0 items-center gap-1.5 max-[30rem]:w-full max-[30rem]:justify-end">
+					<button type="button" class="control" data-variant="danger" data-size="sm" disabled={!ready || pending} onclick={() => deleteOpportunityFn(opportunity)}><Trash2 size={15} aria-hidden="true" />Delete</button>
+					<button type="button" class="control" data-size="sm" disabled={!ready || pending} onclick={() => restore(opportunity)}><ArchiveRestore size={15} aria-hidden="true" />Restore</button>
+				</div>
+			</li>
+		{:else}
+			<li class="text-muted border-hairline rounded-2xl border border-dashed px-4 py-8 text-center text-sm">No archived opportunities. Archive one from its card or detail view when the work has ended without closing.</li>
+		{/each}
+	</ul>
 </div>

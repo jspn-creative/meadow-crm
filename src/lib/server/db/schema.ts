@@ -8,6 +8,7 @@ import {
 	sqliteTable,
 	text,
 	uniqueIndex,
+	type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 export const opportunityTypes = ["buyer", "seller", "estate-sale", "construction"] as const;
@@ -56,6 +57,16 @@ export const clients = sqliteTable(
 		address: text("address"),
 		leadSource: text("lead_source"),
 		notes: text("notes").notNull().default(""),
+		preferences: text("preferences").notNull().default(""),
+		preferredContactMethod: text("preferred_contact_method", {
+			enum: ["call", "text", "email", "mail"],
+		}),
+		referredByClientId: text("referred_by_client_id").references((): AnySQLiteColumn => clients.id),
+		referredByName: text("referred_by_name"),
+		consentCall: integer("consent_call", { mode: "boolean" }).notNull().default(true),
+		consentText: integer("consent_text", { mode: "boolean" }).notNull().default(true),
+		consentEmail: integer("consent_email", { mode: "boolean" }).notNull().default(true),
+		consentMail: integer("consent_mail", { mode: "boolean" }).notNull().default(true),
 		archivedAt: text("archived_at"),
 		fictional: fixture(),
 		revision: revision(),
@@ -65,6 +76,150 @@ export const clients = sqliteTable(
 		index("clients_archive_name").on(t.archivedAt, t.name),
 		check("client_name_required", sql`length(trim(${t.name})) > 0`),
 		check("client_revision_positive", sql`${t.revision} > 0`),
+		check(
+			"client_preferred_contact_method",
+			sql`${t.preferredContactMethod} IS NULL OR ${t.preferredContactMethod} IN ('call', 'text', 'email', 'mail')`,
+		),
+		check("client_consent_call_boolean", sql`${t.consentCall} IN (0, 1)`),
+		check("client_consent_text_boolean", sql`${t.consentText} IN (0, 1)`),
+		check("client_consent_email_boolean", sql`${t.consentEmail} IN (0, 1)`),
+		check("client_consent_mail_boolean", sql`${t.consentMail} IN (0, 1)`),
+	],
+);
+
+export const clientPeople = sqliteTable(
+	"client_people",
+	{
+		id: text("id").primaryKey(),
+		clientId: text("client_id")
+			.notNull()
+			.references(() => clients.id),
+		name: text("name").notNull(),
+		birthday: text("birthday"),
+		position: integer("position").notNull().default(0),
+		revision: revision(),
+		...timestamps(),
+	},
+	(t) => [
+		index("client_people_client").on(t.clientId),
+		check("client_person_name_required", sql`length(trim(${t.name})) > 0`),
+		check(
+			"client_person_birthday_shape",
+			sql`${t.birthday} IS NULL OR ${t.birthday} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`,
+		),
+		check("client_person_position", sql`typeof(${t.position}) = 'integer' AND ${t.position} >= 0`),
+		check("client_person_revision_positive", sql`${t.revision} > 0`),
+	],
+);
+
+export const personPhones = sqliteTable(
+	"person_phones",
+	{
+		id: text("id").primaryKey(),
+		personId: text("person_id")
+			.notNull()
+			.references(() => clientPeople.id),
+		label: text("label").notNull(),
+		value: text("value").notNull(),
+		position: integer("position").notNull().default(0),
+		revision: revision(),
+		...timestamps(),
+	},
+	(t) => [
+		index("person_phones_person").on(t.personId),
+		check("person_phone_label_required", sql`length(trim(${t.label})) > 0`),
+		check("person_phone_value_required", sql`length(trim(${t.value})) > 0`),
+		check("person_phone_position", sql`typeof(${t.position}) = 'integer' AND ${t.position} >= 0`),
+		check("person_phone_revision_positive", sql`${t.revision} > 0`),
+	],
+);
+
+export const personEmails = sqliteTable(
+	"person_emails",
+	{
+		id: text("id").primaryKey(),
+		personId: text("person_id")
+			.notNull()
+			.references(() => clientPeople.id),
+		label: text("label").notNull(),
+		value: text("value").notNull(),
+		position: integer("position").notNull().default(0),
+		revision: revision(),
+		...timestamps(),
+	},
+	(t) => [
+		index("person_emails_person").on(t.personId),
+		check("person_email_label_required", sql`length(trim(${t.label})) > 0`),
+		check("person_email_value_required", sql`length(trim(${t.value})) > 0`),
+		check("person_email_position", sql`typeof(${t.position}) = 'integer' AND ${t.position} >= 0`),
+		check("person_email_revision_positive", sql`${t.revision} > 0`),
+	],
+);
+
+export const clientAddresses = sqliteTable(
+	"client_addresses",
+	{
+		id: text("id").primaryKey(),
+		clientId: text("client_id")
+			.notNull()
+			.references(() => clients.id),
+		label: text("label").notNull(),
+		address: text("address").notNull(),
+		owned: integer("owned", { mode: "boolean" }).notNull().default(false),
+		position: integer("position").notNull().default(0),
+		revision: revision(),
+		...timestamps(),
+	},
+	(t) => [
+		index("client_addresses_client").on(t.clientId),
+		check("client_address_label_required", sql`length(trim(${t.label})) > 0`),
+		check("client_address_value_required", sql`length(trim(${t.address})) > 0`),
+		check("client_address_owned_boolean", sql`${t.owned} IN (0, 1)`),
+		check("client_address_position", sql`typeof(${t.position}) = 'integer' AND ${t.position} >= 0`),
+		check("client_address_revision_positive", sql`${t.revision} > 0`),
+	],
+);
+
+export const clientRelationships = sqliteTable(
+	"client_relationships",
+	{
+		id: text("id").primaryKey(),
+		clientId: text("client_id")
+			.notNull()
+			.references(() => clients.id),
+		relatedClientId: text("related_client_id")
+			.notNull()
+			.references(() => clients.id),
+		label: text("label").notNull(),
+		revision: revision(),
+		...timestamps(),
+	},
+	(t) => [
+		index("client_relationships_client").on(t.clientId),
+		index("client_relationships_related").on(t.relatedClientId),
+		check("client_relationship_label_required", sql`length(trim(${t.label})) > 0`),
+		check("client_relationship_distinct", sql`${t.clientId} <> ${t.relatedClientId}`),
+		check("client_relationship_revision_positive", sql`${t.revision} > 0`),
+	],
+);
+
+export const clientKeyDates = sqliteTable(
+	"client_key_dates",
+	{
+		id: text("id").primaryKey(),
+		clientId: text("client_id")
+			.notNull()
+			.references(() => clients.id),
+		name: text("name").notNull(),
+		date: text("date").notNull(),
+		revision: revision(),
+		...timestamps(),
+	},
+	(t) => [
+		index("client_key_dates_client").on(t.clientId),
+		check("client_key_date_name_required", sql`length(trim(${t.name})) > 0`),
+		check("client_key_date_shape", sql`${t.date} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`),
+		check("client_key_date_revision_positive", sql`${t.revision} > 0`),
 	],
 );
 
@@ -110,6 +265,7 @@ export const opportunities = sqliteTable(
 		budgetCents: integer("budget_cents"),
 		notes: text("notes").notNull().default(""),
 		archivedAt: text("archived_at"),
+		pinnedAt: text("pinned_at"),
 		fictional: fixture(),
 		revision: revision(),
 		...timestamps(),
@@ -285,9 +441,8 @@ export const recordReferences = sqliteTable(
 	"record_references",
 	{
 		id: text("id").primaryKey(),
-		opportunityId: text("opportunity_id")
-			.notNull()
-			.references(() => opportunities.id),
+		opportunityId: text("opportunity_id").references(() => opportunities.id),
+		clientId: text("client_id").references(() => clients.id),
 		label: text("label").notNull(),
 		kind: text("kind", { enum: ["url", "client", "opportunity"] }).notNull(),
 		url: text("url"),
@@ -298,7 +453,13 @@ export const recordReferences = sqliteTable(
 	},
 	(t) => [
 		index("references_opportunity").on(t.opportunityId),
+		index("references_client").on(t.clientId),
 		check("reference_label_required", sql`length(trim(${t.label})) > 0`),
+		check(
+			"reference_owner",
+			sql`(${t.opportunityId} IS NOT NULL AND ${t.clientId} IS NULL) OR (${t.opportunityId} IS NULL AND ${t.clientId} IS NOT NULL)`,
+		),
+		check("reference_kind", sql`${t.kind} IN ('url', 'client', 'opportunity')`),
 		check(
 			"reference_target",
 			sql`(${t.kind} = 'url' AND ${t.url} IS NOT NULL AND (${t.url} LIKE 'https://%' OR ${t.url} LIKE 'http://%') AND ${t.targetClientId} IS NULL AND ${t.targetOpportunityId} IS NULL) OR (${t.kind} = 'client' AND ${t.targetClientId} IS NOT NULL AND ${t.url} IS NULL AND ${t.targetOpportunityId} IS NULL) OR (${t.kind} = 'opportunity' AND ${t.targetOpportunityId} IS NOT NULL AND ${t.url} IS NULL AND ${t.targetClientId} IS NULL)`,

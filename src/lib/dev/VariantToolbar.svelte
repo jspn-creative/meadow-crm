@@ -45,8 +45,7 @@
 	function startDrag(event: PointerEvent) {
 		if ((event.target as HTMLElement | null)?.closest("[data-variant-option]")) return;
 		if (!bar) return;
-		// Offset from the live rect only; pos stays untouched until the first
-		// real move, so plain clicks never un-dock the bar.
+		// Offset from the live rect only; pos stays untouched until the first real move, so plain clicks never un-dock the bar.
 		const rect = bar.getBoundingClientRect();
 		dragOffset = { x: event.clientX - rect.left, y: event.clientY - rect.top };
 		isDragging = true;
@@ -70,6 +69,7 @@
 		persistOpen();
 	}
 	function handleBarKeydown(event: KeyboardEvent) {
+		if ((event.target as Element | null)?.closest("select")) return;
 		if (event.key === "Escape") {
 			toggle();
 			event.preventDefault();
@@ -114,21 +114,36 @@
 			<button type="button" onclick={toggle} aria-expanded="true" title="Collapse (Esc)" aria-label="Collapse variant switcher" class="rounded-full px-2 py-0.5 font-mono text-xs text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"><span aria-hidden="true">▾</span></button>
 		</div>
 		{#each groups as group (group.id)}
-			<div class="flex flex-wrap items-center gap-1">
-				<span class="shrink-0 px-1.5 font-mono text-[10px] text-neutral-500">{group.id}</span>
-				{#each group.variants as variant, i (variant)}
-					<button
-						type="button"
-						data-variant-option
-						onclick={() => variantRegistry.select(group.id, i)}
-						aria-pressed={group.active === i}
-						title={`Show ${variant} (${i + 1})`}
-						class={["flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-all", group.active === i ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"]}>
-						<span class="font-mono text-[10px] opacity-60" aria-hidden="true">[{i + 1}]</span>
-						<span>{variant}</span>
-					</button>
-				{/each}
-			</div>
+			{#if group.display === "select"}
+				<label data-variant-option class="flex cursor-default items-center justify-between gap-3 py-0.5 pr-0.5">
+					<span class="shrink-0 px-1.5 font-mono text-[10px] text-neutral-500">{group.label ?? group.id}</span>
+					<span class="relative flex">
+						<select
+							class="min-w-32 cursor-pointer appearance-none rounded-full border border-neutral-700 bg-neutral-800 py-1 pr-7 pl-3 text-xs font-medium text-white hover:border-neutral-500 focus-visible:outline-emerald-500"
+							value={group.active}
+							onchange={(event) => variantRegistry.select(group.id, Number(event.currentTarget.value))}>
+							{#each group.variants as variant, i (variant)}<option value={i}>{variant}</option>{/each}
+						</select>
+						<svg class="pointer-events-none absolute top-1/2 right-2.5 size-3 -translate-y-1/2 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+					</span>
+				</label>
+			{:else}
+				<div class="flex flex-wrap items-center gap-1">
+					<span class="shrink-0 px-1.5 font-mono text-[10px] text-neutral-500">{group.label ?? group.id}</span>
+					{#each group.variants as variant, i (variant)}
+						<button
+							type="button"
+							data-variant-option
+							onclick={() => variantRegistry.select(group.id, i)}
+							aria-pressed={group.active === i}
+							title={`Show ${variant} (${i + 1})`}
+							class={["flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-all", group.active === i ? "bg-white text-neutral-950 shadow-sm" : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"]}>
+							<span class="font-mono text-[10px] opacity-60" aria-hidden="true">[{i + 1}]</span>
+							<span>{variant}</span>
+						</button>
+					{/each}
+				</div>
+			{/if}
 		{/each}
 	{:else}
 		<button type="button" onclick={toggle} aria-expanded="false" title="Expand variant switcher (Esc)" aria-label={`Expand variant switcher, ${groups.length} ${groups.length === 1 ? "set" : "sets"}`} class="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-neutral-300 hover:text-white">

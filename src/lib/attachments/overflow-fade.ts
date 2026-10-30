@@ -27,6 +27,10 @@ export type OverflowFadeOptions = {
 	 * properties. Omit for the default self-scrolled behavior.
 	 */
 	scrollSource?: HTMLElement | ((element: HTMLElement) => HTMLElement | null);
+	/**
+	 * Driven mode only: pixels at the top of the source viewport that stay fully visible before the top fade begins, such as a sticky header inside the masked content. Read on every update.
+	 */
+	startInset?: (source: HTMLElement) => number;
 };
 
 type Edge = "top" | "bottom" | "left" | "right";
@@ -284,13 +288,18 @@ function drivenAxisGradient(
 	band: number,
 	fadeStart: boolean,
 	fadeEnd: boolean,
+	startInset = 0,
 ): string {
 	const viewportEnd = viewportStart + viewportSize;
 	const startFade = fadeStart ? Math.min(band, Math.max(0, viewportStart)) : 0;
 	const endFade = fadeEnd ? Math.min(band, Math.max(0, targetSize - viewportEnd)) : 0;
-	const stops = fadeStart
-		? [`transparent ${px(viewportStart)}`, `black ${px(viewportStart + startFade)}`]
-		: ["black 0px"];
+	// An inset keeps the band above the fade opaque, so a sticky header stays solid and content fades in beneath it.
+	const fadeFrom = viewportStart + startInset;
+	const stops = !fadeStart
+		? ["black 0px"]
+		: startInset > 0
+			? [`black ${px(fadeFrom)}`, `transparent ${px(fadeFrom)}`, `black ${px(fadeFrom + startFade)}`]
+			: [`transparent ${px(viewportStart)}`, `black ${px(viewportStart + startFade)}`];
 	if (fadeEnd) stops.push(`black ${px(viewportEnd - endFade)}`, `transparent ${px(viewportEnd)}`);
 	return `linear-gradient(${direction}, ${stops.join(", ")})`;
 }
@@ -302,6 +311,7 @@ function updateDrivenMask(
 	sides: FadeSides,
 	fadePercent: number,
 	cache?: Map<string, string>,
+	startInset = 0,
 ) {
 	const edges = activeEdges(axis, sides);
 	const targetRect = target.getBoundingClientRect();
@@ -320,6 +330,7 @@ function updateDrivenMask(
 				bandY,
 				edges.top,
 				edges.bottom,
+				startInset,
 			),
 		);
 	if (axis !== "y")
@@ -383,7 +394,18 @@ export function overflowFade(options: OverflowFadeOptions) {
 		// observer churn during enter animations and font loads from invalidating
 		// styles when the values have not changed.
 		const cache = new Map<string, string>();
-		const update = () => updateDrivenMask(element, resolveSource(), axis, sides, fadePercent, cache);
+		const update = () => {
+			const source = resolveSource();
+			updateDrivenMask(
+				element,
+				source,
+				axis,
+				sides,
+				fadePercent,
+				cache,
+				options.startInset?.(source) ?? 0,
+			);
+		};
 
 		const throttledUpdate = throttle(THROTTLE_MS, update);
 		const scrollUpdate = rafThrottle(update);

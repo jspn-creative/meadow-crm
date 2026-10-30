@@ -41,7 +41,7 @@
 	<input
 		{id}
 		type="search"
-		class="field rounded-full pr-10 pl-10 [&::-webkit-search-cancel-button]:hidden"
+		class="field pr-12 pl-10 [&::-webkit-search-cancel-button]:hidden"
 		{placeholder}
 		autocomplete="off"
 		value={inputValue}
@@ -53,6 +53,6 @@
 			}
 		}} />
 	{#if inputValue}
-		<button type="button" class="text-muted hover:text-ink hover:bg-paper absolute top-1/2 right-2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full transition-colors" aria-label="Clear search" onclick={clearValue}><X size={15} aria-hidden="true" /></button>
+		<button type="button" class="control absolute top-1/2 right-1 -translate-y-1/2" data-variant="ghost" data-size="sm" data-icon aria-label="Clear search" onclick={clearValue}><X size={15} aria-hidden="true" /></button>
 	{/if}
 </div>

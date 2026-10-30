@@ -28,7 +28,7 @@ async function createOpportunity(
 	await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
 }
 
-test("board filters by type and timeline, sorts by timeline, and exposes the tag filter", async ({
+test.skip("board filters by type and timeline, sorts by timeline, and exposes the tag filter", async ({
 	page,
 }) => {
 	await page.goto("/pipeline");

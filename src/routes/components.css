@@ -1,0 +1,725 @@
+/* The one Glow focus treatment, shared by real focus and the style guide's forced focus state: a soft accent bloom, with bordered primitives turning their edge accent. The transparent outline only shows in forced colors. */
+@utility focus-glow {
+	outline: 2px solid transparent;
+	outline-offset: 2px;
+	filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-field) 35%, transparent));
+	&:is(
+			.field,
+			.field-group,
+			.select-pill,
+			.choice,
+			.check,
+			.radio,
+			.control:not([data-variant])
+		):not([aria-invalid="true"], :has([aria-invalid="true"])) {
+		border-color: var(--color-field);
+	}
+	@media (forced-colors: active) {
+		outline: 2px solid Highlight;
+		filter: none;
+	}
+}
+
+@layer base {
+	:focus:not(:focus-visible) {
+		outline: none;
+	}
+}
+
+@layer components {
+	.surface,
+	.dialog {
+		--radius-outer: var(--radius-2xl);
+		--inset: calc(var(--spacing) * 4);
+		--surface-frame: color-mix(in oklab, var(--color-ink) 5%, var(--color-white));
+		@apply border-hairline rounded-2xl border bg-white;
+		box-shadow: var(--shadow-raised);
+		&[data-surface="framed"],
+		&.surface-floating {
+			box-shadow:
+				0 0 0 3px var(--surface-frame),
+				0 0 0 4px var(--surface-edge, var(--color-hairline)),
+				var(--shadow-raised);
+		}
+		&.surface-floating,
+		&.dialog {
+			box-shadow:
+				0 0 0 3px var(--surface-frame),
+				0 0 0 4px var(--surface-edge, var(--color-hairline)),
+				var(--shadow-floating);
+		}
+	}
+	.surface {
+		&[data-tone="sky"] {
+			--surface-tone: var(--color-category-sky);
+			--surface-tone-edge: var(--color-category-sky-edge);
+			--action-color: var(--color-category-sky-ink);
+		}
+		&[data-tone="amber"] {
+			--surface-tone: var(--color-category-amber);
+			--surface-tone-edge: var(--color-category-amber-edge);
+			--action-color: var(--color-category-amber-ink);
+		}
+		&[data-tone="violet"] {
+			--surface-tone: var(--color-category-violet);
+			--surface-tone-edge: var(--color-category-violet-edge);
+			--action-color: var(--color-category-violet-ink);
+		}
+		&[data-tone="teal"] {
+			--surface-tone: var(--color-category-teal);
+			--surface-tone-edge: var(--color-category-teal-edge);
+			--action-color: var(--color-category-teal-ink);
+		}
+		&[data-tone="sky"],
+		&[data-tone="amber"],
+		&[data-tone="violet"],
+		&[data-tone="teal"] {
+			--surface-background: var(--surface-tone);
+			--surface-edge: color-mix(in oklab, var(--surface-tone-edge) 45%, transparent);
+			--surface-frame: color-mix(in oklab, var(--surface-tone-edge) 10%, var(--color-white));
+			@apply text-ink;
+			background: var(--surface-background);
+			border-color: var(--surface-edge);
+		}
+	}
+	.menu,
+	.surface-floating,
+	.dialog {
+		--surface-tone: var(--color-white);
+		--surface-tone-edge: var(--color-hairline);
+		--surface-background: var(--color-white);
+		--surface-edge: var(--color-hairline);
+		--surface-frame: color-mix(in oklab, var(--color-ink) 5%, var(--color-white));
+		@apply text-ink bg-white;
+	}
+	.dialog {
+		--radius-outer: var(--radius-3xl);
+		@apply text-ink m-auto max-h-[min(92dvh,64rem)] w-[calc(100%-1rem)] max-w-[64rem] overflow-y-auto overscroll-contain rounded-3xl p-0 sm:w-[calc(100%-2rem)];
+		&::backdrop {
+			@apply bg-ink/30;
+			backdrop-filter: blur(2px);
+			:root[data-theme="evening"] & {
+				background: color-mix(in oklab, var(--color-black) 55%, transparent);
+			}
+		}
+		&[data-size="sm"] {
+			@apply max-w-[28rem];
+		}
+		&[data-size="md"] {
+			@apply max-w-[42rem];
+		}
+		&[data-size="lg"] {
+			@apply max-w-[64rem];
+		}
+		&[data-placement="side"] {
+			@apply m-0 ml-auto h-dvh max-h-dvh w-full max-w-none rounded-none rounded-l-3xl sm:max-w-[36rem];
+		}
+	}
+	.tabs {
+		@apply border-hairline flex border-b;
+		/* data-slide gives each tab an equal column and slides one accent bar between them; the markup sets --tab-count and --tab-index. */
+		&[data-slide] {
+			@apply relative grid auto-cols-fr grid-flow-col;
+			&::after {
+				content: "";
+				@apply bg-field pointer-events-none absolute -bottom-px left-0 h-0.5 transition-transform duration-200 motion-reduce:transition-none;
+				width: calc(100% / var(--tab-count, 1));
+				transform: translateX(calc(var(--tab-index, 0) * 100%));
+			}
+			.tab {
+				@apply justify-center;
+				&[aria-selected="true"] {
+					@apply border-transparent;
+				}
+			}
+		}
+	}
+	.tab {
+		@apply text-muted border-b-2 border-transparent py-2 text-sm font-medium;
+		&[aria-selected="true"],
+		&[aria-current="page"] {
+			@apply border-field text-ink;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover {
+				@apply text-ink;
+			}
+		}
+	}
+	.control {
+		@apply border-hairline text-ink relative inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-medium;
+		transition:
+			background-color 120ms ease,
+			color 120ms ease,
+			transform 140ms var(--ease-shell);
+		&[data-size="sm"] {
+			@apply min-h-9 px-3 py-1.5;
+		}
+		&[data-icon] {
+			@apply size-11 shrink-0 p-0;
+		}
+		&[data-size="sm"][data-icon] {
+			@apply size-9;
+		}
+		&[data-variant="primary"] {
+			@apply border-transparent;
+			background-color: var(--color-primary);
+			color: var(--color-on-primary);
+		}
+		/* Ghost is the quiet button family: a secondary action beside a primary, an inline edit icon, or danger, which is ghost fixed to urgent. A context, such as a toned alert, tints it through --action-color. Inline actions in running content use .text-action instead. */
+		&[data-variant="ghost"],
+		&[data-variant="danger"] {
+			@apply border-transparent bg-transparent;
+			color: var(--action-color, var(--color-field));
+			background-image: none;
+			box-shadow: none;
+			backdrop-filter: none;
+		}
+		&[data-variant="danger"] {
+			--action-color: var(--color-urgent);
+		}
+		&:disabled {
+			@apply cursor-not-allowed opacity-50;
+		}
+		&[aria-busy="true"] {
+			@apply cursor-wait;
+		}
+		&[data-reveal] {
+			@apply gap-0 px-3;
+			.control-label {
+				@apply grid grid-cols-[1fr];
+				transition: grid-template-columns 220ms var(--ease-shell);
+				> span {
+					@apply overflow-hidden;
+				}
+				> span > span {
+					@apply block pl-2 whitespace-nowrap;
+				}
+			}
+			@media (hover: hover) and (pointer: fine) {
+				.control-label {
+					@apply grid-cols-[0fr];
+				}
+				&:hover,
+				&:focus-within {
+					.control-label {
+						@apply grid-cols-[1fr];
+					}
+				}
+			}
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:disabled) {
+				@apply bg-highlight;
+			}
+			&[data-variant="primary"]:hover:not(:disabled) {
+				background-color: var(--color-primary-hover);
+			}
+			/* The hover tint is mixed from --action-color rather than a fixed soft token so it still shows on a tinted container such as an alert. */
+			&:is([data-variant="ghost"], [data-variant="danger"]):hover:not(:disabled) {
+				background-color: color-mix(in oklab, var(--action-color, var(--color-field)) 12%, transparent);
+				color: color-mix(in oklch, var(--action-color, var(--color-field)) 80%, var(--color-ink));
+			}
+		}
+		&[aria-pressed="true"]:not([data-variant="primary"]) {
+			&,
+			&:hover {
+				background: var(--control-pressed-soft, var(--color-selected));
+				color: var(--control-pressed-ink, var(--color-on-selected));
+			}
+			&[data-tone="sky"] {
+				--control-pressed-soft: var(--color-category-sky);
+				--control-pressed-ink: var(--color-category-sky-ink);
+			}
+			&[data-tone="amber"] {
+				--control-pressed-soft: var(--color-category-amber);
+				--control-pressed-ink: var(--color-category-amber-ink);
+			}
+			&[data-tone="violet"] {
+				--control-pressed-soft: var(--color-category-violet);
+				--control-pressed-ink: var(--color-category-violet-ink);
+			}
+			&[data-tone="teal"] {
+				--control-pressed-soft: var(--color-category-teal);
+				--control-pressed-ink: var(--color-category-teal-ink);
+			}
+		}
+		@media (pointer: fine) {
+			&:active:not(:disabled) {
+				transform: scale(0.97);
+			}
+		}
+		@media (pointer: coarse) {
+			&[data-size="sm"] {
+				@apply min-h-11;
+			}
+			&[data-icon] {
+				@apply size-11;
+			}
+		}
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+			&:active:not(:disabled) {
+				transform: none;
+			}
+			.control-label {
+				transition: none;
+			}
+		}
+	}
+	/* An inline text action inside content, such as an add-row affordance or "show more". Tinted containers set --action-color to their tone ink. */
+	.text-action {
+		@apply relative inline-flex items-center gap-1.5 rounded-sm text-sm font-medium;
+		color: var(--action-color, var(--color-field));
+		text-underline-offset: 2px;
+		transition: color 120ms ease;
+		&:disabled,
+		&[aria-disabled="true"] {
+			@apply text-muted cursor-not-allowed;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:disabled, [aria-disabled="true"]) {
+				@apply underline;
+				color: color-mix(in oklab, var(--action-color, var(--color-field)) 80%, var(--color-ink));
+			}
+		}
+		/* Padding grows the touch target while the matching negative margin keeps the line box where it was. */
+		@media (pointer: coarse) {
+			--action-pad: max(0px, calc((var(--spacing) * 11 - 1lh) / 2));
+			padding-block: var(--action-pad);
+			margin-block: calc(var(--action-pad) * -1);
+		}
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
+	}
+	.toast {
+		@apply bg-ink shadow-floating inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-white;
+		.control {
+			&,
+			&[data-variant],
+			&[aria-pressed="true"]:not([data-variant="primary"]) {
+				@apply border-transparent bg-transparent text-current;
+				background-image: none;
+				box-shadow: none;
+				backdrop-filter: none;
+				@media (hover: hover) and (pointer: fine) {
+					&:hover:not(:disabled) {
+						@apply bg-white/15 text-current;
+					}
+				}
+			}
+		}
+	}
+	.field,
+	.field-group {
+		--radius-outer: var(--radius-xl);
+		--inset: calc(var(--spacing) * 1);
+		@apply border-hairline text-ink min-h-11 w-full rounded-xl border bg-white;
+		&[aria-invalid="true"],
+		&:has([aria-invalid="true"]) {
+			@apply border-urgent;
+		}
+		&:disabled,
+		&:has(:disabled) {
+			@apply cursor-not-allowed opacity-60;
+		}
+	}
+	.field {
+		@apply px-3 py-2;
+		&::placeholder {
+			@apply text-muted;
+		}
+		&[data-variant="quiet"] {
+			@apply border-transparent bg-transparent;
+			&:not(:focus) {
+				box-shadow: none;
+			}
+			@media (hover: hover) and (pointer: fine) {
+				&:hover:not(:disabled, :focus) {
+					@apply border-hairline bg-highlight;
+				}
+			}
+			&:focus {
+				@apply border-hairline bg-white;
+			}
+			&[aria-invalid="true"] {
+				@apply border-urgent;
+			}
+		}
+	}
+	.field-group {
+		@apply flex items-center gap-2 p-(--inset);
+	}
+	.field-bare {
+		@apply text-ink min-h-9 min-w-0 flex-1 border-0 bg-transparent px-2 outline-none;
+		&::placeholder {
+			@apply text-muted;
+		}
+	}
+	.field-addon {
+		@apply rounded-nested bg-paper text-muted flex min-h-9 shrink-0 items-center gap-2 px-2 text-xs;
+	}
+	.field-inset {
+		@apply flex flex-col items-stretch justify-center gap-0.5 px-3 py-2 text-left;
+		> label,
+		> span:first-child {
+			@apply text-muted text-xs;
+		}
+		.field-bare {
+			@apply min-h-6 w-full p-0;
+		}
+	}
+	.select {
+		@apply relative block;
+		select {
+			@apply appearance-none pr-11;
+		}
+		&::after {
+			content: "";
+			@apply border-muted pointer-events-none absolute top-1/2 right-4 size-2 -translate-y-2/3 rotate-45 border-r-2 border-b-2;
+		}
+	}
+	.select-pill {
+		@apply border-hairline text-ink min-h-9 max-w-full min-w-0 cursor-pointer rounded-xl border bg-white px-3 text-sm font-medium;
+		/* A pill set away from its default shows the accent in its text and edge, keeping the same fill. */
+		&[data-active="true"] {
+			@apply text-field;
+			border-color: color-mix(in oklab, var(--color-field) 55%, transparent);
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:disabled) {
+				@apply bg-highlight;
+			}
+		}
+		@media (pointer: coarse) {
+			@apply min-h-11;
+		}
+	}
+	.check,
+	.radio {
+		@apply border-muted/50 relative size-5 shrink-0 cursor-pointer appearance-none rounded-full border-[1.5px] bg-white;
+		&:checked {
+			@apply border-field bg-field;
+		}
+		&:disabled {
+			@apply cursor-not-allowed opacity-50;
+		}
+		&::after {
+			content: "";
+			@apply absolute;
+		}
+		@media (pointer: coarse) {
+			&::before {
+				content: "";
+				@apply absolute top-1/2 left-1/2 size-11 -translate-1/2;
+			}
+		}
+	}
+	.check:checked::after {
+		@apply top-0.5 left-1.5 h-2.5 w-1.5 rotate-45 border-r-2 border-b-2;
+		border-color: var(--color-on-primary);
+	}
+	.radio:checked::after {
+		@apply inset-1 rounded-full;
+		background: var(--color-on-primary);
+	}
+	.segmented {
+		--radius-outer: var(--radius-xl);
+		--inset: calc(var(--spacing) * 1);
+		@apply bg-paper flex flex-wrap gap-1 rounded-xl p-(--inset);
+		> label,
+		> button {
+			@apply rounded-nested relative flex min-h-9 flex-1 cursor-pointer items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium;
+			&:has(:checked),
+			&[aria-pressed="true"] {
+				@apply bg-selected text-on-selected;
+			}
+			@media (hover: hover) and (pointer: fine) {
+				&:hover:not(:has(:checked), [aria-pressed="true"]) {
+					@apply bg-highlight;
+				}
+			}
+			> input {
+				@apply sr-only;
+			}
+			@media (pointer: coarse) {
+				@apply min-h-11;
+			}
+		}
+	}
+	.choice {
+		@apply border-hairline flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border bg-white p-3;
+		&:has(:checked) {
+			@apply border-field bg-selected text-on-selected;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:has(:checked)) {
+				@apply bg-highlight;
+			}
+		}
+	}
+	.chip {
+		@apply bg-paper text-ink inline-flex h-6 max-w-full items-center gap-1.5 rounded-md px-2 text-xs font-medium;
+		background: var(--chip-soft, var(--color-paper));
+		color: var(--chip-ink, var(--color-ink));
+		&[data-dot]::before {
+			content: "";
+			@apply size-1.5 shrink-0 rounded-full;
+			background: var(--dot, currentColor);
+		}
+		&[data-initials]::before {
+			content: attr(data-initials);
+			@apply text-2xs inline-flex size-[18px] shrink-0 items-center justify-center rounded-full font-semibold;
+			background: color-mix(in oklab, currentColor 14%, transparent);
+		}
+		&[data-tone="info"] {
+			--chip-soft: var(--color-info-soft);
+			--chip-ink: var(--color-info);
+		}
+		&[data-tone="pending"] {
+			--chip-soft: var(--color-pending-soft);
+			--chip-ink: var(--color-pending);
+		}
+		&[data-tone="tour"] {
+			--chip-soft: var(--color-tour-soft);
+			--chip-ink: var(--color-tour);
+		}
+		&[data-tone="success"] {
+			--chip-soft: var(--color-success-soft);
+			--chip-ink: var(--color-success);
+		}
+		&[data-tone="urgent"] {
+			--chip-soft: var(--color-urgent-soft);
+			--chip-ink: var(--color-urgent);
+		}
+		&[data-tone="sky"] {
+			--chip-soft: var(--color-category-sky);
+			--chip-ink: var(--color-category-sky-ink);
+		}
+		&[data-tone="amber"] {
+			--chip-soft: var(--color-category-amber);
+			--chip-ink: var(--color-category-amber-ink);
+		}
+		&[data-tone="violet"] {
+			--chip-soft: var(--color-category-violet);
+			--chip-ink: var(--color-category-violet-ink);
+		}
+		&[data-tone="teal"] {
+			--chip-soft: var(--color-category-teal);
+			--chip-ink: var(--color-category-teal-ink);
+		}
+		&[data-due-state] {
+			&::before {
+				content: "";
+				@apply size-3 shrink-0 rounded-none;
+				background-color: currentColor;
+				mask: var(--due-icon) center / contain no-repeat;
+			}
+			&[data-due-state="overdue"] {
+				--due-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 2v3M8 2v3M3 9h18M21 12V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8m4-5 5 5m-5 0 5-5'/%3E%3C/svg%3E");
+			}
+			&[data-due-state="today"] {
+				--due-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 14v2.2l1.6 1M16 2v3M8 2v3M21 7.338V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2.338M3 9h5.859'/%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3C/svg%3E");
+			}
+			&[data-due-state="upcoming"] {
+				--due-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v3M16 2v3M3 9h18'/%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3C/svg%3E");
+			}
+			&[data-due-state="undated"] {
+				--due-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 2v3m-14-3 20 20M21 9h-5.5M3 9h6M3.586 3.586A2 2 0 0 0 3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.414-.586M8.656 3H19a2 2 0 0 1 2 2v10.344'/%3E%3C/svg%3E");
+				background-color: color-mix(in oklab, var(--color-paper) 85%, var(--color-white));
+			}
+		}
+	}
+	.chip-remove {
+		@apply relative inline-flex size-4 items-center justify-center rounded-sm text-current;
+		@media (pointer: coarse) {
+			&::after {
+				content: "";
+				@apply absolute -inset-3;
+			}
+		}
+	}
+	.menu {
+		--radius-outer: var(--radius-2xl);
+		--inset: calc(var(--spacing) * 1.5);
+		@apply min-w-48 p-(--inset) text-sm;
+		&[popover] {
+			@supports (position-area: bottom) {
+				inset: auto;
+				margin: 0.5rem 0;
+				position-area: block-end span-inline-start;
+				position-try-fallbacks:
+					flip-block,
+					flip-inline,
+					flip-block flip-inline;
+			}
+		}
+	}
+	.menu-item {
+		@apply rounded-nested flex min-h-9 w-full items-center gap-2.5 px-2.5 py-1.5 text-left font-medium;
+		&:focus-visible,
+		&[data-active="true"] {
+			@apply bg-highlight;
+		}
+		&[aria-selected="true"],
+		&[aria-checked="true"],
+		&[aria-current="true"],
+		&[aria-current="page"] {
+			--color-muted: var(--color-on-selected);
+			@apply bg-selected text-on-selected;
+		}
+		&[data-tone="danger"] {
+			@apply text-urgent;
+		}
+		&:disabled {
+			@apply opacity-50;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:disabled, [aria-selected="true"], [aria-checked="true"]) {
+				@apply bg-highlight;
+			}
+			&[data-tone="danger"]:hover:not(:disabled) {
+				@apply bg-urgent-soft;
+			}
+		}
+		@media (pointer: coarse) {
+			@apply min-h-11;
+		}
+	}
+	.work-row {
+		@apply bg-paper min-w-0 rounded-xl;
+	}
+	.item-title {
+		@apply text-ink text-sm/4.5 font-medium;
+	}
+
+	/* Materials restyle the primitives' resting surface only. Exclusions sit in :where() so these rules keep single-class weight: variants, pressed, active, and invalid states, and the Glow edge all still win. Ghost, danger, .segmented, and .text-action stay plain. */
+
+	/* Glass: translucent controls that blur what sits behind them, edged with light. Strongest over tinted surfaces and washes. */
+	:where([data-material="glass"]) {
+		.control:where(:not([data-variant])),
+		.select-pill,
+		.field:where(:not([data-variant="quiet"])),
+		.field-group {
+			background-color: color-mix(in oklab, var(--color-white) 52%, transparent);
+			border-color: color-mix(in oklab, var(--color-white) 80%, var(--color-ink) 10%);
+			backdrop-filter: blur(14px) saturate(1.6);
+			box-shadow:
+				inset 0 1px 0 var(--material-sheen),
+				0 1px 2px oklch(from var(--color-black) l c h / calc(0.05 * var(--theme-shade-k))),
+				0 8px 22px -14px oklch(from var(--color-black) l c h / calc(0.3 * var(--theme-shade-k)));
+		}
+		@media (hover: hover) and (pointer: fine) {
+			.control:where(:not([data-variant], [aria-pressed="true"])):hover:not(:disabled),
+			.select-pill:hover:not(:disabled),
+			.field:where(:not([data-variant="quiet"])):hover:not(:disabled, :focus),
+			.field-group:hover:not(:has(:disabled), :focus-within) {
+				background-color: var(--color-highlight);
+			}
+		}
+		.field:where(:not([data-variant="quiet"])):focus,
+		.field-group:focus-within {
+			background-color: color-mix(in oklab, var(--color-white) 90%, transparent);
+		}
+		.control[data-variant="primary"] {
+			background-color: oklch(from var(--color-primary) l c h / 0.86);
+			backdrop-filter: blur(14px) saturate(1.6);
+			box-shadow:
+				inset 0 1px 0 rgb(255 255 255 / 0.3),
+				inset 0 0 0 1px rgb(255 255 255 / 0.12),
+				0 10px 24px -10px oklch(from var(--color-primary) l c h / 0.75);
+		}
+		.field-addon {
+			background-color: color-mix(in oklab, var(--color-white) 60%, transparent);
+			box-shadow: inset 0 1px 0 var(--material-sheen);
+		}
+		.menu,
+		.surface-floating {
+			background-color: color-mix(
+				in oklab,
+				var(--surface-background, var(--color-white)) 72%,
+				transparent
+			);
+			backdrop-filter: blur(20px) saturate(1.6);
+		}
+	}
+
+	/* Tactile: controls are lit from above with a top sheen and a heavier lower edge, press in when clicked, and fields are recessed wells. */
+	:where([data-material="tactile"]) {
+		.control:where(:not([data-variant])),
+		.select-pill {
+			background-image: linear-gradient(
+				to bottom,
+				var(--color-white),
+				color-mix(in oklab, var(--color-paper) 60%, var(--color-white))
+			);
+			border-color: oklch(from var(--color-ink) l c h / 0.13);
+			border-bottom-color: oklch(from var(--color-ink) l c h / 0.24);
+			box-shadow:
+				inset 0 1px 0 var(--material-sheen),
+				0 1px 2px oklch(from var(--color-black) l c h / calc(0.08 * var(--theme-shade-k)));
+		}
+		@media (hover: hover) and (pointer: fine) {
+			.control:where(:not([data-variant], [aria-pressed="true"])):hover:not(:disabled),
+			.select-pill:hover:not(:disabled) {
+				background-image: linear-gradient(
+					to bottom,
+					var(--color-paper),
+					color-mix(in oklab, var(--color-paper) 90%, var(--color-ink))
+				);
+			}
+		}
+		.control:where(:not([data-variant])):active:not(:disabled),
+		.select-pill:active:not(:disabled) {
+			background-image: linear-gradient(to bottom, var(--color-paper), var(--color-paper));
+			box-shadow: inset 0 1px 3px
+				oklch(from var(--color-black) l c h / calc(0.16 * var(--theme-shade-k)));
+		}
+		.control[data-variant="primary"] {
+			background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 60%);
+			border-color: oklch(from var(--color-primary) calc(l - 0.12) c h);
+			box-shadow:
+				inset 0 1px 0 rgb(255 255 255 / 0.28),
+				0 1px 2px oklch(from var(--color-black) l c h / calc(0.25 * var(--theme-shade-k))),
+				0 4px 10px -4px oklch(from var(--color-primary) l c h / 0.55);
+			&:active:not(:disabled) {
+				box-shadow: inset 0 2px 4px oklch(from var(--color-black) l c h / 0.3);
+			}
+		}
+		.field:where(:not([data-variant="quiet"])),
+		.field-group {
+			background-color: color-mix(in oklab, var(--color-paper) 45%, var(--color-white));
+			border-color: oklch(from var(--color-ink) l c h / 0.12);
+			box-shadow: inset 0 1px 1px oklch(from var(--color-black) l c h / 0.08);
+		}
+		.field:where(:not([data-variant="quiet"])):focus,
+		.field-group:focus-within {
+			background-color: var(--color-white);
+			box-shadow: inset 0 1px 1px oklch(from var(--color-black) l c h / 0.05);
+		}
+		.field-addon {
+			background-image: linear-gradient(to bottom, var(--color-white), var(--color-paper));
+			box-shadow:
+				inset 0 1px 0 var(--material-sheen),
+				inset 0 -1px 0 color-mix(in oklab, var(--color-ink) 12%, transparent);
+		}
+		.menu,
+		.surface-floating {
+			background-image: linear-gradient(to bottom, var(--color-white), var(--color-canvas));
+		}
+	}
+
+	/* Glow sits after the primitives and materials so a bordered primitive's accent edge wins over its resting edge. */
+	:focus-visible,
+	.field-group:has(.field-bare:focus-visible),
+	.segmented > label:has(:focus-visible),
+	.choice:has(:focus-visible) {
+		@apply focus-glow;
+	}
+	:is(.field-group .field-bare, .segmented input, .choice input):is(:focus, :focus-visible) {
+		outline: none;
+		box-shadow: none;
+		filter: none;
+	}
+}

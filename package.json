@@ -19,6 +19,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:shell": "playwright test",
 		"test:runtime": "node --experimental-strip-types scripts/runtime-smoke.ts",
+		"test:dev-startup": "node --experimental-strip-types scripts/dev-startup-smoke.ts",
 		"test:auth": "node --experimental-strip-types scripts/auth-smoke.ts",
 		"vocabulary": "node --experimental-strip-types scripts/vocabulary.ts",
 		"test:production": "node --experimental-strip-types scripts/production-smoke.ts",

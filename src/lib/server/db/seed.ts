@@ -26,7 +26,6 @@ export async function seedDefaults(db: D1Database, now = new Date().toISOString(
 		...[
 			{ id: "tag-sphere", name: "sphere", color: "#6b7c5e" },
 			{ id: "tag-nurture", name: "nurture", color: "#b89b5e" },
-			{ id: "tag-referral", name: "referral", color: "#6b8fa8" },
 		].map((tag) =>
 			orm
 				.insert(tags)

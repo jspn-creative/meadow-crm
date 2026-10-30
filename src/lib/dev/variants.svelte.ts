@@ -1,9 +1,17 @@
-// Shared registry for live design variant sets. VariantPicker registers on mount (client only, so server renders never touch this state) and VariantHost lists every live set in one shared bar.
+// Shared registry for live design variant sets. VariantPicker and variantSetting register on mount (client only, so server renders never touch this state) and VariantHost lists every live set in one shared bar.
+import { onMount } from "svelte";
+
 export interface VariantGroup {
 	id: string;
 	variants: string[];
 	active: number;
+	/** Toolbar label; defaults to the id. */
+	label?: string;
+	/** Buttons suit two or three short options; a select keeps longer lists compact. */
+	display?: "buttons" | "select";
 }
+
+export type VariantDisplay = Pick<VariantGroup, "label" | "display">;
 
 function storageKey(id: string) {
 	return `variant-picker:${id}:index`;
@@ -25,14 +33,14 @@ class VariantRegistry {
 	hosts = $state(0);
 	currentId = $state<string | null>(null);
 
-	register(id: string, variants: string[], defaultIndex: number) {
+	register(id: string, variants: string[], defaultIndex: number, display: VariantDisplay = {}) {
 		const active = loadIndex(id, defaultIndex, variants.length);
 		const existing = this.sets.findIndex((set) => set.id === id);
 		if (existing >= 0) {
 			console.warn(`[VariantPicker] duplicate id "${id}": the latest registration wins.`);
-			this.sets[existing] = { id, variants, active };
+			this.sets[existing] = { id, variants, active, ...display };
 		} else {
-			this.sets.push({ id, variants, active });
+			this.sets.push({ id, variants, active, ...display });
 		}
 		if (this.currentId === null) this.currentId = id;
 	}
@@ -57,6 +65,24 @@ class VariantRegistry {
 }
 
 export const variantRegistry = new VariantRegistry();
+
+/** Registers a variant set for the calling component's lifetime and reads its active option, for settings that restyle a whole page rather than one rendered child. Call during component initialisation. */
+export function variantSetting<const T extends readonly string[]>(
+	id: string,
+	variants: T,
+	{ defaultIndex = 0, ...display }: VariantDisplay & { defaultIndex?: number } = {},
+) {
+	onMount(() => {
+		variantRegistry.register(id, [...variants], defaultIndex, display);
+		return () => variantRegistry.unregister(id);
+	});
+	return {
+		get value(): T[number] {
+			const index = variantRegistry.sets.find((set) => set.id === id)?.active ?? defaultIndex;
+			return variants[index] ?? variants[defaultIndex]!;
+		},
+	};
+}
 
 // Number keys target the last-touched set (defaulting to the first registered), so multiple live sets never fight over keystrokes.
 export function handleVariantKeys(event: KeyboardEvent) {

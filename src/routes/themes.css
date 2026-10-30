@@ -1,0 +1,292 @@
+@layer base {
+	/* Shared derivation inputs: --theme-canvas, --theme-paper, --theme-pill, --theme-surface, --theme-shade, --theme-ink, --theme-muted, --theme-edge, --theme-accent, --theme-accent-deep, --theme-primary, --theme-primary-hover, --theme-on-primary, --theme-info, --theme-pending, --theme-tour, --theme-success, --theme-urgent, --theme-sky, --theme-amber, --theme-violet, --theme-teal, --theme-soft, --theme-selection, --theme-wash, --theme-tone-l, --theme-shade-k. */
+	:root {
+		color-scheme: light;
+		--radius: 14px;
+		--color-canvas: var(--theme-canvas);
+		--color-paper: var(--theme-paper);
+		--color-paper-pill: var(--theme-pill);
+		--color-white: var(--theme-surface);
+		--color-black: var(--theme-shade);
+		--color-ink: var(--theme-ink);
+		--color-muted: var(--theme-muted);
+		--color-hairline: var(--theme-edge);
+		--color-field: var(--theme-accent);
+		--color-field-deep: var(--theme-accent-deep);
+		--color-primary: var(--theme-primary);
+		--color-primary-hover: var(--theme-primary-hover);
+		--color-on-primary: var(--theme-on-primary);
+		/* Accent tints mix in oklch so the accent keeps its hue; selected drops the surface's hue (none) so a slightly tinted surface, as in Evening, cannot pull it toward its own hue. Highlight is the accent at a third of the selection strength, translucent, so it tints whatever it sits over with the same hue. */
+		--color-highlight: color-mix(
+			in oklch,
+			var(--theme-accent) calc(var(--theme-selection) * 0.33),
+			transparent
+		);
+		--color-selected: color-mix(
+			in oklch,
+			var(--theme-accent) var(--theme-selection),
+			oklch(from var(--theme-surface) l c none)
+		);
+		--color-on-selected: var(--theme-ink);
+		--material-sheen: color-mix(in oklab, var(--theme-surface) 75%, transparent);
+		--color-info: var(--theme-info);
+		--color-pending: var(--theme-pending);
+		--color-tour: var(--theme-tour);
+		--color-success: var(--theme-success);
+		--color-urgent: var(--theme-urgent);
+		--color-info-soft: color-mix(in oklab, var(--theme-info) var(--theme-soft), var(--theme-surface));
+		--color-pending-soft: color-mix(
+			in oklab,
+			var(--theme-pending) var(--theme-soft),
+			var(--theme-surface)
+		);
+		--color-tour-soft: color-mix(in oklab, var(--theme-tour) var(--theme-soft), var(--theme-surface));
+		--color-success-soft: color-mix(
+			in oklab,
+			var(--theme-success) var(--theme-soft),
+			var(--theme-surface)
+		);
+		--color-urgent-soft: color-mix(
+			in oklab,
+			var(--theme-urgent) var(--theme-soft),
+			var(--theme-surface)
+		);
+		--color-category-sky: color-mix(
+			in oklab,
+			var(--theme-sky) var(--theme-wash),
+			var(--theme-surface)
+		);
+		--color-category-sky-edge: var(--theme-sky);
+		--color-category-sky-ink: oklch(
+			from var(--theme-sky) var(--theme-tone-l) min(calc(c * 1.5), 0.15) h
+		);
+		--color-category-amber: color-mix(
+			in oklab,
+			var(--theme-amber) var(--theme-wash),
+			var(--theme-surface)
+		);
+		--color-category-amber-edge: var(--theme-amber);
+		--color-category-amber-ink: oklch(
+			from var(--theme-amber) var(--theme-tone-l) min(calc(c * 1.3), 0.13) calc(h - 38)
+		);
+		--color-category-violet: color-mix(
+			in oklab,
+			var(--theme-violet) var(--theme-wash),
+			var(--theme-surface)
+		);
+		--color-category-violet-edge: var(--theme-violet);
+		--color-category-violet-ink: oklch(
+			from var(--theme-violet) var(--theme-tone-l) min(calc(c * 1.6), 0.17) h
+		);
+		--color-category-teal: color-mix(
+			in oklab,
+			var(--theme-teal) var(--theme-wash),
+			var(--theme-surface)
+		);
+		--color-category-teal-edge: var(--theme-teal);
+		--color-category-teal-ink: oklch(
+			from var(--theme-teal) var(--theme-tone-l) min(calc(c * 1.5), 0.12) h
+		);
+		--shadow-shell: 0 4px 20px -8px
+			oklch(from var(--theme-shade) l c h / calc(0.12 * var(--theme-shade-k)));
+		--shadow-raised: 0 2px 6px -2px
+			oklch(from var(--theme-shade) l c h / calc(0.08 * var(--theme-shade-k)));
+		--shadow-floating:
+			0 8px 24px -8px oklch(from var(--theme-shade) l c h / calc(0.16 * var(--theme-shade-k))),
+			0 2px 6px oklch(from var(--theme-shade) l c h / calc(0.06 * var(--theme-shade-k)));
+	}
+	[data-theme="pop"] {
+		color-scheme: light;
+		--font-sans: "Bricolage Grotesque", system-ui, sans-serif;
+		--font-display: "Bricolage Grotesque", system-ui, sans-serif;
+		--theme-canvas: #fff;
+		--theme-paper: #f6f6f2;
+		--theme-pill: #ebebe4;
+		--theme-surface: #fff;
+		--theme-edge: #e6e6e0;
+		--theme-muted: #5a5a5a;
+		--theme-ink: #121212;
+		--theme-accent: #6f4ff2;
+		--theme-accent-deep: #5434d9;
+		--theme-primary: #6f4ff2;
+		--theme-primary-hover: #5434d9;
+		--theme-on-primary: #fff;
+		--theme-info: #1a6fe0;
+		--theme-pending: #b56d00;
+		--theme-tour: #6f4ff2;
+		--theme-success: #12894a;
+		--theme-urgent: #e3301f;
+		--theme-sky: #62dcec;
+		--theme-amber: #ff9174;
+		--theme-violet: #b79bff;
+		--theme-teal: #8eec88;
+		--theme-wash: 35%;
+		--theme-tone-l: 0.28;
+		--theme-shade: #121212;
+		--theme-selection: 38%;
+		--theme-soft: 13%;
+		--theme-shade-k: 1;
+	}
+	:root:not([data-theme]),
+	[data-theme="cream"] {
+		color-scheme: light;
+		--font-display: "Newsreader", Georgia, serif;
+		--font-sans: "DM Sans", system-ui, sans-serif;
+		--theme-canvas: #fdfcf9;
+		--theme-paper: #f2efe3;
+		--theme-pill: #e6e0cd;
+		--theme-surface: #fff;
+		--theme-edge: #e9e4d6;
+		--theme-muted: #756d60;
+		--theme-ink: #1c1917;
+		--theme-accent: #4c7a2f;
+		--theme-accent-deep: #3a6122;
+		--theme-primary: #1c1917;
+		--theme-primary-hover: #4c7a2f;
+		--theme-on-primary: #fff;
+		--theme-shade: #1c1917;
+		--theme-info: #456775;
+		--theme-pending: #806126;
+		--theme-tour: #715c83;
+		--theme-success: #50683d;
+		--theme-urgent: #98543f;
+		--theme-sky: #a8cedd;
+		--theme-amber: #e7c967;
+		--theme-violet: #c8b9e3;
+		--theme-teal: #9bd8c9;
+		--theme-soft: 13%;
+		--theme-selection: 24%;
+		--theme-wash: 34%;
+		--theme-tone-l: 0.4;
+		--theme-shade-k: 1;
+	}
+	[data-theme="evening"] {
+		--font-display: "Instrument Serif", Georgia, serif;
+		--font-sans: "Instrument Sans", system-ui, sans-serif;
+		color-scheme: dark;
+		--theme-canvas: #1b1e25;
+		--theme-paper: #121419;
+		--theme-pill: #2a2e38;
+		--theme-surface: #21252d;
+		--theme-edge: #313641;
+		--theme-muted: #a8a296;
+		--theme-ink: #f1ede4;
+		--theme-accent: #e8b950;
+		--theme-accent-deep: #f4d283;
+		--theme-primary: #e8b950;
+		--theme-primary-hover: #f4d283;
+		--theme-on-primary: #14161b;
+		--theme-info: #8db9e0;
+		--theme-pending: #e8b950;
+		--theme-tour: #c0a3ea;
+		--theme-success: #96cf90;
+		--theme-urgent: #f0877c;
+		--theme-sky: #6f9fd0;
+		--theme-amber: #d79c5c;
+		--theme-violet: #a084d6;
+		--theme-teal: #58b2a2;
+		--theme-soft: 17%;
+		--theme-selection: 24%;
+		--theme-wash: 22%;
+		--theme-tone-l: 0.87;
+		--theme-shade: #000;
+		--theme-shade-k: 3;
+		--material-sheen: rgb(255 255 255 / 0.07);
+	}
+	[data-theme="sage"] {
+		color-scheme: light;
+		--font-display: "Young Serif", Georgia, serif;
+		--font-sans: "Work Sans", system-ui, sans-serif;
+		--theme-canvas: #f9faf5;
+		--theme-paper: #e6ebe0;
+		--theme-pill: #d6ddcc;
+		--theme-surface: #fffffb;
+		--theme-edge: #dce2d4;
+		--theme-muted: #5a665d;
+		--theme-ink: #1f2a22;
+		--theme-accent: #b25d38;
+		--theme-accent-deep: #8f4628;
+		--theme-primary: #2b4536;
+		--theme-primary-hover: #b25d38;
+		--theme-on-primary: #fffffb;
+		--theme-info: #4b6b78;
+		--theme-pending: #9a6424;
+		--theme-tour: #765e8a;
+		--theme-success: #44704b;
+		--theme-urgent: #b2442f;
+		--theme-sky: #b7c6e6;
+		--theme-amber: #edb995;
+		--theme-violet: #d5bdd7;
+		--theme-teal: #a9cdb4;
+		--theme-shade: #1f2a22;
+		--theme-soft: 13%;
+		--theme-selection: 24%;
+		--theme-wash: 34%;
+		--theme-tone-l: 0.4;
+		--theme-shade-k: 1;
+	}
+	[data-theme="lilac"] {
+		color-scheme: light;
+		--font-display: "Fraunces", Georgia, serif;
+		--font-sans: "Figtree", system-ui, sans-serif;
+		--theme-canvas: #fcfcfe;
+		--theme-paper: #eeedf6;
+		--theme-pill: #e1dfee;
+		--theme-surface: #fff;
+		--theme-edge: #e6e4ef;
+		--theme-muted: #5c5b68;
+		--theme-ink: #131216;
+		--theme-accent: #5b47d6;
+		--theme-accent-deep: #4332b6;
+		--theme-primary: #5b47d6;
+		--theme-primary-hover: #4332b6;
+		--theme-on-primary: #fff;
+		--theme-info: #3c62b4;
+		--theme-pending: #926112;
+		--theme-tour: #7b4cc6;
+		--theme-success: #2b7a55;
+		--theme-urgent: #cc3b46;
+		--theme-sky: #b9d1fb;
+		--theme-amber: #fbd98c;
+		--theme-violet: #cbb9fb;
+		--theme-teal: #ade6cb;
+		--theme-wash: 38%;
+		--theme-shade: #2a2540;
+		--theme-soft: 13%;
+		--theme-selection: 24%;
+		--theme-tone-l: 0.4;
+		--theme-shade-k: 1;
+	}
+	[data-theme="butter"] {
+		color-scheme: light;
+		--font-display: "Fredoka", system-ui, sans-serif;
+		--font-sans: "Nunito", system-ui, sans-serif;
+		--theme-canvas: #fdfcf6;
+		--theme-paper: #f5eac2;
+		--theme-pill: #ebdb9c;
+		--theme-surface: #fffefa;
+		--theme-edge: #ebe3c7;
+		--theme-muted: #6a675a;
+		--theme-ink: #23221e;
+		--theme-accent: #876200;
+		--theme-accent-deep: #684a00;
+		--theme-primary: #f5cd46;
+		--theme-primary-hover: #ecbd22;
+		--theme-on-primary: #23221e;
+		--theme-info: #3d6891;
+		--theme-pending: #876200;
+		--theme-tour: #9a4869;
+		--theme-success: #46723a;
+		--theme-urgent: #bc3a29;
+		--theme-sky: #bcd5ef;
+		--theme-amber: #f5cd46;
+		--theme-violet: #f0c3cf;
+		--theme-teal: #c4e0ae;
+		--theme-wash: 38%;
+		--theme-shade: #3a3420;
+		--theme-soft: 13%;
+		--theme-selection: 24%;
+		--theme-tone-l: 0.4;
+		--theme-shade-k: 1;
+	}
+}

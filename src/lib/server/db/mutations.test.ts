@@ -387,6 +387,67 @@ test("archiving an opportunity hides it from the board and restoring brings it b
 	await db.prepare("DELETE FROM clients WHERE id = ?").bind(clientId).run();
 });
 
+test("pinning is shared by both users, recorded in history, and rejects stale or repeated pins", async () => {
+	const id = crypto.randomUUID();
+	await realtor.createOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		title: "Fictional pinnable search",
+		type: "buyer",
+		stage: "new-lead",
+	});
+	let row = (await realtor.workspace({ archived: false })).opportunities.find(
+		(row) => row.id === id,
+	)!;
+	expect(row.pinnedAt).toBeNull();
+
+	const pin = { requestId: crypto.randomUUID(), id, revision: row.revision, pinned: true };
+	await realtor.pinOpportunity(pin);
+	// A retried request commits once.
+	await realtor.pinOpportunity(pin);
+	let workspace = await assistant.workspace({ archived: false });
+	row = workspace.opportunities.find((row) => row.id === id)!;
+	expect(row.pinnedAt).not.toBeNull();
+	expect(row.revision).toBe(pin.revision + 1);
+	expect(
+		workspace.history.filter((change) => change.recordId === id && change.action === "pin"),
+	).toMatchObject([{ actorUserId: "business-realtor", effectiveUserId: "business-realtor" }]);
+
+	// Pinning again or using a stale revision conflicts rather than moving the pin time.
+	await expect(
+		realtor.pinOpportunity({
+			requestId: crypto.randomUUID(),
+			id,
+			revision: row.revision,
+			pinned: true,
+		}),
+	).rejects.toBeInstanceOf(DataConflict);
+	await expect(
+		assistant.pinOpportunity({
+			requestId: crypto.randomUUID(),
+			id,
+			revision: pin.revision,
+			pinned: false,
+		}),
+	).rejects.toBeInstanceOf(DataConflict);
+
+	// Either user can unpin; this service impersonates the assistant, so history keeps both identities.
+	await assistant.pinOpportunity({
+		requestId: crypto.randomUUID(),
+		id,
+		revision: row.revision,
+		pinned: false,
+	});
+	workspace = await realtor.workspace({ archived: false });
+	row = workspace.opportunities.find((row) => row.id === id)!;
+	expect(row.pinnedAt).toBeNull();
+	expect(
+		workspace.history.filter((change) => change.recordId === id && change.action === "unpin"),
+	).toMatchObject([{ actorUserId: "support-admin", effectiveUserId: "business-assistant" }]);
+
+	await realtor.deleteOpportunity({ requestId: crypto.randomUUID(), id, revision: row.revision });
+});
+
 test("deleting an opportunity removes it and its checklists, links, references, and tasks", async () => {
 	const clientId = crypto.randomUUID();
 	const id = crypto.randomUUID();
@@ -661,6 +722,8 @@ test("per-item checklist edits: add, remove, rename, and reorder items on one op
 	expect(updated.items.length).toBe(originalCount + 1);
 	expect(updated.items.some((item) => item.title === "Custom step")).toBe(true);
 	const addedItem = updated.items.find((item) => item.title === "Custom step")!;
+	// A new item goes after the template items, not among them.
+	expect(updated.items.at(-1)!.id).toBe(addedItem.id);
 	const newRevision = updated.revision;
 
 	await realtor.renameChecklistItem({
@@ -686,6 +749,37 @@ test("per-item checklist edits: add, remove, rename, and reorder items on one op
 	const afterRemove = workspace.checklists.find((row) => row.id === checklist.id)!;
 	expect(afterRemove.items.length).toBe(originalCount);
 	expect(afterRemove.items.some((item) => item.title === "Renamed step")).toBe(false);
+
+	// Renaming a template item makes a local copy in the same place that keeps its checked-off state and due date.
+	const templateItem = afterRemove.items[1]!;
+	await realtor.saveChecklistStep({
+		requestId: crypto.randomUUID(),
+		checklistId: checklist.id,
+		revision: afterRemove.revision,
+		itemId: templateItem.id,
+		itemRevision: templateItem.revision,
+		completed: true,
+		dueDate: "2026-11-02",
+	});
+	workspace = await realtor.workspace({ archived: false });
+	const beforeRename = workspace.checklists.find((row) => row.id === checklist.id)!;
+	await realtor.renameChecklistItem({
+		requestId: crypto.randomUUID(),
+		checklistId: checklist.id,
+		revision: beforeRename.revision,
+		itemId: templateItem.id,
+		itemRevision: beforeRename.items[1]!.revision,
+		title: "Renamed template item",
+	});
+	workspace = await realtor.workspace({ archived: false });
+	const afterTemplateRename = workspace.checklists.find((row) => row.id === checklist.id)!;
+	expect(afterTemplateRename.items.length).toBe(originalCount);
+	expect(afterTemplateRename.items[1]).toMatchObject({
+		title: "Renamed template item",
+		dueDate: "2026-11-02",
+	});
+	expect(afterTemplateRename.items[1]!.completedAt).not.toBeNull();
+	expect(afterTemplateRename.items.some((item) => item.id === templateItem.id)).toBe(false);
 
 	await expect(
 		realtor.addChecklistItem({

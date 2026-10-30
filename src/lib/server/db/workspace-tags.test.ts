@@ -39,7 +39,7 @@ test("workspace exposes each client's non-retired tags on referenceClients", asy
 		{ id: "tag-sphere", name: "sphere", color: "#6b7c5e" },
 	]);
 	expect(byClient.get("fictional-client-eli")!.tags).toEqual([
-		{ id: "tag-referral", name: "referral", color: "#6b8fa8" },
+		{ id: "tag-sphere", name: "sphere", color: "#6b7c5e" },
 	]);
 	expect(byClient.get("fictional-client-mira")!.tags).toEqual([
 		{ id: "tag-nurture", name: "nurture", color: "#b89b5e" },

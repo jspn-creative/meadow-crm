@@ -19,10 +19,6 @@
 	}
 </script>
 
-<button
-	type="button"
-	class={["text-muted hover:text-ink hover:bg-paper relative flex size-7 shrink-0 items-center justify-center rounded-full transition-[color,background-color,opacity] after:absolute after:-inset-2 after:pointer-fine:hidden", className]}
-	aria-label={copied ? `Link to ${term} copied` : `Copy link to ${term}`}
-	onclick={copy}>
+<button type="button" class={["control", className]} data-variant="ghost" data-size="sm" data-icon aria-label={copied ? `Link to ${term} copied` : `Copy link to ${term}`} onclick={copy}>
 	{#if copied}<Check size={14} aria-hidden="true" />{:else}<Link size={14} aria-hidden="true" />{/if}
 </button>

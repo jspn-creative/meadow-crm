@@ -1,6 +1,6 @@
 import { command, form, getRequestEvent, query, requested } from "$app/server";
 import { error } from "@sveltejs/kit";
-import { DataConflict } from "#lib/server/data.js";
+import { DataConflict, DataInvalid } from "#lib/server/data.js";
 import {
 	addChecklistItemInput,
 	archiveOpportunityInput,
@@ -8,12 +8,14 @@ import {
 	createOpportunityInput,
 	createOpportunityFormInput,
 	deleteOpportunityInput,
+	pinOpportunityInput,
 	removeChecklistItemInput,
 	renameChecklistItemInput,
 	reorderChecklistItemsInput,
 	restoreOpportunityInput,
 	saveChecklistStepInput,
 	moveStageInput,
+	saveClientInput,
 	saveOpportunityInput,
 	workspaceInput,
 } from "#lib/server/validation.js";
@@ -37,6 +39,7 @@ async function save(action: () => Promise<Record<string, unknown>>) {
 		return result;
 	} catch (cause) {
 		if (cause instanceof DataConflict) error(409, cause.message);
+		if (cause instanceof DataInvalid) error(400, cause.message);
 		throw cause;
 	}
 }
@@ -44,6 +47,11 @@ async function save(action: () => Promise<Record<string, unknown>>) {
 export const createClient = form(createClientInput, (input) => {
 	const data = services();
 	return save(() => data.createClient(input));
+});
+
+export const saveClient = command(saveClientInput, (input) => {
+	const data = services();
+	return save(() => data.saveClient(input));
 });
 
 export const createOpportunity = form(createOpportunityFormInput, (input) => {
@@ -79,6 +87,11 @@ export const archiveOpportunity = command(archiveOpportunityInput, (input) => {
 export const restoreOpportunity = command(restoreOpportunityInput, (input) => {
 	const data = services();
 	return save(() => data.restoreOpportunity(input));
+});
+
+export const pinOpportunity = command(pinOpportunityInput, (input) => {
+	const data = services();
+	return save(() => data.pinOpportunity(input));
 });
 
 export const deleteOpportunity = command(deleteOpportunityInput, (input) => {

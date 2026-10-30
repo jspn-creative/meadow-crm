@@ -59,7 +59,7 @@
 		<div class="mt-6">
 			<h3 class="text-muted text-2xs font-medium tracking-wide uppercase">{label}</h3>
 			<div class="mt-2 flex flex-wrap gap-1.5">
-				{#each terms as entry (entry.term)}<button type="button" class="border-hairline hover:border-ink/30 rounded-full border bg-white px-2.5 py-1 text-xs font-medium transition-colors" onclick={() => select(entry.term)}>{entry.term}</button>{/each}
+				{#each terms as entry (entry.term)}<button type="button" class="control" data-size="sm" aria-pressed={slug(entry.term) === selectedId} onclick={() => select(entry.term)}>{entry.term}</button>{/each}
 			</div>
 		</div>
 	{/if}
@@ -67,10 +67,10 @@
 
 {#snippet detail(entry: Term)}
 	{@const path = pathOf(entry.term)}
-	<article class="border-hairline shadow-panel rounded-2xl border bg-white p-5 sm:p-7" aria-live="polite">
+	<article class="surface surface-floating p-5 sm:p-7" aria-live="polite">
 		{#if path.length}
 			<nav aria-label="Path" class="text-muted flex flex-wrap items-center gap-1 text-xs">
-				{#each path as ancestor (ancestor)}<button type="button" class="hover:text-ink underline-offset-4 hover:underline" onclick={() => select(ancestor)}>{ancestor}</button><ChevronRight size={12} aria-hidden="true" />{/each}
+				{#each path as ancestor (ancestor)}<button type="button" class="text-action" onclick={() => select(ancestor)}>{ancestor}</button><ChevronRight size={12} aria-hidden="true" />{/each}
 			</nav>
 		{/if}
 		<div class="mt-2 flex items-start justify-between gap-3">
@@ -113,27 +113,20 @@
 					<TreeGuides guide={guides[index]} y="1.125rem" />
 					<div class="flex items-center gap-0.5 pl-(--indent)">
 						{#if row.getCanExpand()}
-							<button
-								type="button"
-								tabindex="-1"
-								class="text-muted hover:text-ink relative flex h-9 w-4 shrink-0 items-center justify-center after:absolute after:-inset-2 after:pointer-fine:hidden"
-								disabled={!ready || filtering}
-								aria-expanded={row.getIsExpanded()}
-								aria-label={`${row.getIsExpanded() ? "Hide" : "Show"} terms under ${entry.term}`}
-								onclick={() => row.toggleExpanded()}>
+							<button type="button" tabindex="-1" class="control" data-variant="ghost" data-size="sm" data-icon disabled={!ready || filtering} aria-expanded={row.getIsExpanded()} aria-label={`${row.getIsExpanded() ? "Hide" : "Show"} terms under ${entry.term}`} onclick={() => row.toggleExpanded()}>
 								<ChevronRight size={14} class="transition-transform duration-150 in-aria-expanded:rotate-90 motion-reduce:transition-none" aria-hidden="true" />
 							</button>
 						{:else}
-							<span class="w-4 shrink-0" aria-hidden="true"></span>
+							<span class="w-9 shrink-0 pointer-coarse:w-11" aria-hidden="true"></span>
 						{/if}
-						<button type="button" data-outline-item aria-current={current || undefined} class="hover:bg-paper aria-[current=true]:bg-ink flex min-h-9 min-w-0 grow items-center gap-2 rounded-lg px-2.5 text-left text-sm transition-colors aria-[current=true]:text-white" onclick={() => select(entry.term)}>
+						<button type="button" data-outline-item aria-current={current || undefined} class="menu-item min-w-0 grow text-sm" onclick={() => select(entry.term)}>
 							<span class={["truncate", row.depth === 0 && "font-medium"]}>{entry.term}</span>
 							{#if entry.open}<span class="bg-pending size-1.5 shrink-0 rounded-full" title="Has an open question"></span>{/if}
 							<span class="text-2xs ml-auto shrink-0 opacity-50">{entry.kind}</span>
 						</button>
 					</div>
 					{#if current && selected}
-						<div class="mt-2 mb-4 pl-[calc(var(--indent)+1.125rem)] @3xl/outline:hidden">{@render detail(selected)}</div>
+						<div class="mt-2 mb-4 pl-[calc(var(--indent)+2.375rem)] @3xl/outline:hidden pointer-coarse:pl-[calc(var(--indent)+2.875rem)]">{@render detail(selected)}</div>
 					{/if}
 				</li>
 			{/each}
