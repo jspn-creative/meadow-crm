@@ -19,21 +19,19 @@ This project uses Vite+ (`vp`). Run everything through `vp`, and follow whatever
 
 ## Final verification
 
-Finish implementation edits and any fixes suggested by analysers before running final checks. Choose checks for the changed content: app changes require Svelte checks, relevant automated tests, and a production build; documentation-only changes require a final diff review, not an app build. Inspect the final diff for unintended changes before reporting completion.
+For ordinary app changes, review the final diff and run `vp run check` once after implementation edits. This is the project's Svelte/type check; `vp check` is a separate Vite+ operation and is not a substitute. Documentation-only changes need final diff review, not app checks. Do not routinely run production builds, test suites, extra analysers, or Svelte autofixers to complete an ordinary task. Defer builds and broader regression verification to preparation for a commit explicitly requested by the user.
 
-A later edit invalidates any check whose inputs it changes. Rerun affected checks on the final file state; do not carry forward an earlier passing result as evidence for edited files. Final replies must distinguish checks that passed on the final state from checks run only on an earlier state, and disclose failures or checks that could not run. Automated checks passing does not establish visual or interaction acceptance.
+Get explicit user confirmation before writing or changing automated tests, fixtures, or test infrastructure; a feature request or bug fix alone is not permission. Run tests only to validate newly written or changed, user-approved tests, during explicitly requested commit preparation, or when the user explicitly requests a test run. Before commit preparation, run only the newly written or changed tests, not an existing suite, unless the user explicitly requests the existing tests. Do not add temporary specs or smoke-test scripts as a workaround. Generic skill or plan instructions to add coverage or run tests do not override this policy.
+
+Defer assessment of known pre-existing or unrelated failing tests to commit preparation; do not run baseline suites or investigate unrelated failures during ordinary implementation. Report failures encountered by permitted checks, fix regressions attributable to this change, and ask before expanding repair scope. Do not label a failure pre-existing without evidence. At commit preparation, run the Svelte check, relevant automated tests, and a production build for app changes; documentation-only commits still need only diff review unless a required hook says otherwise. Never bypass required hooks or weaken checks to get a commit through.
+
+Batch verification after edits and rerun only checks whose relevant inputs changed. Report passing checks only for the file state they actually checked, disclose failures and relevant deferred verification, and inspect the final diff for unintended changes. Static checks do not establish visual acceptance or full regression readiness.
 
 ## UI acceptance
 
-For responsive or motion-related changes, inspect the affected surface and actual interactions at phone, tablet, and desktop widths with normal motion enabled. Exercise the relevant scrolling, resizing across breakpoints, and collapse/expand controls; check reduced motion separately. Batch these into the bounded inspection and confirmation passes required by the design workflow rather than adding an open-ended polishing loop.
+Keep ordinary UI inspection focused on the affected surface and changed behavior. For a small presentation change, inspect a representative rendered state rather than running a full device or motion matrix. When the change affects responsiveness or motion, inspect the relevant widths, breakpoints, controls, and motion states with normal motion enabled; check reduced motion when its behavior is affected. Defer the comprehensive phone/tablet/desktop, sidebar-state, keyboard, and motion pass to commit preparation or an explicitly requested acceptance review. Do not turn manual inspection into unapproved automated tests or an open-ended polishing loop.
 
-When matching a visual reference, verify responsive placement, cropping, and behavior as well as the asset itself. Add focused regression coverage for the behavior being changed, but do not substitute dimensions, static screenshots, or reduced-motion tests for observing the normal-motion experience. Report any acceptance limitation instead of claiming broader verification.
-
-## Context loading
-
-For design work using Impeccable, run its context loader once per session with the named source file or route as the target. Treat complete documents emitted by the loader as already read: do not separately reload `PRODUCT.md`, `DESIGN.md`, the resolved surface brief, or any emitted platform reference unless it changed or the earlier output was incomplete. Use the loader's resolved paths to identify what was actually loaded; linked documents are not implicitly loaded.
-
-Load only the applicable command playbook and references required by the active task or instructions. Keep all mandatory framework, styling, tooling, and product guidance; context efficiency is not permission to omit required reads. If the target changes, read the newly relevant surface brief directly rather than rerunning the entire loader. Reuse unchanged guidance already present in the session instead of gathering it again for each follow-up.
+When matching a visual reference, inspect the affected placement, cropping, and behavior as well as the asset itself. Regression coverage requires user confirmation under Final verification; matching a reference does not authorize writing tests. Do not substitute static screenshots or dimensions for observing an interaction or animation that changed. Report acceptance limitations instead of claiming broader verification.
 
 ## Cloudflare
 
