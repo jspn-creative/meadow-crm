@@ -26,7 +26,7 @@
 		...workspace.referenceClients.filter((row) => !row.archivedAt || row.id === task?.clientId).map((row) => ({ value: `client:${row.id}`, label: `Client · ${row.name}${row.archivedAt ? " (archived)" : ""}` })),
 		...workspace.referenceOpportunities.filter((row) => !row.archivedAt || row.id === task?.opportunityId).map((row) => ({ value: `opportunity:${row.id}`, label: `Opportunity · ${row.title}${row.archivedAt ? " (archived)" : ""}` })),
 	]);
-	let format = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: workspace.settings?.timezone ?? "America/New_York" }));
+	let format = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: workspace.settings?.timezone ?? "America/Los_Angeles" }));
 	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 
 	function loadCurrent() {

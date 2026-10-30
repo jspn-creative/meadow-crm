@@ -32,7 +32,7 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 - [x] Backlog 3: login implemented and every route and remote function refuses unauthenticated requests; `vp run check`, DB tests, Playwright shell suite, build, prebuilt production denial smoke, and local browser login/password change/logout pass (2026-10-30, verified by the orchestrator).
 - [x] Backlog 3a: support admin and impersonation implemented; check, build, prebuilt production forgery smoke, and local browser selection, both identities in history, switch/replay denial, exit, expiry, and business-user denial pass (2026-10-30). Verification tasks were deleted; no Cloudflare changes.
 - [x] Backlog 4-5: release tidy done; import rehearsed locally with counts reported to the developer (2026-10-30: Settings hidden in production; 827 of 840 clients import, 3 test records and 10 nameless skipped; unmapped columns go to the read-only Imported data field).
-- [ ] Backlog 6: release checks pass (check, relevant tests, build, short phone and desktop pass).
+- [x] Backlog 6: release checks pass (check, relevant tests, build, short phone and desktop pass). 2026-10-30: check, DB tests, Playwright shell suite, build, and production smoke pass; phone and desktop pass of dashboard, tasks, Pipeline, and Registry done with the dev identity. Login on a real URL is confirmed in Backlog 8, because local login is pinned to `localhost:5173`. The business timezone was corrected to America/Los_Angeles.
 - [ ] Backlog 7: Alchemy go or no-go decided by the developer from the spike's evidence.
 - [ ] Developer answers "lgtm ready to deploy?" with approval.
 - [ ] Backlog 8: deployed; login confirmed on the production URL; import counts match the rehearsal.
@@ -74,4 +74,4 @@ The orchestrating session keeps cross-item decisions and final verification. Use
 
 ## Next
 
-Orchestration session running Backlog 1-8, through deployment and not beyond. Next: Backlog 6 release checks, then the approved Alchemy spike (Backlog 7).
+Orchestration session running Backlog 1-8, through deployment and not beyond. Next: the approved Alchemy spike (Backlog 7). The first attempt stopped on a model usage limit before creating any Cloudflare resource; its uncommitted `alchemy.run.ts`, `.alchemy/`, and `package.json`/`bun.lock` changes remain.

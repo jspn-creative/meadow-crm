@@ -127,7 +127,7 @@
 				<ol class="mt-3 space-y-4">
 					{#each changes as change (change.id)}<li class="min-w-0 text-xs">
 							<p class="font-medium wrap-anywhere">{change.action} · {person(change.effectiveUserId)}{change.actorUserId !== change.effectiveUserId ? ` (acting user: ${person(change.actorUserId)})` : ""}</p>
-							<time class="text-muted" datetime={change.createdAt}>{new Date(change.createdAt).toLocaleString("en-US", { timeZone: workspace.settings?.timezone ?? "America/New_York" })}</time>
+							<time class="text-muted" datetime={change.createdAt}>{new Date(change.createdAt).toLocaleString("en-US", { timeZone: workspace.settings?.timezone ?? "America/Los_Angeles" })}</time>
 							<details class="mt-2">
 								<summary class="cursor-pointer py-2">Changed data</summary>
 								<pre class="text-muted mt-2 wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>

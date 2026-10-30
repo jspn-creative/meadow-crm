@@ -228,7 +228,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					...row,
 					data: JSON.parse(row.data) as Record<string, unknown>,
 				})),
-				timezone: settings[0]?.timezone ?? "America/New_York",
+				timezone: settings[0]?.timezone ?? "America/Los_Angeles",
 			};
 		},
 		async workspace(input: unknown) {
@@ -340,7 +340,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			}));
 			return {
 				identity: user,
-				businessToday: businessDate(settings[0]?.timezone ?? "America/New_York"),
+				businessToday: businessDate(settings[0]?.timezone ?? "America/Los_Angeles"),
 				clients: clientRecords,
 				tasks: taskRows,
 				opportunities: opportunityRows,

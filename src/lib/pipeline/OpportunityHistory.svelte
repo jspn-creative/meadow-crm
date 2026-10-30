@@ -39,7 +39,7 @@
 				return { icon: PencilLine, text: change.action.replaceAll("-", " ") };
 		}
 	}
-	let format = $derived(new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: workspace.settings?.timezone ?? "America/New_York" }));
+	let format = $derived(new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: workspace.settings?.timezone ?? "America/Los_Angeles" }));
 </script>
 
 {#if changes.length}

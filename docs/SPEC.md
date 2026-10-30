@@ -16,6 +16,7 @@ Confirmed by the developer on 2026-10-30. The first release ships as soon as pos
 - Advanced Registry features, Settings panels, the checklist template editor, board view options, and other refinements come after the release. Visual redesign is not part of it.
 - Every task has a date, when it starts appearing on the realtor's list. A new task's date defaults to today and can be set to a future day; the due date is optional. The release builds this as a basic primitive to iterate on, not the final task shape.
 - Checklist items show no date control in the release. Stored item dates and the date code are kept so promotion can build on them later.
+- The business timezone is America/Los_Angeles; Settings cannot change it in the release.
 - A forgotten password is reset by the developer by hand with a script; there is no reset email or link.
 - The production Worker may take over the existing `meadow` Worker's name; it was a prototype.
 - The release gate is the developer answering "lgtm ready to deploy?".

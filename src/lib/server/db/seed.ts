@@ -18,7 +18,7 @@ export async function seedDefaults(db: D1Database, now = new Date().toISOString(
 			.insert(businessSettings)
 			.values({
 				name: "Meadow Lane Realty & Development",
-				timezone: "America/New_York",
+				timezone: "America/Los_Angeles",
 				createdAt: now,
 				updatedAt: now,
 			})
