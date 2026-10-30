@@ -3,7 +3,7 @@
 
 ## Implementation scope
 
-Build from [docs/BACKLOG.md](docs/BACKLOG.md), one item at a time, against [docs/SPEC.md](docs/SPEC.md). The `openspec/` folder is superseded and kept only as history; do not follow its tasks or treat its decisions as current. Static HTML files in `static/` are visual references and stay unchanged unless explicitly requested.
+Build from [docs/BACKLOG.md](docs/BACKLOG.md), one item at a time, against [docs/SPEC.md](docs/SPEC.md). [docs/WORKFLOW.md](docs/WORKFLOW.md) holds the current goal, implementation status, and approval gates. Static HTML files in `static/` are visual references and stay unchanged unless explicitly requested.
 
 ## Git
 
@@ -35,13 +35,13 @@ When matching a visual reference, inspect the affected placement, cropping, and 
 
 ## Cloudflare
 
-Cloudflare work goes through `cf`, Cloudflare's CLI, which is installed globally (currently v1.0.0-beta.5). It covers the entire Cloudflare API — 3,000+ operations across Workers, D1, R2, KV, DNS, Access, Tunnels, and the rest. Use it instead of `wrangler`; Wrangler is in maintenance-only support and Cloudflare is steering agents to `cf`.
+Cloudflare work goes through `cf`, Cloudflare's CLI, which is installed globally (currently v1.0.0-beta.16). It covers the entire Cloudflare API — 3,000+ operations across Workers, D1, R2, KV, DNS, Access, Tunnels, and the rest. Use it instead of `wrangler`; Wrangler is in maintenance-only support and Cloudflare is steering agents to `cf`.
 
 **This app targets Cloudflare.** It uses `@sveltejs/adapter-cloudflare`. Use `cf` for Cloudflare provisioning, bindings, deployment, and inspection, and verify the actual adapter/config path before deploying.
 
 What `cf` must not do is silently take over the build. `vp` owns dev, build, and check, and `cf` is Vite-based, so a plain `cf deploy` would build through its own pipeline and pull in the Cloudflare Vite plugin, fighting `vp` and the `vite-plus-core` pin in `package.json` `overrides`. Avoid `cf init`, `cf migrate`, and `cf dev` for the same reason — they restructure project config, and the adapter stays wired in `vite.config.ts`. For a separately approved deployment, verify the prebuilt output/config path before using `cf deploy --prebuilt`; do not make a `cf` config migration a prerequisite for local MVP implementation.
 
-The backlog covers local implementation only. Use the Cloudflare adapter's required Wrangler configuration for its local D1 runtime; this config dependency does not authorize switching deployment tooling to the Wrangler CLI. Do not introduce `cloudflare.config.ts`, a competing config, provisioning, deployment, live migrations, or git integration as part of backlog work. The operational guidance below applies only to separately requested Cloudflare work.
+Backlog items are local implementation, except the first release's Alchemy and deploy items, which follow the approval boundaries and Alchemy criteria in [docs/WORKFLOW.md](docs/WORKFLOW.md). Use the Cloudflare adapter's required Wrangler configuration for its local D1 runtime; this config dependency does not authorize switching deployment tooling to the Wrangler CLI. Outside those two items, do not introduce `cloudflare.config.ts`, a competing config, provisioning, deployment, live migrations, or git integration as part of backlog work. If Alchemy is adopted, revise this section in the same change as WORKFLOW describes. The operational guidance below applies to those items and to separately requested Cloudflare work.
 
 **Deployment sequence: manual first, git integration second.** The first deploy is done by hand via `cf`, and git integration is attached to the already-deployed site afterwards. This is deliberate — a pipeline that builds on every push surfaces requirements as a run of failed builds, and the first several almost always fail while bindings, routes, and compatibility dates get settled. A manual deploy surfaces the same requirements immediately, with the error in front of you. Do not propose wiring up git integration as the first step, and do not treat early deploy failures as a reason to reach for CI.
 

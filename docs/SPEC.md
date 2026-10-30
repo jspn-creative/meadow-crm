@@ -2,7 +2,19 @@
 
 A working CRM for Meadow Lane Realty & Development: one realtor and one assistant sharing every record, plus a support admin. It must work on desktop and on phones, because the realtor works away from a desk. Business language is defined in the Vocabulary section of [AGENTS.md](../AGENTS.md#vocabulary), which the app also shows as its Glossary. Default checklist content is in [checklists.md](./checklists.md).
 
-Everything outside [Open questions](#open-questions) has been confirmed by the developer. Anything this document does not cover is undecided: ask before building on it, and add the answer here only once the developer confirms it.
+Much of this document was drafted by agents from discussion with the developer, who approved its overall direction but not every detailed behavior. Treat details as the intended direction, not settled decisions: [First release](#first-release) is confirmed, and anything the release depends on that is not confirmed there, or is missing here, is asked about before it is built. Add an answer here only once the developer confirms it.
+
+## First release
+
+Confirmed by the developer on 2026-10-30. The first release ships as soon as possible so the business can use it and give feedback; the rest of this document stays the MVP direction for later work. Work order is in [BACKLOG.md](./BACKLOG.md).
+
+- Tasks ship with title, date, due date, an optional client or opportunity link, create, edit, complete, reopen, delete, rollover, and overdue. Time, location, repeat, checklist promotion, and the stage-move dialog come after the release.
+- Only the realtor and the assistant have logins. The support admin account and impersonation come after the release.
+- Uploaded files come after the release; web links and linked records remain.
+- The business's real client data is imported as part of the release.
+- The release has one shared dashboard of real data: Today's Tasks, Upcoming, and Recent activity. Role-specific dashboards come after the release.
+- Advanced Registry features, Settings panels, the checklist template editor, board view options, and other refinements come after the release. Visual redesign is not part of it.
+- The release gate is the developer answering "lgtm ready to deploy?".
 
 ## People
 
