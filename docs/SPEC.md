@@ -14,6 +14,10 @@ Confirmed by the developer on 2026-10-30. The first release ships as soon as pos
 - The business's real client data is imported as part of the release.
 - The release has one shared dashboard of real data: Today's Tasks, Upcoming, and Recent activity. Role-specific dashboards come after the release.
 - Advanced Registry features, Settings panels, the checklist template editor, board view options, and other refinements come after the release. Visual redesign is not part of it.
+- Every task has a date, when it starts appearing on the realtor's list. A new task's date defaults to today and can be set to a future day; the due date is optional. The release builds this as a basic primitive to iterate on, not the final task shape.
+- Checklist items show no date control in the release. Stored item dates and the date code are kept so promotion can build on them later.
+- A forgotten password is reset by the developer by hand with a script; there is no reset email or link.
+- The production Worker may take over the existing `meadow` Worker's name; it was a prototype.
 - The release gate is the developer answering "lgtm ready to deploy?".
 
 ## People
@@ -153,6 +157,15 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 
 The business's real client data will be imported once, with a script the developer runs. There is no in-app import screen. A record for a couple becomes one client holding both people, and a referral tag in the data becomes the client's lead source.
 
+Decided for the first release's import of `docs/client-data.csv` on 2026-10-30:
+
+- Clients only. The CSV's opportunity columns create no opportunities.
+- A row marked as a couple becomes one client holding two people, despite the CSV's note to split it into two clients.
+- Columns with no field, such as beds, baths, area preference, property type preference, budget, and legacy second phone, second email, and spouse details, are appended to the client's notes as labeled lines. The import reports how often each is filled, so heavily used ones can be considered for dedicated fields.
+- Unknown email consent imports as email on; do-not-contact turns every channel off.
+- Lead-relay emails (kvleads.com forwarding addresses) are dropped, and a client left with no contact info is not imported.
+- Rows the CSV marks as test records are not imported.
+
 ## Technical direction
 
 How the app is built so far; change it only with a reason the developer agrees to.
@@ -186,11 +199,13 @@ Do not resolve these without the developer.
 
 ### Before or during the first release
 
-- How a forgotten password is recovered. The earlier plan proposed that the developer resets it by hand at first.
+None remain; the answers are in [First release](#first-release).
 
 ### Tasks, Registry, and files
 
 - How a task's time, location, and repeat behave, which needs discovery before it is built.
+- Task shape, for an exploration session after the release. The developer's notes from 2026-10-30: a task's date is when it starts appearing on the realtor's list, defaulting to today and schedulable for a future day; it is unclear whether a date and an optional due date are enough for most of a realtor's needs. A seven-day view of the week has to show a task spanning its date to its due date without looking like a task that repeats every day in each day's column. A backlog of unscheduled work is appealing, but it is open whether it holds tasks with no date or tasks with a dedicated status. The earlier plan let a standalone task have no date and showed it among open tasks without an overdue indicator.
+- How checklist item dates return with promotion: the release hides them, and promotion (see [Checklists](#checklists)) should reuse the stored dates and the item date code rather than replace them.
 - Whether the Registry's opportunity-count filter counts archived opportunities. The earlier plan proposed counting every linked opportunity and saying so.
 - Size, type, retention, and deletion rules for uploaded files.
 

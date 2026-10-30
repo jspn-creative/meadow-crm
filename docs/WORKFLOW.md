@@ -9,8 +9,8 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 ## Status (verified 2026-10-30 by code audit, not runtime)
 
 - Done and persisted in D1: clients (people, addresses, tags, consent, history), opportunities, the board with stages, pins, and archive, per-stage checklists with per-item edits, web-link and record references, revision guards on saves, bookmarks in the browser, themes, the Glossary.
-- Tasks are not real yet: dashboard task rows come from `src/lib/shell/fixtures.ts`, there are no task actions in `src/lib/crm.remote.ts`, and the `tasks` table lacks a date. Earlier belief that tasks persist was wrong.
-- Dashboard widgets are fixture-backed; Recent activity can draw on the existing history table.
+- Tasks persist in D1 with a required date and optional due date (migration `0007_task_dates.sql`); checklist item dates are hidden in the release (`src/lib/data/release.ts`). Done 2026-10-30.
+- The release dashboard shows Today's Tasks, Upcoming, and Recent activity from real records and history. Done 2026-10-30.
 - No real login: identity is a development-only stub (`src/lib/server/identity.ts`), and production renders a "preview" notice with no data access (`src/routes/+layout.svelte`). Better Auth exists only as an experiment in `scripts/experiments/`.
 - Registry is a simple list with name search and a client side panel; usable for the release.
 - Settings shows template and preference views that cannot save.
@@ -20,14 +20,14 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 ## Cloudflare resources (read-only check, account JSPN, 2026-10-30)
 
 - No Meadow D1 database or R2 bucket exists, so production starts from nothing.
-- One Worker named `meadow` exists (created 2026-10-10, never updated); its origin is unknown, probably a prototype share. Do not delete or overwrite it without the developer's confirmation; ask what it is before choosing the production Worker name.
+- One Worker named `meadow` exists (created 2026-10-10, never updated). The developer confirmed on 2026-10-30 that it was a prototype and production may take over its name.
 - Other Workers and D1 databases on the account belong to unrelated projects and are out of scope.
 
 ## Gates
 
 - [x] OpenSpec replaced by SPEC, BACKLOG, and this checkpoint (2026-10-30).
 - [x] First release scope confirmed by the developer in this session (2026-10-30), recorded in SPEC.
-- [ ] Backlog 1-2: tasks and release dashboard implemented; `vp run check` passes.
+- [x] Backlog 1-2: tasks and release dashboard implemented; `vp run check` passes (2026-10-30; DB tests, Playwright shell suite, and build also pass).
 - [ ] Backlog 3: login implemented and every route and remote function refuses unauthenticated requests; `vp run check` passes.
 - [ ] Backlog 4-5: release tidy done; import rehearsed locally with counts reported to the developer.
 - [ ] Backlog 6: release checks pass (check, relevant tests, build, short phone and desktop pass).
@@ -39,7 +39,8 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 
 - Ask the developer before: anything that changes Cloudflare (creating, deleting, or deploying resources, secrets, DNS), running the import against production, adding or changing automated tests, changing scope beyond BACKLOG's First release, or choosing a product behavior SPEC does not settle.
 - "lgtm ready to deploy?" is the whole release gate. Ask it once Backlog 1-7 are done, with a few lines of evidence: checks run and their results, the Alchemy decision, and the production URL and resource names that will be created.
-- Never commit unless the developer asks; offer a one-line commit message at the end of each backlog item.
+- The developer authorized on 2026-10-30 one commit per completed backlog item, at most, after commit preparation checks. Never push.
+- The developer authorized on 2026-10-30 updating or deleting existing automated tests that a change breaks or that are low-value; writing new tests still needs a request.
 - Security and data safety are not waived by the light gate: no public signup, login on every request, secrets only as Worker secrets, no client data in logs, and the production D1 protected from deletion by tooling.
 - `docs/client-data.csv` holds real client data and is tracked in git. Do not copy it into build output, logs, or prompts; tell the developer before any push to a shared remote.
 
@@ -71,4 +72,4 @@ The orchestrating session keeps cross-item decisions and final verification. Use
 
 ## Next
 
-Spawn the execution-orchestration session for Backlog 1-8, through deployment and not beyond.
+Orchestration session running Backlog 1-8, through deployment and not beyond. Next: Backlog 3, login (forgotten passwords are reset by the developer by hand, per SPEC). Import decisions are in SPEC's Getting data in.

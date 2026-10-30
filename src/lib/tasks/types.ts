@@ -12,4 +12,5 @@ export interface TaskListItem {
 	icon?: Component<LucideProps>;
 	tone?: AccentTone;
 	note?: string;
+	completed?: boolean;
 }

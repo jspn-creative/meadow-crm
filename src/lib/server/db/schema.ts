@@ -412,6 +412,7 @@ export const tasks = sqliteTable(
 		clientId: text("client_id").references(() => clients.id),
 		opportunityId: text("opportunity_id").references(() => opportunities.id),
 		sourceStage: text("source_stage", { enum: stages }),
+		date: text("date").notNull(),
 		dueDate: text("due_date"),
 		completedAt: text("completed_at"),
 		fictional: fixture(),
@@ -420,6 +421,7 @@ export const tasks = sqliteTable(
 	},
 	(t) => [
 		index("tasks_attention").on(t.completedAt, t.dueDate),
+		index("tasks_date").on(t.completedAt, t.date),
 		index("tasks_client").on(t.clientId),
 		index("tasks_opportunity").on(t.opportunityId),
 		check("task_title_required", sql`length(trim(${t.title})) > 0`),
@@ -434,6 +436,7 @@ export const tasks = sqliteTable(
 			sql`${t.dueDate} IS NULL OR ${t.dueDate} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`,
 		),
 		check("task_revision_positive", sql`${t.revision} > 0`),
+		check("task_start_date_shape", sql`${t.date} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`),
 	],
 );
 

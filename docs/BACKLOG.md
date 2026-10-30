@@ -6,8 +6,6 @@ What is left to build, in order. [SPEC.md](./SPEC.md) says what the product does
 
 The goal is to deploy as soon as possible so the business can start using Meadow CRM and giving feedback. Only these items block the release; the scope decisions behind them are in [SPEC.md's First release](./SPEC.md#first-release). Visual redesign is not part of this work.
 
-1. Tasks, persisted in D1: title, date, due date, an optional link to one client or one opportunity; create, edit, complete, reopen, and delete by either business user; daily rollover and overdue in the business's timezone. Extend the existing `tasks` table and data service rather than starting over.
-2. The release dashboard: one shared dashboard of Today's Tasks, Upcoming, and Recent activity, built from real records and history. Widgets that only show fixture data are removed from the release dashboard.
 3. Real login, managed by the app with Better Auth: accounts for the realtor and the assistant created by a script, no public signup, logout, and password change. Every request, page, and data call requires login. The local development identity stays development-only. Follow SPEC's login security bullets, and ask how a forgotten password is recovered before building it.
 4. Release tidy: remove demo and "not implemented" copy from production views, and hide Settings controls that cannot save. No new features.
 5. Import the business's real client data from `docs/client-data.csv` with a one-time script, rehearsed against local D1 first, with counts and skipped rows reported to the developer.

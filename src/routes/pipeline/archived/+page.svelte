@@ -84,7 +84,7 @@
 			{@const style = typeStyles[opportunity.type]}
 			{@const Icon = style.icon}
 			{@const clients = clientNames(opportunity)}
-			<li class="surface flex flex-wrap items-center gap-x-4 gap-y-3 p-3 pr-4">
+			<li id={`opportunity-${opportunity.id}`} class="surface flex flex-wrap items-center gap-x-4 gap-y-3 p-3 pr-4">
 				<span class="chip shrink-0" data-tone={style.tone}><Icon size={17} aria-hidden="true" /></span>
 				<div class="min-w-0 flex-1 basis-48">
 					<p class="font-medium wrap-anywhere">{opportunity.title}</p>

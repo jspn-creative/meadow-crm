@@ -284,12 +284,13 @@ export async function seedFictional(db: D1Database, today: string) {
 		statements.push(
 			db
 				.prepare(
-					"INSERT INTO tasks (id, title, assigned_user_id, opportunity_id, due_date, completed_at, fictional, created_at, updated_at) VALUES (?, ?, 'business-realtor', ?, ?, ?, 1, ?, ?)",
+					"INSERT INTO tasks (id, title, assigned_user_id, opportunity_id, date, due_date, completed_at, fictional, created_at, updated_at) VALUES (?, ?, 'business-realtor', ?, ?, ?, ?, 1, ?, ?)",
 				)
 				.bind(
 					`fictional-task-${id}`,
 					title,
 					opportunityId,
+					relativeDate(today, offset ?? 0),
 					offset === null ? null : relativeDate(today, offset),
 					completed ? now : null,
 					now,

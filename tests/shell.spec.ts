@@ -153,8 +153,8 @@ test("destinations, history, dashboard tasks, and uncluttered workspace", async 
 	);
 	await expect(page.getByRole("link", { name: "Tasks", exact: true })).toHaveCount(0);
 	await page.getByRole("link", { name: "Dashboard", exact: true }).click();
-	await expect(page.getByRole("heading", { name: "Checklist attention" })).toBeVisible();
-	await expect(page.getByRole("heading", { name: "Realtor tasks" })).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Today's Tasks" })).toBeVisible();
+	await expect(page.getByRole("heading", { name: "Recent activity" })).toBeVisible();
 	await expect(
 		page
 			.getByRole("navigation", { name: "Sections" })

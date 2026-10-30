@@ -1,4 +1,5 @@
 import type { Workspace } from "./workspace.js";
+import { checklistDatesEnabled } from "./release.js";
 
 export function businessDate(timezone: string, now = new Date()) {
 	const parts = new Intl.DateTimeFormat("en-US", {
@@ -18,7 +19,7 @@ export function isOverdue(dueDate: string | null, completedAt: string | null, to
 export function checklistAttention(
 	workspace: Pick<Workspace, "opportunities" | "checklists" | "settings" | "businessToday">,
 ) {
-	return workspace.checklists
+	return (checklistDatesEnabled ? workspace.checklists : [])
 		.flatMap((list) => {
 			const opportunity = workspace.opportunities.find(
 				(row) => row.id === list.opportunityId && !row.archivedAt,

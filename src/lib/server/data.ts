@@ -22,6 +22,7 @@ import {
 	recordReferences,
 	history,
 	tags,
+	tasks,
 } from "./db/schema.ts";
 import {
 	addChecklistItemInput,
@@ -40,6 +41,10 @@ import {
 	saveClientInput,
 	saveOpportunityInput,
 	workspaceInput,
+	createTaskInput,
+	saveTaskInput,
+	completeTaskInput,
+	deleteTaskInput,
 } from "./validation.ts";
 
 export class DataConflict extends Error {
@@ -195,6 +200,37 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 
 	return {
 		identity: user,
+		async recentActivity() {
+			const [result, settings] = await Promise.all([
+				stmt(`SELECT h.id, h.record_kind AS recordKind, COALESCE(NULLIF(h.record_id, ''), sc.opportunity_id) AS recordId, h.action, h.data, h.created_at AS createdAt, h.actor_user_id AS actorUserId, h.effective_user_id AS effectiveUserId, COALESCE(c.name, o.title, t.title) AS title, COALESCE(c.archived_at, o.archived_at) AS archivedAt
+					FROM history h
+					LEFT JOIN stage_checklists sc ON h.record_kind = 'opportunity' AND h.record_id = '' AND sc.id = json_extract(h.data, '$.checklistId')
+					LEFT JOIN clients c ON h.record_kind = 'client' AND c.id = h.record_id
+					LEFT JOIN opportunities o ON h.record_kind = 'opportunity' AND o.id = COALESCE(NULLIF(h.record_id, ''), sc.opportunity_id)
+					LEFT JOIN tasks t ON h.record_kind = 'task' AND t.id = h.record_id
+					WHERE c.id IS NOT NULL OR o.id IS NOT NULL OR t.id IS NOT NULL
+					ORDER BY h.created_at DESC, h.id DESC LIMIT 20`).all<{
+					id: string;
+					recordKind: "client" | "opportunity" | "task";
+					recordId: string;
+					action: string;
+					data: string;
+					createdAt: string;
+					actorUserId: string;
+					effectiveUserId: string;
+					title: string;
+					archivedAt: string | null;
+				}>(),
+				orm.select().from(businessSettings).where(eq(businessSettings.id, 1)),
+			]);
+			return {
+				changes: result.results.map((row) => ({
+					...row,
+					data: JSON.parse(row.data) as Record<string, unknown>,
+				})),
+				timezone: settings[0]?.timezone ?? "America/New_York",
+			};
+		},
 		async workspace(input: unknown) {
 			const { archived } = v.parse(workspaceInput, input);
 			const [
@@ -218,6 +254,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				clientKeyDateRows,
 				tagRows,
 				clientTagAllRows,
+				taskRows,
 			] = await Promise.all([
 				orm
 					.select()
@@ -236,7 +273,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				orm
 					.select()
 					.from(history)
-					.where(inArray(history.recordKind, ["opportunity", "client"])),
+					.where(inArray(history.recordKind, ["opportunity", "client", "task"])),
 				orm
 					.select({ id: clients.id, name: clients.name, archivedAt: clients.archivedAt })
 					.from(clients),
@@ -265,6 +302,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				orm.select().from(clientKeyDates),
 				orm.select().from(tags),
 				orm.select().from(clientTags),
+				orm.select().from(tasks),
 			]);
 			const tagsByClient = new Map<string, { id: string; name: string; color: string }[]>();
 			for (const row of clientTagRows) {
@@ -304,6 +342,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				identity: user,
 				businessToday: businessDate(settings[0]?.timezone ?? "America/New_York"),
 				clients: clientRecords,
+				tasks: taskRows,
 				opportunities: opportunityRows,
 				links: links.filter((link) => opportunityRows.some((row) => row.id === link.opportunityId)),
 				references: references.filter(
@@ -317,7 +356,8 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						(change) =>
 							(change.recordKind === "opportunity" &&
 								opportunityRows.some((row) => row.id === change.recordId)) ||
-							(change.recordKind === "client" && clientRows.some((row) => row.id === change.recordId)),
+							(change.recordKind === "client" && clientRows.some((row) => row.id === change.recordId)) ||
+							change.recordKind === "task",
 					)
 					.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
 				referenceClients: referenceClientRows.map((client) => ({
@@ -355,6 +395,122 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					}),
 				settings: settings[0] ?? null,
 			};
+		},
+		async createTask(input: unknown) {
+			const value = v.parse(createTaskInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "create-task", ...value },
+				{ id: value.id, revision: 1 },
+				(guard, now) => [
+					stmt(
+						"INSERT INTO mutation_guards VALUES (?, CASE WHEN NOT EXISTS (SELECT 1 FROM tasks WHERE id = ?) AND (? IS NULL OR EXISTS (SELECT 1 FROM clients WHERE id = ? AND archived_at IS NULL)) AND (? IS NULL OR EXISTS (SELECT 1 FROM opportunities WHERE id = ? AND archived_at IS NULL)) THEN 1 ELSE 0 END)",
+						guard,
+						value.id,
+						value.clientId,
+						value.clientId,
+						value.opportunityId,
+						value.opportunityId,
+					),
+					stmt(
+						"INSERT INTO tasks (id, title, date, due_date, client_id, opportunity_id, assigned_user_id, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, 'business-realtor', ?, ? WHERE " +
+							guardExists,
+						value.id,
+						value.title,
+						value.date,
+						value.dueDate,
+						value.clientId,
+						value.opportunityId,
+						now,
+						now,
+						guard,
+					),
+					appendHistory(guard, now, "task", value.id, "create", { after: value }),
+				],
+			);
+		},
+		async saveTask(input: unknown) {
+			const value = v.parse(saveTaskInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "save-task", ...value },
+				{ id: value.id, revision: value.revision + 1 },
+				(guard, now) => [
+					stmt(
+						"INSERT INTO mutation_guards VALUES (?, CASE WHEN EXISTS (SELECT 1 FROM tasks WHERE id = ? AND revision = ? AND source_stage IS NULL AND (? IS NULL OR EXISTS (SELECT 1 FROM clients WHERE id = ? AND (archived_at IS NULL OR id = tasks.client_id))) AND (? IS NULL OR EXISTS (SELECT 1 FROM opportunities WHERE id = ? AND (archived_at IS NULL OR id = tasks.opportunity_id)))) THEN 1 ELSE 0 END)",
+						guard,
+						value.id,
+						value.revision,
+						value.clientId,
+						value.clientId,
+						value.opportunityId,
+						value.opportunityId,
+					),
+					stmt(
+						"INSERT INTO history (id, record_kind, record_id, actor_user_id, effective_user_id, action, data, created_at) SELECT ?, 'task', id, ?, ?, 'edit', json_object('before', json_object('title', title, 'date', date, 'dueDate', due_date, 'clientId', client_id, 'opportunityId', opportunity_id), 'after', json(?)), ? FROM tasks WHERE id = ? AND " +
+							guardExists,
+						crypto.randomUUID(),
+						user.actorUserId,
+						user.effectiveUserId,
+						JSON.stringify(value),
+						now,
+						value.id,
+						guard,
+					),
+					stmt(
+						"UPDATE tasks SET title = ?, date = ?, due_date = ?, client_id = ?, opportunity_id = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND " +
+							guardExists,
+						value.title,
+						value.date,
+						value.dueDate,
+						value.clientId,
+						value.opportunityId,
+						now,
+						value.id,
+						guard,
+					),
+				],
+			);
+		},
+		async completeTask(input: unknown) {
+			const value = v.parse(completeTaskInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "complete-task", ...value },
+				{ id: value.id, revision: value.revision + 1 },
+				(guard, now) => [
+					stmt(
+						`UPDATE tasks SET completed_at = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND source_stage IS NULL AND completed_at IS ${value.completed ? "NULL" : "NOT NULL"}`,
+						value.completed ? now : null,
+						now,
+						value.id,
+						value.revision,
+					),
+					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
+					appendHistory(guard, now, "task", value.id, value.completed ? "complete" : "reopen", {
+						revision: value.revision,
+						completedAt: value.completed ? now : null,
+					}),
+				],
+			);
+		},
+		async deleteTask(input: unknown) {
+			const value = v.parse(deleteTaskInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "delete-task", ...value },
+				{ id: value.id },
+				(guard, now) => [
+					stmt(
+						"INSERT INTO mutation_guards VALUES (?, CASE WHEN EXISTS (SELECT 1 FROM tasks WHERE id = ? AND revision = ? AND source_stage IS NULL) THEN 1 ELSE 0 END)",
+						guard,
+						value.id,
+						value.revision,
+					),
+					appendHistory(guard, now, "task", value.id, "delete", { revision: value.revision }),
+					stmt("DELETE FROM tasks WHERE id = ? AND " + guardExists, value.id, guard),
+				],
+			);
 		},
 		async createClient(input: unknown) {
 			const value = v.parse(createClientInput, input);

@@ -4,7 +4,7 @@
 	import { createClient, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
 	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
-	const remote = getWorkspace({ archived: false });
+	const remote = getWorkspace({ archived: page.url.searchParams.get("archived") === "true" });
 	let workspace = $derived(await remote);
 	let search = $derived(workspace.referenceClients.find((client) => client.id === page.url.searchParams.get("client"))?.name ?? "");
 	let dialog: HTMLDialogElement | undefined = $state();
@@ -20,6 +20,8 @@
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;
+		const client = page.url.searchParams.get("client");
+		if (client) editClient(client);
 	});
 	let filtered = $derived(workspace.clients.filter((client) => client.name.toLowerCase().includes(search.toLowerCase())));
 	let linked = $derived(draft ? workspace.links.filter((link) => link.clientId === draft?.id) : []);

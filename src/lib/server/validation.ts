@@ -65,6 +65,35 @@ const calendarDate = v.pipe(
 	}, "Choose a valid calendar date."),
 );
 
+const taskDetails = {
+	title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	date: calendarDate,
+	dueDate: v.nullable(calendarDate),
+	clientId: v.nullable(id),
+	opportunityId: v.nullable(id),
+};
+export const createTaskInput = v.pipe(
+	v.strictObject({ requestId: id, id, ...taskDetails }),
+	v.check(
+		(task) => !task.clientId || !task.opportunityId,
+		"Link a task to one client or one opportunity, not both.",
+	),
+);
+export const saveTaskInput = v.pipe(
+	v.strictObject({ requestId: id, id, revision, ...taskDetails }),
+	v.check(
+		(task) => !task.clientId || !task.opportunityId,
+		"Link a task to one client or one opportunity, not both.",
+	),
+);
+export const completeTaskInput = v.strictObject({
+	requestId: id,
+	id,
+	revision,
+	completed: v.boolean(),
+});
+export const deleteTaskInput = v.strictObject({ requestId: id, id, revision });
+
 const personPhoneInput = v.strictObject({
 	id,
 	label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),

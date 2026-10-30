@@ -5,6 +5,7 @@
 	import DueBadge from "#lib/ui/DueBadge.svelte";
 	import Menu from "#lib/ui/Menu.svelte";
 	import { dueLabel, dueState } from "./due.js";
+	import { checklistDatesEnabled } from "#lib/data/release.js";
 	type Item = Workspace["checklists"][number]["items"][number];
 	type Checklist = Workspace["checklists"][number];
 	let {
@@ -151,30 +152,30 @@
 			</label>
 		{/if}
 	</span>
-	<label
-		class={[
-			"has-focus-visible:outline-field relative -my-0.5 flex h-6 shrink-0 cursor-pointer items-center justify-end rounded-md has-focus-visible:outline-2 has-focus-visible:outline-offset-2 pointer-fine:w-6",
-			!dueDate && "text-muted hover:text-ink pointer-fine:opacity-0 pointer-fine:group-hover/item:opacity-100 pointer-fine:has-focus-visible:opacity-100",
-		]}>
-		<!-- On fine pointers the row reserves only the icon; the revealed date grows leftward over the title's tail on an opaque base, so nothing reflows. -->
-		{#if dueDate}<span class="flex rounded-md bg-white pointer-fine:absolute pointer-fine:top-0 pointer-fine:right-0 pointer-fine:z-10"><DueBadge label={dueLabel(dueDate, today)} state={dueState(dueDate, today)} done={completed} compact /></span>{:else}<span
-				class="flex size-6 items-center justify-center rounded-md"
-				title="Add a due date"><CalendarPlus size={15} aria-hidden="true" /></span
-			>{/if}
-		<input
-			type="date"
-			aria-label={`Due date for ${item.title}`}
-			class="focus-visible:shadow-floating absolute inset-y-0 right-0 w-full min-w-0 cursor-pointer opacity-0 focus-visible:z-20 focus-visible:w-36 focus-visible:rounded-md focus-visible:bg-white focus-visible:px-1.5 focus-visible:text-xs focus-visible:opacity-100"
-			bind:value={dueDate}
-			onclick={(event) => {
-				try {
-					event.currentTarget.showPicker();
-				} catch {
-					// Browsers without showPicker still open their own picker on click.
-				}
-			}}
-			onchange={scheduleCommit} />
-	</label>
+	{#if checklistDatesEnabled}<label
+			class={[
+				"has-focus-visible:outline-field relative -my-0.5 flex h-6 shrink-0 cursor-pointer items-center justify-end rounded-md has-focus-visible:outline-2 has-focus-visible:outline-offset-2 pointer-fine:w-6",
+				!dueDate && "text-muted hover:text-ink pointer-fine:opacity-0 pointer-fine:group-hover/item:opacity-100 pointer-fine:has-focus-visible:opacity-100",
+			]}>
+			<!-- On fine pointers the row reserves only the icon; the revealed date grows leftward over the title's tail on an opaque base, so nothing reflows. -->
+			{#if dueDate}<span class="flex rounded-md bg-white pointer-fine:absolute pointer-fine:top-0 pointer-fine:right-0 pointer-fine:z-10"><DueBadge label={dueLabel(dueDate, today)} state={dueState(dueDate, today)} done={completed} compact /></span>{:else}<span
+					class="flex size-6 items-center justify-center rounded-md"
+					title="Add a due date"><CalendarPlus size={15} aria-hidden="true" /></span
+				>{/if}
+			<input
+				type="date"
+				aria-label={`Due date for ${item.title}`}
+				class="focus-visible:shadow-floating absolute inset-y-0 right-0 w-full min-w-0 cursor-pointer opacity-0 focus-visible:z-20 focus-visible:w-36 focus-visible:rounded-md focus-visible:bg-white focus-visible:px-1.5 focus-visible:text-xs focus-visible:opacity-100"
+				bind:value={dueDate}
+				onclick={(event) => {
+					try {
+						event.currentTarget.showPicker();
+					} catch {
+						// Browsers without showPicker still open their own picker on click.
+					}
+				}}
+				onchange={scheduleCommit} />
+		</label>{/if}
 	<Menu
 		label={`Checklist item actions for ${item.title}`}
 		icon={EllipsisVertical}
@@ -183,7 +184,7 @@
 		<button type="button" role="menuitem" class="menu-item" onclick={() => (renaming = true)}><PencilLine size={15} aria-hidden="true" />Rename</button>
 		<button type="button" role="menuitem" class="menu-item pointer-fine:hidden" disabled={first} onclick={() => move(-1)}><ArrowUp size={15} aria-hidden="true" />Move up</button>
 		<button type="button" role="menuitem" class="menu-item pointer-fine:hidden" disabled={last} onclick={() => move(1)}><ArrowDown size={15} aria-hidden="true" />Move down</button>
-		{#if dueDate}<button
+		{#if checklistDatesEnabled && dueDate}<button
 				type="button"
 				role="menuitem"
 				class="menu-item"

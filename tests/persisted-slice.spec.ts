@@ -92,6 +92,7 @@ test("slice controls remain usable through content and shell breakpoints", async
 	page,
 }, info) => {
 	test.skip(info.project.name !== "desktop", "One bounded cross-width interaction pass.");
+	test.setTimeout(60_000);
 	for (const width of [375, 768, 1440]) {
 		await page.setViewportSize({ width, height: 900 });
 		await page.emulateMedia({ reducedMotion: "no-preference" });

@@ -1,18 +1,12 @@
 <script lang="ts">
-	import { CalendarCheck } from "@lucide/svelte";
 	import DashboardCard from "./DashboardCard.svelte";
+	import TaskManager from "#lib/tasks/TaskManager.svelte";
 	let { order = 0 }: { order?: number } = $props();
 </script>
 
-<DashboardCard title="Upcoming events" headingId="events-heading" description="Next 14 days" descriptionInline {order}>
-	<div class="flex flex-col items-center gap-(--card-gap) pt-2 pb-1 text-center">
-		<div class="flex flex-col items-center gap-(--card-gap) py-4">
-			<span class="bg-paper text-muted/60 rounded-full p-4"><CalendarCheck size={40} strokeWidth={1} aria-hidden="true" /></span>
-			<p class="text-muted max-w-60 text-sm leading-6 text-balance">Nothing on the calendar for the next two weeks.</p>
-		</div>
-		<figure class="border-hairline w-full border-t pt-(--card-gap) opacity-75">
-			<blockquote><p class="font-display mx-auto max-w-80 text-xl leading-7 tracking-tight text-balance">“There is more to life than increasing its speed.”</p></blockquote>
-			<figcaption class="text-muted mt-2 text-sm leading-6">Mahatma Gandhi</figcaption>
-		</figure>
-	</div>
+<DashboardCard title="Upcoming" headingId="events-heading" description="Next 14 days" descriptionInline {order}>
+	<svelte:boundary>
+		<TaskManager upcoming />{#snippet pending()}<p class="text-muted text-sm" role="status">Loading tasks…</p>{/snippet}{#snippet failed(error, reset)}<p class="text-urgent text-sm" role="alert">Tasks could not be loaded.</p>
+			<button type="button" class="text-action" onclick={reset}>Retry</button>{/snippet}
+	</svelte:boundary>
 </DashboardCard>
