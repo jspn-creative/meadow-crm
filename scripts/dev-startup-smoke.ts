@@ -30,7 +30,7 @@ try {
 for (let attempt = 0; attempt < 2; attempt++) {
 	const server = spawn("vp", ["dev", "--host", "127.0.0.1", "--port", "5183", "--strictPort"], {
 		cwd: import.meta.dirname + "/..",
-		env: { ...process.env, MEADOW_LOCAL_STATE_DIR: state },
+		env: { ...process.env, MEADOW_LOCAL_STATE_DIR: state, LOCAL_IDENTITY_STUB: "true" },
 		stdio: ["ignore", "pipe", "pipe"],
 		detached: true,
 	});

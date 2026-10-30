@@ -6,7 +6,7 @@ What is left to build, in order. [SPEC.md](./SPEC.md) says what the product does
 
 The goal is to deploy as soon as possible so the business can start using Meadow CRM and giving feedback. Only these items block the release; the scope decisions behind them are in [SPEC.md's First release](./SPEC.md#first-release). Visual redesign is not part of this work.
 
-3. Real login, managed by the app with Better Auth: accounts for the realtor and the assistant created by a script, no public signup, logout, and password change. Every request, page, and data call requires login. The local development identity stays development-only. Follow SPEC's login security bullets, and ask how a forgotten password is recovered before building it.
+3a. Support admin account and impersonation, with both identities in history, moved up from after the release. The account is created by the same script as the business users. Done when ordinary users and forged requests cannot impersonate, no change is possible before choosing a business user, impersonation expires, history shows both identities, and switching or exiting clears cached data.
 4. Release tidy: remove demo and "not implemented" copy from production views, and hide Settings controls that cannot save. No new features.
 5. Import the business's real client data from `docs/client-data.csv` with a one-time script, rehearsed against local D1 first, with counts and skipped rows reported to the developer.
 6. Release checks: `vp run check`, the relevant automated tests, a production build, and a short phone and desktop pass of login, Pipeline, Registry, and tasks.
@@ -18,7 +18,6 @@ The goal is to deploy as soon as possible so the business can start using Meadow
 In rough dependency order; not started unless the developer reprioritizes. Behavior is in [SPEC.md](./SPEC.md), which was largely drafted with the developer rather than confirmed line by line, so confirm the details an item depends on when it is planned. "Done when" lists the checks worth keeping from the earlier plan.
 
 1. Keep both users' screens current: refresh on focus and navigation, poll while visible, pause while hidden, recompute dates at the business's midnight. Done when a change in one session appears in another, a hidden tab stops polling, rollover happens at the business's midnight, and no refresh discards an unsaved edit.
-2. Support admin account and impersonation, with both identities in history. Done when ordinary users and forged requests cannot impersonate, no change is possible before choosing a business user, impersonation expires, history shows both identities, and switching or exiting clears cached data.
 3. Task time, location, and repeat, after the discovery noted in [SPEC.md's open questions](./SPEC.md#open-questions).
 4. Promote checklist items to tasks, and the stage-move dialog for open promoted tasks.
 5. Previous-stage checklist inspection: the visited-stage strip with previews and a way back. Done when it works by touch and keyboard, never moves the opportunity, and keeps unsaved edits.

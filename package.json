@@ -25,19 +25,22 @@
 		"test:production": "node --experimental-strip-types scripts/production-smoke.ts",
 		"test:db": "vp test src/lib/server/db",
 		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
+		"auth:create": "node --experimental-strip-types scripts/auth-users.ts create",
+		"auth:reset-password": "node --experimental-strip-types scripts/auth-users.ts reset-password",
 		"db:migrate": "node --experimental-strip-types scripts/local-db.ts migrate",
 		"db:seed": "node --experimental-strip-types scripts/local-db.ts seed",
 		"db:seed-fictional": "node --experimental-strip-types scripts/local-db.ts seed-fictional",
 		"db:reset-fictional": "node --experimental-strip-types scripts/local-db.ts reset-fictional"
 	},
 	"dependencies": {
+		"@better-auth/drizzle-adapter": "^1.7.7",
 		"@humanspeak/svelte-motion": "^2.0.0",
 		"@tanstack/svelte-table": "^9.3.1",
+		"better-auth": "^1.7.7",
 		"drizzle-orm": "^0.45.4",
 		"valibot": "^1.5.0"
 	},
 	"devDependencies": {
-		"@better-auth/drizzle-adapter": "^1.7.7",
 		"@cloudflare/workers-types": "^5.20261013.1",
 		"@lucide/svelte": "^1.48.0",
 		"@playwright/test": "^1.64.0",
@@ -47,7 +50,6 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^26.6.5",
-		"better-auth": "^1.7.7",
 		"devalue": "^6.0.3",
 		"drizzle-kit": "^0.31.11",
 		"esbuild": "^0.28.2",

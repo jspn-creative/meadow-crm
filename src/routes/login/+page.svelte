@@ -1,43 +1,46 @@
 <script lang="ts">
-	import { dev } from "$app/env";
-	import { goto, preloadData } from "$app/navigation";
 	import { page } from "$app/state";
-	import { ArrowRight, LoaderCircle } from "@lucide/svelte";
-	import { workspaceDestination } from "#lib/shell/navigation.js";
+	import { ArrowRight } from "@lucide/svelte";
 	import { onMount } from "svelte";
 	let ready = $state(false);
-	let pending = $state(false);
-	let error = $state("");
-	let destination = $derived(workspaceDestination(page.url.searchParams.get("next")));
 	onMount(() => {
 		ready = true;
 	});
-
-	async function enterDemo(event: SubmitEvent) {
+	let pending = $state(false);
+	let error = $state("");
+	function destination() {
+		const next = page.url.searchParams.get("next");
+		if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\")) return "/";
+		const url = new URL(next, page.url.origin);
+		return url.origin === page.url.origin && url.pathname !== "/login" && !url.pathname.startsWith("/api/") ? url.pathname + url.search + url.hash : "/";
+	}
+	async function signIn(event: SubmitEvent) {
 		event.preventDefault();
-		if (!dev || pending) return;
+		if (pending) return;
 		pending = true;
 		error = "";
+		const form = new FormData(event.currentTarget as HTMLFormElement);
 		try {
-			await preloadData(destination);
-			await goto(destination);
+			const response = await fetch("/api/auth/sign-in/email", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: form.get("email"), password: form.get("password") }) });
+			if (!response.ok) throw new Error();
+			// A full navigation drops all previously cached workspace data.
+			window.location.assign(destination());
 		} catch {
-			error = "The preview could not open. Try again.";
-		} finally {
+			error = "Unable to sign in. Check your email and password and try again.";
 			pending = false;
 		}
 	}
 </script>
 
-<svelte:head><title>Demo login · Meadow Lane</title></svelte:head>
+<svelte:head><title>Login · Meadow Lane</title></svelte:head>
 
 <div class="flex min-h-[calc(100dvh-6rem)] items-center justify-center px-5 py-12 sm:px-8 lg:min-h-[calc(100dvh-1.5rem)] lg:px-10">
-	<form class="w-full max-w-sm" onsubmit={enterDemo}>
+	<form method="POST" class="w-full max-w-sm" onsubmit={signIn}>
 		<h2 class="font-display text-4xl tracking-tight">Welcome back.</h2>
 		<p class="text-muted mt-3">Open your shared workspace.</p>
-		<div class="mt-8"><label for="demo-workspace" class="mb-2 block font-medium">Workspace</label><input id="demo-workspace" class="field" value="Meadow Lane" readonly /></div>
-		<button type="submit" class="control mt-5 w-full" data-variant="primary" disabled={!ready || pending} aria-busy={pending}
-			>{pending ? "Opening preview…" : "Enter demo workspace"}{#if pending}<LoaderCircle size={17} aria-hidden="true" />{:else}<ArrowRight size={17} aria-hidden="true" />{/if}</button>
+		<div class="mt-8"><label for="email" class="mb-2 block font-medium">Email</label><input id="email" name="email" type="email" autocomplete="username" class="field" required /></div>
+		<div class="mt-4"><label for="password" class="mb-2 block font-medium">Password</label><input id="password" name="password" type="password" autocomplete="current-password" class="field" required /></div>
+		<button type="submit" class="control mt-5 w-full" data-variant="primary" disabled={!ready || pending} aria-busy={pending}>{pending ? "Signing in…" : "Sign in"}<ArrowRight size={17} aria-hidden="true" /></button>
 		{#if error}<p role="alert" class="text-urgent mt-4">{error}</p>{/if}
 	</form>
 </div>

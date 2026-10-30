@@ -7,6 +7,9 @@ declare global {
 		interface Env {
 			DB: D1Database;
 			LOCAL_DEMO_USER?: "realtor" | "assistant";
+			LOCAL_IDENTITY_STUB?: string;
+			BETTER_AUTH_SECRET?: string;
+			BETTER_AUTH_URL?: string;
 		}
 	}
 	namespace App {

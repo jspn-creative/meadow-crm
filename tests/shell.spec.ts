@@ -196,24 +196,6 @@ test("sidebar retains route, search draft, and focus through interruption", asyn
 	expect(overflow).toBe(false);
 });
 
-for (const fallback of ["normal", "reduced", "unsupported"] as const) {
-	test(`demo login reaches the requested route: ${fallback}`, async ({ page }) => {
-		if (fallback === "reduced") await page.emulateMedia({ reducedMotion: "reduce" });
-		if (fallback === "unsupported")
-			await page.addInitScript(() => {
-				Object.defineProperty(document, "startViewTransition", { value: undefined });
-			});
-		const errors: string[] = [];
-		page.on("pageerror", (error) => errors.push(error.message));
-		await page.goto("/login?next=%2Fregistry");
-		await expect(page.locator('input[type="password"]')).toHaveCount(0);
-		await page.getByRole("button", { name: "Enter demo workspace" }).click();
-		await expect(page.getByLabel("Search clients", { exact: true })).toBeVisible({ timeout: 3000 });
-		await expect(page).toHaveURL(/\/registry$/);
-		expect(errors).toEqual([]);
-	});
-}
-
 test("slow and interrupted navigation cannot strand the shell", async ({ page }) => {
 	await page.goto("/");
 	await page.route("**/src/routes/registry/+page.svelte*", async (route) => {

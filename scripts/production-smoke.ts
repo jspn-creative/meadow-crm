@@ -14,6 +14,11 @@ const server = await unstable_dev(".svelte-kit/cloudflare/_worker.js", {
 	ip: "127.0.0.1",
 	port: 5181,
 	logLevel: "error",
+	vars: {
+		BETTER_AUTH_SECRET: crypto.randomUUID() + crypto.randomUUID(),
+		BETTER_AUTH_URL: "https://meadow.example.invalid",
+		LOCAL_IDENTITY_STUB: "true",
+	},
 	experimental: {
 		forceLocal: true,
 		watch: false,
@@ -32,11 +37,8 @@ try {
 	const query = await fetch(`${origin}/_app/remote/${ids[0]}/getWorkspace?payload=${payload}`, {
 		headers,
 	});
-	// Kit remote calls carry application errors in a 200 protocol envelope; assert denial inside it, not the transport status.
-	const queryError = await query.json();
-	assert.equal(queryError.type, "error");
-	assert.equal(queryError.error.status, 401);
-	assert.match(queryError.error.message, /verified identity/);
+	assert.equal(query.status, 401);
+	assert.match((await query.json()).message, /verified identity/);
 	const command = await fetch(`${origin}/_app/remote/${ids[0]}/moveStage`, {
 		method: "POST",
 		headers: { ...headers, "content-type": "application/json" },
@@ -52,10 +54,8 @@ try {
 			refreshes: [],
 		}),
 	});
-	const commandError = await command.json();
-	assert.equal(commandError.type, "error");
-	assert.equal(commandError.error.status, 401);
-	assert.match(commandError.error.message, /verified identity/);
+	assert.equal(command.status, 401);
+	assert.match((await command.json()).message, /verified identity/);
 	const form = new FormData();
 	form.set(`requestId/${ids[0]}/createClient`, "production-form-denied");
 	form.set(`id/${ids[0]}/createClient`, "production-client");
@@ -65,9 +65,13 @@ try {
 		{ method: "POST", headers: { ...headers, accept: "text/html" }, body: form },
 	);
 	assert.equal(submitted.status, 401);
-	const page = await fetch(origin, { headers });
-	assert.equal(page.status, 200);
-	assert.match(await page.text(), /available only in local development/);
+	const page = await fetch(origin, { headers, redirect: "manual" });
+	assert.equal(page.status, 303);
+	assert.equal(page.headers.get("location"), "/login?next=%2F");
+	assert.equal(page.headers.get("cache-control"), "private, no-store");
+	const login = await fetch(`${origin}/login`);
+	assert.equal(login.status, 200);
+	assert.match(await login.text(), /Sign in/);
 	console.log(
 		"Production query, command, and form fail closed despite configured or forged demo identities.",
 	);

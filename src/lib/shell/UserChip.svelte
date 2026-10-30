@@ -1,13 +1,46 @@
 <script lang="ts">
-	import { page } from "$app/state";
 	import { afterNavigate } from "$app/navigation";
 	import { onMount } from "svelte";
-	import { BookOpen, LogIn, Settings2 } from "@lucide/svelte";
+	import { BookOpen, LogOut, KeyRound, Settings2 } from "@lucide/svelte";
 	import { themes, chooseTheme } from "./themes.js";
 	let theme = $state("pop");
 	let { compact = false }: { compact?: boolean } = $props();
 	let open = $state(false);
 	let ready = $state(false);
+	let changingPassword = $state(false);
+	let pending = $state(false);
+	let message = $state("");
+	async function logout() {
+		pending = true;
+		message = "";
+		try {
+			const response = await fetch("/api/auth/sign-out", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+			if (!response.ok) throw new Error();
+			window.location.assign("/login");
+		} catch {
+			message = "Unable to log out. Try again.";
+			pending = false;
+		}
+	}
+	async function changePassword(event: SubmitEvent) {
+		event.preventDefault();
+		if (pending) return;
+		pending = true;
+		message = "";
+		const form = event.currentTarget as HTMLFormElement;
+		const values = new FormData(form);
+		try {
+			const response = await fetch("/api/auth/change-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ currentPassword: values.get("currentPassword"), newPassword: values.get("newPassword"), revokeOtherSessions: true }) });
+			if (!response.ok) throw new Error();
+			form.reset();
+			changingPassword = false;
+			message = "Password changed. Other sessions have been logged out.";
+		} catch {
+			message = "Unable to change password. Check your current password and try again.";
+		} finally {
+			pending = false;
+		}
+	}
 	onMount(() => {
 		ready = true;
 		const root = document.documentElement;
@@ -47,6 +80,22 @@
 				<label class="menu-item cursor-pointer"><input class="radio" type="radio" name={compact ? "theme-compact" : "theme-rail"} value={option.id} checked={theme === option.id} onchange={() => chooseTheme(option.id)} />{option.label}</label>
 			{/each}
 		</fieldset>
-		<a href={`/login?next=${encodeURIComponent(page.url.pathname)}`} class="menu-item"><LogIn size={16} aria-hidden="true" />Demo login</a>
+		<button
+			type="button"
+			class="menu-item"
+			aria-expanded={changingPassword}
+			onclick={() => {
+				changingPassword = !changingPassword;
+				message = "";
+			}}><KeyRound size={16} aria-hidden="true" />Change password</button>
+		{#if changingPassword}
+			<form method="POST" class="grid gap-3 p-2" onsubmit={changePassword}>
+				<label class="grid gap-1 text-xs">Current password<input class="field" name="currentPassword" type="password" autocomplete="current-password" required /></label>
+				<label class="grid gap-1 text-xs">New password (12–128 characters)<input class="field" name="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required /></label>
+				<button class="control" data-variant="primary" disabled={pending}>Change password</button>
+			</form>
+		{/if}
+		<button type="button" class="menu-item" disabled={pending} onclick={logout}><LogOut size={16} aria-hidden="true" />Log out</button>
+		{#if message}<p role="status" class="text-muted p-2 text-xs">{message}</p>{/if}
 	</div>
 </div>

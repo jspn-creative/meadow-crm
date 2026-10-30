@@ -22,7 +22,7 @@ export default defineConfig({
 	webServer: {
 		command:
 			"vp run db:migrate && vp run db:seed && vp run db:seed-fictional -- --today=2026-10-13 && vp dev --host 127.0.0.1 --port 5180 --strictPort",
-		env: { MEADOW_LOCAL_STATE_DIR: ".wrangler/test-shell" },
+		env: { MEADOW_LOCAL_STATE_DIR: ".wrangler/test-shell", LOCAL_IDENTITY_STUB: "true" },
 		url: "http://127.0.0.1:5180",
 		reuseExistingServer: false,
 	},

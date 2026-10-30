@@ -1,2 +1,7 @@
-# Local loopback development only; production ignores this identity setting and fails closed until real authentication exists.
+# Generate a random secret of at least 32 characters; never commit .dev.vars.
+# Production uses a Worker secret for BETTER_AUTH_SECRET and the exact public HTTPS origin for BETTER_AUTH_URL.
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:5173
+# Optional explicit loopback-development bypass; production ignores both settings.
+LOCAL_IDENTITY_STUB=false
 LOCAL_DEMO_USER=realtor

@@ -11,7 +11,7 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 - Done and persisted in D1: clients (people, addresses, tags, consent, history), opportunities, the board with stages, pins, and archive, per-stage checklists with per-item edits, web-link and record references, revision guards on saves, bookmarks in the browser, themes, the Glossary.
 - Tasks persist in D1 with a required date and optional due date (migration `0007_task_dates.sql`); checklist item dates are hidden in the release (`src/lib/data/release.ts`). Done 2026-10-30.
 - The release dashboard shows Today's Tasks, Upcoming, and Recent activity from real records and history. Done 2026-10-30.
-- No real login: identity is a development-only stub (`src/lib/server/identity.ts`), and production renders a "preview" notice with no data access (`src/routes/+layout.svelte`). Better Auth exists only as an experiment in `scripts/experiments/`.
+- Better Auth login uses persisted D1 sessions for the two business users, fixed business identities, a disabled public signup, logout, and account-menu password change. `scripts/auth-users.ts` creates accounts and resets forgotten passwords by hand; resets revoke existing sessions. Real login is the local default; the loopback identity stub requires explicit `LOCAL_IDENTITY_STUB=true` and is ignored in production.
 - Registry is a simple list with name search and a client side panel; usable for the release.
 - Settings shows template and preference views that cannot save.
 - No import script for `docs/client-data.csv`.
@@ -28,7 +28,8 @@ Deploy the first release as soon as possible so the business can use Meadow CRM 
 - [x] OpenSpec replaced by SPEC, BACKLOG, and this checkpoint (2026-10-30).
 - [x] First release scope confirmed by the developer in this session (2026-10-30), recorded in SPEC.
 - [x] Backlog 1-2: tasks and release dashboard implemented; `vp run check` passes (2026-10-30; DB tests, Playwright shell suite, and build also pass).
-- [ ] Backlog 3: login implemented and every route and remote function refuses unauthenticated requests; `vp run check` passes.
+- [x] Backlog 3: login implemented and every route and remote function refuses unauthenticated requests; `vp run check`, DB tests, Playwright shell suite, build, prebuilt production denial smoke, and local browser login/password change/logout pass (2026-10-30, verified by the orchestrator).
+- [ ] Backlog 3a: support admin and impersonation, moved into the release by the developer on 2026-10-30; meets its BACKLOG done-when.
 - [ ] Backlog 4-5: release tidy done; import rehearsed locally with counts reported to the developer.
 - [ ] Backlog 6: release checks pass (check, relevant tests, build, short phone and desktop pass).
 - [ ] Backlog 7: Alchemy go or no-go decided by the developer from the spike's evidence.
@@ -72,4 +73,4 @@ The orchestrating session keeps cross-item decisions and final verification. Use
 
 ## Next
 
-Orchestration session running Backlog 1-8, through deployment and not beyond. Next: Backlog 3, login (forgotten passwords are reset by the developer by hand, per SPEC). Import decisions are in SPEC's Getting data in.
+Orchestration session running Backlog 1-8, through deployment and not beyond. Next: Backlog 3a, impersonation; then the client Imported data field, which the import script (`scripts/import-clients.ts`, rehearsed locally, uncommitted) writes; then the release tidy. Import decisions are in SPEC's Getting data in.

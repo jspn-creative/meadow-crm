@@ -9,7 +9,7 @@ Much of this document was drafted by agents from discussion with the developer, 
 Confirmed by the developer on 2026-10-30. The first release ships as soon as possible so the business can use it and give feedback; the rest of this document stays the MVP direction for later work. Work order is in [BACKLOG.md](./BACKLOG.md).
 
 - Tasks ship with title, date, due date, an optional client or opportunity link, create, edit, complete, reopen, delete, rollover, and overdue. Time, location, repeat, checklist promotion, and the stage-move dialog come after the release.
-- Only the realtor and the assistant have logins. The support admin account and impersonation come after the release.
+- The realtor, the assistant, and the support admin have logins. The support admin account and impersonation, as described in [People](#people), ship in the release so the developer can see the deployment without signing in as a business user (decided 2026-10-30).
 - Uploaded files come after the release; web links and linked records remain.
 - The business's real client data is imported as part of the release.
 - The release has one shared dashboard of real data: Today's Tasks, Upcoming, and Recent activity. Role-specific dashboards come after the release.
@@ -161,9 +161,9 @@ Decided for the first release's import of `docs/client-data.csv` on 2026-10-30:
 
 - Clients only. The CSV's opportunity columns create no opportunities.
 - A row marked as a couple becomes one client holding two people, despite the CSV's note to split it into two clients.
-- Columns with no field, such as beds, baths, area preference, property type preference, budget, and legacy second phone, second email, and spouse details, are appended to the client's notes as labeled lines. The import reports how often each is filled, so heavily used ones can be considered for dedicated fields.
+- Columns with no field, such as beds, baths, area preference, property type preference, budget, the old CRM's status, source, and hashtags, and legacy second phone, second email, and spouse details, go into a read-only "Imported data" field on the client rather than its notes. The client's detail view shows it compactly. The import reports how often each column is filled; the developer and the business decide which deserve fields of their own, and the field is then dropped. It is temporary, so it has no Vocabulary entry.
 - Unknown email consent imports as email on; do-not-contact turns every channel off.
-- Lead-relay emails (kvleads.com forwarding addresses) are dropped, and a client left with no contact info is not imported.
+- Lead-relay emails (kvleads.com forwarding addresses) are dropped. A client left with no email, phone, or address is not imported; one with only a mailing address is kept.
 - Rows the CSV marks as test records are not imported.
 
 ## Technical direction
