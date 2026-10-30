@@ -22,6 +22,10 @@ Confirmed by the developer on 2026-10-30. The first release ships as soon as pos
 - The assistant usually creates tasks for the realtor; the realtor can create tasks too. The assistant has no tasks of their own.
 - The developer has a support admin account that signs in and impersonates either business user to give support. History records both who acted and who they acted as.
 - Login is managed by the app itself.
+- Login uses secure HTTP-only cookies, trusted origins, rate-limited attempts, and the same message for every failed login. Every response is private and never cached.
+- Logout and password change live in the account menu, apart from business Settings.
+- While impersonating, a persistent indicator shows who the support admin is acting as, with an explicit way to switch or exit. Impersonation expires after a short time. The support admin cannot change records without first choosing a business user, and exiting returns to that choice.
+- Switching identity clears cached data and revokes the previous identity's access. Business users cannot impersonate, and a request that claims another identity without a valid impersonation is refused.
 
 ## Look
 
@@ -42,7 +46,9 @@ The modules are Dashboard, Pipeline, and Registry, each with its own sidebar ite
 - Key dates shows clients' birthdays and key dates coming up in the next few weeks.
 - Pipeline summary counts opportunities per stage and links to the board.
 - Recent activity lists the latest changes across records, drawn from their history.
-- Widgets show existing records rather than keeping copies, and link to them.
+- Widgets show existing records rather than keeping copies, and link to them. Counts are real, and widgets link into filtered views as well as single records.
+- Each widget has loading, error, and empty states, and an empty state says what to do next.
+- Recent activity's empty state may be playful, such as four milestones from the birth of the universe to today, as long as it never looks like business history.
 
 ### Pipeline
 
@@ -58,7 +64,7 @@ The modules are Dashboard, Pipeline, and Registry, each with its own sidebar ite
 - A client is not required.
 - The timeline (1-3 mo, 3-6 mo, 6+ mo) is shown on the card and used to filter and sort. It never blocks a stage change or judges an opportunity.
 - An opportunity shows the combined tags of its clients, read-only. Tags are edited on the client.
-- The board can be filtered by type, timeline, and tag, and sorted by timeline. Type filters are buttons, one per type; selecting several shows opportunities of any selected type, combined with the timeline and tag filters.
+- The board can be filtered by type, timeline, and tag, and sorted by timeline: 1-3 mo, 3-6 mo, 6+ mo, then opportunities without one. A card's type is shown by its label, never by color alone. Type filters are buttons, one per type; selecting several shows opportunities of any selected type, combined with the timeline and tag filters.
 - Each stage's column can be collapsed. The choice lasts for the browser session; a new session starts with just enough columns collapsed, rightmost first, to keep every column visible. When expanded columns overflow the board, its scrolling edges fade.
 - A pinned opportunity stays at the top of its stage's column for both users until someone unpins it.
 - An opportunity can be bookmarked from its detail view. Bookmarks are a stack in the sidebar, kept per user in the browser and removed only by that user; clicking the stack fans it out, choosing one opens that opportunity, and clicking elsewhere closes the fan.
@@ -73,6 +79,8 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - Template changes made in Settings reach every opportunity's checklist at that type and stage. Items that were added, renamed, removed, or reordered on one opportunity keep their local version.
 - Anyone can add, remove, rename, and reorder items on one opportunity's checklist without touching the template.
 - There is no "Reset to template" action for now.
+- A template can be empty. Renaming or reordering a template item keeps the progress opportunities already have on it; a new template item starts unchecked and undated.
+- An opportunity's detail view shows a compact strip of the stages it has visited, with each checklist's completion count. Hovering or focusing previews a stage's checklist, and clicking or tapping opens it for inspection with a clear way back to the current stage. Inspecting a stage never moves the opportunity, and the view always distinguishes the stage being inspected from the opportunity's actual stage. Unsaved edits survive moving between stages.
 - Giving a checklist item a date or a due date promotes it to a task on the realtor's task list. Behind the scenes this creates a task linked to the item. The task and the item always share one title; renaming either renames both.
 - Completing, reopening, or deleting a promoted task does the same to its checklist item, and the other way around.
 - A promoted task references its opportunity. Its reference can also show the checklist item.
@@ -83,8 +91,10 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - The Registry lists every client in a dense, sortable table. A client opens in a side panel.
 - Keyword search is instant and covers name, contact details, address, notes, and tags.
 - Filters cover tags, lead source, opportunity count, and archived state, with a visible toggle to include or exclude archived clients.
-- Search and filters live in the URL so a view can be shared or bookmarked.
+- Search and filters live in the URL so a view can be shared or bookmarked, along with the archived toggle, sorting, page, and page size. Reloading, Back, and Forward restore the view; invalid values fall back to defaults, and the page resets or clamps when the results change. Typing in search replaces the current history entry rather than adding one per keystroke, and changing a filter adds one. Selections and record content never go in the URL.
+- The table has pagination, page size, and the column controls the work actually needs. No export, spreadsheet-style editing, or reporting.
 - Several clients can be selected to apply tags or archive them at once. The header checkbox selects the clients currently shown; a "Select all matching clients" link then extends the selection to every match.
+- The number of selected clients is shown. Changing search, filters, archived state, sorting, or page clears the selection.
 - A bulk change applies to every selected client it can, then says which clients were skipped and why. An Undo action shown right after the change reverses the whole change at once. Each client's history records both the change and its undo.
 - A client can be deleted, and only from the Registry. Before deleting, a notice lists the client's opportunities, each with a choice to delete it, archive it, or leave it alone, and the tasks linked directly to the client, each with a choice to delete it or leave it alone. Whatever is left alone loses its link to the client.
 - Each client shows their opportunities inline, so the Registry is also a way into the Pipeline.
@@ -113,24 +123,46 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - A reference is a linked record, a web link, or an uploaded file. Its kind sets how it looks. Web links and files can be given a friendly name; a linked record shows its own name. Related records and uploads live in the references section rather than in sections of their own.
 - History records what changed, when, by whom, and as whom when impersonating.
 - A saved change appears immediately and rolls back with a message if saving fails. If someone else changed the record first, the later save is refused and the screen shows their version so the edit can be redone.
+- Saving shows that it is in progress. When the network is unavailable, the edit is kept so it can be retried; the app never says a change is saved until the server has saved it.
+- Both users' screens stay current: views refresh on navigation and focus, poll while visible, pause while hidden, and recompute dates at the business's midnight. Refreshing never discards an unsaved edit.
+- Removing a reference never changes the record it points to. Web links must be http or https. An archived record stays reachable from the references that link to it.
+- Archiving an opportunity leaves its tasks on the task list.
 - Clients and opportunities can be archived independently. Archiving keeps every field, note, link, and its history, and can be undone from an explicit archived view. Archived opportunities never appear on the board, and archived clients do not appear in the Registry by default.
 - Archiving is how dead work leaves the board; Closed is reserved for engagements that were completed.
 - A record created by mistake is deleted rather than archived. Clients can be deleted, only from the Registry. Opportunities can be deleted, along with the tasks promoted from their checklists. Tasks can be deleted, and deleting a promoted task deletes its checklist item. Delete options for anything else are settled when that work is built.
 - A delete may look permanent to users while being kept briefly behind the scenes.
 - Uploaded files are part of the MVP, as references.
 
+## Shell and accessibility
+
+- Collapsing the sidebar keeps the current location, focus, and unsaved edits. In the icon rail every destination stays identifiable and works by touch and keyboard.
+- On phones the layout is composed for the phone rather than shrunk from desktop. Wide boards and tables scroll inside themselves, and nothing overflows the page at 375px.
+- Fields are labeled, icon controls have accessible names, and focus is always visible. Overlays take focus, return it when closed, and close with Escape. No action depends on hover or drag alone.
+- View transitions are short and can be interrupted, never trap navigation or focus, and fall back cleanly when the browser lacks support or reduced motion is set.
+
 ## Settings
 
 - Settings are opened from the account menu and have a panel for User preferences, one for Business settings, and one per module.
 - Both business users can see and change every business setting, and checklist templates are shared by everyone.
-- Business settings include the business name, timezone, and date format. Currency is always USD.
-- Pipeline settings hold the 16 checklist templates. Template edits are drafted and then saved together, with a note of how many opportunities they reach. When a template item is removed, opportunities where it is checked off or promoted keep it; elsewhere it is removed. The editor's layout will be chosen from prototypes reviewed with the developer.
-- Registry settings hold the tag vocabulary: add, rename, recolor, and retire tags. A tag in use cannot be deleted outright; retiring it stops future use and offers to strip it from existing clients.
+- Business settings include the business name, timezone, and date format. Currency is always USD. The business timezone, not the device's, decides dates and overdue for both users. Invalid values are refused.
+- Pipeline settings hold the 16 checklist templates. Template edits are drafted and then saved together, with a note of how many opportunities they reach. When a template item is removed, opportunities where it is checked off or promoted keep it; elsewhere it is removed. The editor's layout will be chosen from prototypes reviewed with the developer. A save that fails validation keeps the draft, and removing an item says how many opportunities it affects before saving.
+- Registry settings hold the tag vocabulary: add, rename, recolor, and retire tags. A tag in use cannot be deleted outright; retiring it stops future use and offers to strip it from existing clients. Renaming or recoloring a tag carries through to opportunities; a retired tag still shows on the clients and opportunities that keep it, but cannot be chosen for new ones.
 - Registry settings also hold the relationship labels and the address labels, each starting from a provided set.
 
 ## Getting data in
 
 The business's real client data will be imported once, with a script the developer runs. There is no in-app import screen. A record for a couple becomes one client holding both people, and a referral tag in the data becomes the client's lead source.
+
+## Technical direction
+
+How the app is built so far; change it only with a reason the developer agrees to.
+
+- SvelteKit on Cloudflare, with D1 through Drizzle and a relational schema. Money is stored as integer USD cents; notes are plain text.
+- Reads use remote `query` functions, forms use remote `form`, and other changes use remote `command`, each validated with Standard Schema against request-scoped data and identity services. A change refreshes the affected queries in the same request. No duplicate REST API, generic form framework, or shared mutable server state.
+- Saves carry stable IDs, revisions, and request IDs so retries are safe; multi-row changes use conditioned D1 batches rather than interactive transactions.
+- Remote queries own confirmed state. TanStack DB was tried and removed; do not reintroduce client collections or offline promises.
+- Login uses Better Auth with its Drizzle adapter and interactive transactions disabled; impersonation will use its admin plugin, verified on the server.
+- Route changes use native View Transitions and ordinary feedback uses CSS, with one animation owner per property.
 
 ## Not in the MVP
 
@@ -151,6 +183,16 @@ The business's real client data will be imported once, with a script the develop
 ## Open questions
 
 Do not resolve these without the developer.
+
+### Before or during the first release
+
+- How a forgotten password is recovered. The earlier plan proposed that the developer resets it by hand at first.
+
+### Tasks, Registry, and files
+
+- How a task's time, location, and repeat behave, which needs discovery before it is built.
+- Whether the Registry's opportunity-count filter counts archived opportunities. The earlier plan proposed counting every linked opportunity and saying so.
+- Size, type, retention, and deletion rules for uploaded files.
 
 ### Checklists
 
