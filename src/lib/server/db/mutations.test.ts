@@ -1,14 +1,12 @@
 import { afterAll, beforeAll, expect, test } from "vite-plus/test";
-import { getPlatformProxy } from "wrangler";
+import { createTestDatabase } from "./test-database.ts";
 import type { D1Database } from "@cloudflare/workers-types";
-import { readMigrations } from "../../../../scripts/migrations.ts";
 import { seedFictional } from "../../../../scripts/fictional-seed.ts";
 import { createDataService, DataConflict } from "../data.ts";
 import { resolveLocalIdentity } from "../identity.ts";
-import { migrate } from "./migrate.ts";
 import { seedDefaults } from "./seed.ts";
 
-let proxy: Awaited<ReturnType<typeof getPlatformProxy<{ DB: D1Database }>>>;
+let proxy: Awaited<ReturnType<typeof createTestDatabase>>;
 let db: D1Database;
 let realtor: ReturnType<typeof createDataService>;
 let assistant: ReturnType<typeof createDataService>;
@@ -420,12 +418,8 @@ test("deleting an opportunity removes it and its checklists, links, references, 
 });
 
 beforeAll(async () => {
-	proxy = await getPlatformProxy<{ DB: D1Database }>({
-		configPath: "wrangler.jsonc",
-		persist: false,
-	});
+	proxy = await createTestDatabase();
 	db = proxy.env.DB;
-	await migrate(db, await readMigrations());
 	await seedDefaults(db);
 	await seedFictional(db, "2026-10-13");
 	realtor = createDataService(db, {

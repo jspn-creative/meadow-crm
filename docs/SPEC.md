@@ -19,7 +19,7 @@ Confirmed by the developer on 2026-10-30. The first release ships as soon as pos
 - The business timezone is America/Los_Angeles; Settings cannot change it in the release.
 - A forgotten password is reset by the developer by hand with a script; there is no reset email or link.
 - The production Worker may take over the existing `meadow` Worker's name; it was a prototype.
-- The release gate is the developer answering "lgtm ready to deploy?".
+- Nobody depends on production before the business starts using it, so deploying needs no separate sign-off; it ships once it works locally.
 
 ## People
 
@@ -162,10 +162,14 @@ Decided for the first release's import of `docs/client-data.csv` on 2026-10-30:
 
 - Clients only. The CSV's opportunity columns create no opportunities.
 - A row marked as a couple becomes one client holding two people, despite the CSV's note to split it into two clients.
-- Columns with no field, such as beds, baths, area preference, property type preference, budget, the old CRM's status, source, and hashtags, and legacy second phone, second email, and spouse details, go into a read-only "Imported data" field on the client rather than its notes. The client's detail view shows it compactly. The import reports how often each column is filled; the developer and the business decide which deserve fields of their own, and the field is then dropped. It is temporary, so it has no Vocabulary entry.
+- Columns with no field, such as beds, baths, area preference, property type preference, budget, the old CRM's status, source, and hashtags, go into a read-only "Imported data" field on the client rather than its notes. The client's detail view shows it compactly. The import reports how often each column is filled; the developer and the business decide which deserve fields of their own, and the field is then dropped. It is temporary, so it has no Vocabulary entry. Under the developer's delegated mapping decision on 2026-10-30, second mobile and home phone numbers and second emails become labeled fields on the first person; spouse contact details belong to the spouse when named. Legacy status and hashtags remain Imported data rather than being guessed into tags.
 - Unknown email consent imports as email on; do-not-contact turns every channel off.
-- Lead-relay emails (kvleads.com forwarding addresses) are dropped. A client left with no email, phone, or address is not imported; one with only a mailing address is kept.
+- Lead-relay emails (kvleads.com forwarding addresses) are retained in Imported data, not used as a person's email address (changed by the developer on 2026-10-30). A client left with no non-relay email, phone, or address is not imported; one with only a mailing address is kept.
 - Rows the CSV marks as test records are not imported.
+- Correction authorized 2026-10-30: delete and replace every `import-client-*` client and its history, discarding app edits to those records. Keep stable source-row IDs and exactly one import history row per client. The default is still a database-free dry run; explicit apply replaces the entire import atomically and is repeatable without accumulating records.
+- Keep each couple's full client name, split the people even without a legacy couple flag, and inherit the shared surname where supplied. Intelligently normalize lowercase and uppercase names while preserving mixed-case spellings. Numeric-only names stay unchanged and carry an Imported data review flag because blank client/person names violate database constraints; move a phone found in their address into a phone field instead of creating a junk address. Do not invent surnames when the source has none.
+- Under the developer's delegated cleanup decision, keep possible duplicates separate and flag their source rows in Imported data: a matching name or shared phone alone is not enough to establish one client. Normalize imported lead sources to the existing choices: A referral, An open house, A sign, The website, and A walk-in.
+- Client email addresses are always lowercase, including secondary/spouse emails and retained relay emails; normalize existing values, future imports, and app saves (confirmed 2026-10-30). This does not rewrite email addresses embedded in legacy free text or change login identities.
 
 ## Technical direction
 

@@ -8,51 +8,60 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
-		"dev": "vp dev",
-		"dev:host": "vp dev --host",
-		"build": "vp build",
+		"dev": "alchemy dev --stage dev --env-file .dev.vars",
+		"dev:live": "node --experimental-strip-types scripts/dev-live.ts",
+		"dev:host": "MEADOW_DEV_HOST=0.0.0.0 alchemy dev --stage dev --env-file .dev.vars",
+		"build": "node --experimental-strip-types scripts/build.ts",
 		"preview": "vp preview",
-		"bp": "vp build && vp preview",
-		"bp:host": "vp build && vp preview --host",
+		"bp": "vp run build && vp preview",
+		"bp:host": "vp run build && vp preview --host",
 		"prepare": "vp config --no-agent; svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:shell": "playwright test",
 		"test:runtime": "node --experimental-strip-types scripts/runtime-smoke.ts",
-		"test:dev-startup": "node --experimental-strip-types scripts/dev-startup-smoke.ts",
-		"test:auth": "node --experimental-strip-types scripts/auth-smoke.ts",
-		"vocabulary": "node --experimental-strip-types scripts/vocabulary.ts",
 		"test:production": "node --experimental-strip-types scripts/production-smoke.ts",
 		"test:db": "vp test src/lib/server/db",
-		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
+		"test:auth": "node --experimental-strip-types scripts/auth-smoke.ts",
+		"vocabulary": "node --experimental-strip-types scripts/vocabulary.ts",
 		"auth:create": "node --experimental-strip-types scripts/auth-users.ts create",
 		"auth:reset-password": "node --experimental-strip-types scripts/auth-users.ts reset-password",
-		"db:migrate": "node --experimental-strip-types scripts/local-db.ts migrate",
+		"db:seed-remote": "node --experimental-strip-types scripts/seed-defaults.ts --remote",
 		"db:seed": "node --experimental-strip-types scripts/local-db.ts seed",
+		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
 		"db:seed-fictional": "node --experimental-strip-types scripts/local-db.ts seed-fictional",
 		"db:reset-fictional": "node --experimental-strip-types scripts/local-db.ts reset-fictional",
-		"db:import-clients": "node --experimental-strip-types scripts/import-clients.ts"
+		"db:import-clients": "node --experimental-strip-types scripts/import-clients.ts",
+		"deploy": "node --experimental-strip-types scripts/deploy.ts",
+		"state:bootstrap": "node --experimental-strip-types scripts/bootstrap-state.ts"
 	},
 	"dependencies": {
 		"@better-auth/drizzle-adapter": "^1.7.7",
 		"@humanspeak/svelte-motion": "^2.0.0",
 		"@tanstack/svelte-table": "^9.3.1",
 		"better-auth": "^1.7.7",
-		"drizzle-orm": "^0.45.4",
+		"drizzle-orm": "1.0.0-rc.5-ab785fc",
 		"valibot": "^1.5.0"
 	},
 	"devDependencies": {
+		"@alchemy.run/cloudflare": "2.0.0-beta.84",
+		"@alchemy.run/cloudflare-runtime": "2.0.0-beta.84",
+		"@alchemy.run/drizzle": "2.0.0-beta.84",
+		"@alchemy.run/frontend-frameworks": "2.0.0-beta.84",
 		"@cloudflare/workers-types": "^5.20261013.1",
+		"@effect/platform-node": "4.0.5",
+		"@effect/platform-node-shared": "4.0.5",
 		"@lucide/svelte": "^1.48.0",
 		"@playwright/test": "^1.64.0",
-		"@sveltejs/adapter-cloudflare": "^8.0.0",
 		"@sveltejs/enhanced-img": "^0.11.0",
 		"@sveltejs/kit": "^3.0.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^26.6.5",
+		"alchemy": "2.0.0-beta.84",
 		"devalue": "^6.0.3",
-		"drizzle-kit": "^0.31.11",
+		"drizzle-kit": "1.0.0-rc.5-ab785fc",
+		"effect": "4.0.5",
 		"esbuild": "^0.28.2",
 		"miniflare": "^4.20260730.0",
 		"svelte": "^5.57.1",
@@ -64,6 +73,7 @@
 		"wrangler": "^4.150.0"
 	},
 	"overrides": {
+		"@effect/platform-node-shared": "4.0.5",
 		"vite": "npm:@voidzero-dev/vite-plus-core@1.0.0"
 	},
 	"devEngines": {
@@ -72,5 +82,8 @@
 			"version": "1.4.2",
 			"onFail": "download"
 		}
+	},
+	"patchedDependencies": {
+		"@alchemy.run/cloudflare-runtime@2.0.0-beta.84": "patches/@alchemy.run%2Fcloudflare-runtime@2.0.0-beta.84.patch"
 	}
 }

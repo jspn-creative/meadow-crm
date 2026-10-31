@@ -111,8 +111,22 @@
 		&[data-size="lg"] {
 			@apply max-w-[64rem];
 		}
+		/* A floating drawer: inset from the viewport edges so its frame and rounded corners show all round, sliding in from the right. */
 		&[data-placement="side"] {
-			@apply m-0 ml-auto h-dvh max-h-dvh w-full max-w-none rounded-none rounded-l-3xl sm:max-w-[36rem];
+			--side-inset: calc(var(--spacing) * 2);
+			@apply mr-(--side-inset) ml-auto h-[calc(100dvh-2*var(--side-inset))] max-h-none w-[calc(100%-2*var(--side-inset))] max-w-none rounded-3xl sm:max-w-[34rem];
+			margin-block: var(--side-inset);
+			&[open] {
+				animation: side-enter 260ms var(--ease-shell);
+			}
+			@media (min-width: 40rem) {
+				--side-inset: calc(var(--spacing) * 3);
+			}
+			@media (prefers-reduced-motion: reduce) {
+				&[open] {
+					animation: none;
+				}
+			}
 		}
 	}
 	.tabs {
@@ -721,5 +735,12 @@
 		outline: none;
 		box-shadow: none;
 		filter: none;
+	}
+}
+
+@keyframes side-enter {
+	from {
+		opacity: 0;
+		translate: 2rem 0;
 	}
 }

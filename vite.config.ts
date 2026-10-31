@@ -1,26 +1,12 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import tailwindcss from "@tailwindcss/vite";
-import adapter from "@sveltejs/adapter-cloudflare";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig, lazyPlugins } from "vite-plus";
+import { liveDevShortcut } from "./scripts/vite-dev.ts";
 
 export default defineConfig({
 	plugins: lazyPlugins(() => [
-		{
-			name: "meadow-local-d1-migrations",
-			async configureServer(server) {
-				if (process.env.VITEST || server.config.mode === "test") return;
-				// Prepare the same local D1 storage as the adapter before serving any requests; never run during builds or preview.
-				const { stdout, stderr } = await promisify(execFile)("vp", ["run", "db:migrate"], {
-					cwd: import.meta.dirname,
-					env: process.env,
-				});
-				if (stdout) console.log(stdout.trimEnd());
-				if (stderr) console.error(stderr.trimEnd());
-			},
-		},
+		liveDevShortcut(),
 		tailwindcss(),
 		enhancedImages(),
 		sveltekit({
@@ -29,12 +15,6 @@ export default defineConfig({
 				runes: ({ filename }) => (filename.split(/[/\\]/).includes("node_modules") ? undefined : true),
 				experimental: { async: true },
 			},
-			adapter: adapter({
-				config: "wrangler.jsonc",
-				platformProxy: {
-					persist: { path: process.env.MEADOW_LOCAL_STATE_DIR ?? ".wrangler/state/v3" },
-				},
-			}),
 			experimental: {
 				remoteFunctions: true,
 				compileModule: { exclude: ["**/.svelte-kit/**"] },

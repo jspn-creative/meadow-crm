@@ -1,14 +1,17 @@
-/** Create: pipe JSON {"role":"realtor"|"assistant"|"support-admin","email":"…","password":"…"} to vp run auth:create. Reset: pipe JSON {"role":"…","password":"…"} to vp run auth:reset-password. Use a password manager or protected stdin, not command-line arguments; passwords must be 12–128 characters. Local D1 is the default, uses the same state as vp dev, and requires db:migrate first. Production, only after explicit approval: append -- --remote and supply CLOUDFLARE_ACCOUNT_ID, MEADOW_D1_DATABASE_ID and a D1-edit CLOUDFLARE_API_TOKEN as environment secrets. Verify those IDs before running; this script never provisions, migrates, deploys, or prints credentials. Reset revokes all sessions, including impersonation. */
-import { getPlatformProxy } from "wrangler";
+/** Create: pipe JSON {"role":"realtor"|"assistant"|"support-admin","email":"…","password":"…"} to vp run auth:create. Reset: pipe JSON {"role":"…","password":"…"} to vp run auth:reset-password. Use protected stdin, not command-line arguments; passwords must be 12–128 characters. Local D1 is the default and shares Alchemy's dev database; start vp run dev first. Production: append -- --remote with approved project credentials. This script never provisions, migrates, deploys, or prints credentials. Reset revokes all sessions, including impersonation. */
 import { hashPassword } from "better-auth/crypto";
-import type { D1Database } from "@cloudflare/workers-types";
+import { loadProjectEnv } from "./project-env.ts";
+import { remoteD1Database } from "./remote-d1.ts";
+import { localD1Database } from "./local-d1.ts";
+
+loadProjectEnv();
 
 type Statement = { sql: string; params: (string | number)[] };
-const args = process.argv.slice(2).filter((arg) => arg !== "--");
+const args = process.argv.slice(2).filter((arg: string) => arg !== "--");
 const [command] = args;
 if (
 	!["create", "reset-password"].includes(command) ||
-	args.some((arg, i) => i > 0 && arg !== "--remote")
+	args.some((arg: string, i: number) => i > 0 && arg !== "--remote")
 )
 	throw new Error(
 		"Use auth:create or auth:reset-password with JSON on stdin; optional --remote requires production approval.",
@@ -67,55 +70,19 @@ if (command === "create") {
 		{ sql: "DELETE FROM auth_session WHERE user_id = ? OR impersonated_by = ?", params: [id, id] },
 	);
 }
-if (args.includes("--remote")) {
-	const {
-		CLOUDFLARE_ACCOUNT_ID: account,
-		MEADOW_D1_DATABASE_ID: database,
-		CLOUDFLARE_API_TOKEN: token,
-	} = process.env;
-	if (
-		!account ||
-		!database ||
-		!token ||
-		!/^[a-f0-9]{32}$/.test(account) ||
-		!/^[a-f0-9-]{36}$/.test(database)
-	)
-		throw new Error("Explicit production account, D1 ID, and API token are required.");
-	const response = await fetch(
-		`https://api.cloudflare.com/client/v4/accounts/${account}/d1/database/${database}/query`,
-		{
-			method: "POST",
-			headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-			body: JSON.stringify({
-				batch: statements.map(({ sql, params }) => ({ sql, params: params.map(String) })),
-			}),
-		},
+const proxy = args.includes("--remote") ? undefined : await localD1Database();
+try {
+	const db = proxy?.env.DB ?? remoteD1Database();
+	const result = await db.batch(
+		statements.map(({ sql, params }) => db.prepare(sql).bind(...params)),
 	);
-	const result = (await response.json()) as {
-		success: boolean;
-		result?: { success: boolean; results: unknown[] }[];
-	};
-	if (!response.ok || !result.success || !result.result?.every((row) => row.success))
-		throw new Error("Remote account operation failed; no credentials are logged.");
-	if (command === "reset-password" && !result.result[0].results.length)
+	if (command === "reset-password" && !result[0].results.length)
 		throw new Error("No credential account exists for that role.");
-} else {
-	const proxy = await getPlatformProxy<{ DB: D1Database }>({
-		configPath: "wrangler.jsonc",
-		persist: { path: process.env.MEADOW_LOCAL_STATE_DIR ?? ".wrangler/state/v3" },
-	});
-	try {
-		const result = await proxy.env.DB.batch(
-			statements.map(({ sql, params }) => proxy.env.DB.prepare(sql).bind(...params)),
-		);
-		if (command === "reset-password" && !result[0].results.length)
-			throw new Error("No credential account exists for that role.");
-	} catch {
-		throw new Error(
-			"Local account operation failed. Check migrations and whether the account already exists; no credentials are logged.",
-		);
-	} finally {
-		await proxy.dispose();
-	}
+} catch {
+	throw new Error(
+		"Account operation failed. Check the database and whether the account exists; no credentials are logged.",
+	);
+} finally {
+	await proxy?.dispose();
 }
 console.log(`Account ${command} complete (${args.includes("--remote") ? "remote" : "local"}).`);

@@ -226,6 +226,18 @@
 	}
 }
 
+/* Impersonation is a pending state the support admin must never lose sight of: a solid toned edge above the shell, which steps down to make room for it. */
+:root {
+	--impersonation-strip: 1.5rem;
+}
+.impersonation-strip {
+	background: color-mix(in oklab, var(--color-pending) 88%, var(--color-ink));
+	color: var(--color-white);
+}
+.workspace[data-impersonating="true"] {
+	padding-top: var(--impersonation-strip);
+}
+
 .workspace {
 	.nav-destination {
 		@apply overflow-hidden;
@@ -296,6 +308,9 @@
 	@apply relative;
 	.account-menu {
 		@apply invisible absolute bottom-full left-0 z-30 mb-2 min-w-44 opacity-0;
+		/* The chip is narrower than its menu on phones, so size the menu to its labels rather than its anchor. */
+		width: max-content;
+		max-width: min(18rem, calc(100vw - 2rem));
 		transform: translateY(4px);
 		transition:
 			opacity 160ms ease,
@@ -441,6 +456,61 @@
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+/* Login exit — plays on the sign-in form before the full navigation replaces the document. */
+.login-form-exit {
+	animation: login-exit 300ms var(--ease-shell) forwards;
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
+@keyframes login-exit {
+	from {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.94) translateY(10px);
+	}
+}
+
+/* Login entrance — CSS fallback for browsers without cross-document view transitions. The dashboard consumes and clears the marker on mount so a reload never replays this motion. */
+.workspace {
+	&[data-login-entrance="true"] {
+		.main-surface {
+			animation: login-surface-enter 400ms var(--ease-shell);
+			@media (prefers-reduced-motion: reduce) {
+				animation: none;
+			}
+		}
+	}
+}
+
+@keyframes login-surface-enter {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Modern cross-document view-transition opt-in (replaces the obsolete meta tag). Both the login and dashboard documents opt in via this shared stylesheet; existing view-transition-name values (cream-surface, white-surface) drive the shell morph. Reduced motion opts out. */
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	@view-transition {
+		navigation: none;
 	}
 }
 

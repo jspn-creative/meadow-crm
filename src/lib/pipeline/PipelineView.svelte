@@ -13,7 +13,6 @@
 	import ChecklistItem from "#lib/pipeline/ChecklistItem.svelte";
 	import BoardColumn from "#lib/pipeline/BoardColumn.svelte";
 	import Menu from "#lib/ui/Menu.svelte";
-	import ImpersonationIndicator from "#lib/shell/ImpersonationIndicator.svelte";
 	import Select, { optionsFrom } from "#lib/ui/Select.svelte";
 	import { browser } from "$app/env";
 	import { overflowFade } from "#lib/attachments/overflow-fade.js";
@@ -448,7 +447,6 @@
 			else creating = false;
 		}}
 		onclose={() => (creating = false)}>
-		<ImpersonationIndicator />
 		<header class="bg-canvas/95 border-hairline sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
 			{@render dialogHeader("New opportunity", null)}
 			<button type="button" class="control ml-auto" data-variant="ghost" data-size="sm" data-icon data-autofocus aria-label="Close" disabled={pending} onclick={() => (creating = false)}><X size={17} aria-hidden="true" /></button>
@@ -484,7 +482,6 @@
 			else closeOpportunity();
 		}}
 		onclose={closeOpportunity}>
-		<ImpersonationIndicator />
 		<header class="bg-canvas/95 border-hairline sticky top-0 z-20 flex items-center gap-1.5 border-b px-4 py-2.5 sm:px-6">
 			{@render dialogHeader(stageLabels[selected.stage], stageTones[selected.stage])}
 			<p role="status" aria-live="polite" class="text-muted ml-auto min-w-0 truncate pr-1.5 text-xs max-sm:sr-only">{status}</p>

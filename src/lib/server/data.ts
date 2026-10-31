@@ -28,6 +28,7 @@ import {
 	addChecklistItemInput,
 	archiveOpportunityInput,
 	bulkArchiveInput,
+	clientsQueryInput,
 	createClientInput,
 	createOpportunityInput,
 	deleteOpportunityInput,
@@ -230,6 +231,140 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				})),
 				timezone: settings[0]?.timezone ?? "America/Los_Angeles",
 			};
+		},
+		// Server-side Registry list: filter, search, sort, count, and paginate clients in SQL so the table never loads more than one page
+		// of the 800+ clients. Returns the current page plus the total count for pagination metadata.
+		async clients(input: unknown) {
+			const value = v.parse(clientsQueryInput, input);
+			const archived = value.archived;
+			const q = value.q.trim();
+			const tags = value.tags;
+			const leadSource = value.leadSource;
+			const sort = value.sort;
+			const sortDir = value.sortDir === "desc" ? "DESC" : "ASC";
+			const page = Math.max(1, Math.min(value.page, 10000));
+			const pageSize = Math.max(1, Math.min(value.pageSize, 100));
+			const offset = (page - 1) * pageSize;
+
+			const archivedCondition = archived ? "c.archived_at IS NOT NULL" : "c.archived_at IS NULL";
+
+			const like = q ? `%${q}%` : null;
+			const searchArgs: (string | number)[] = [];
+			let searchCondition = "";
+			if (like) {
+				searchCondition = `AND (
+					c.name LIKE ? OR c.notes LIKE ?
+					OR EXISTS (SELECT 1 FROM client_people p WHERE p.client_id = c.id AND p.name LIKE ?)
+					OR EXISTS (SELECT 1 FROM client_people p JOIN person_phones ph ON ph.person_id = p.id WHERE p.client_id = c.id AND ph.value LIKE ?)
+					OR EXISTS (SELECT 1 FROM client_people p JOIN person_emails pe ON pe.person_id = p.id WHERE p.client_id = c.id AND pe.value LIKE ?)
+					OR EXISTS (SELECT 1 FROM client_addresses a WHERE a.client_id = c.id AND a.address LIKE ?)
+					OR EXISTS (SELECT 1 FROM client_tags ct JOIN tags tg ON tg.id = ct.tag_id WHERE ct.client_id = c.id AND tg.name LIKE ?)
+				)`;
+				searchArgs.push(like, like, like, like, like, like, like);
+			}
+
+			let leadSourceCondition = "";
+			const leadSourceArgs: (string | number)[] = [];
+			if (leadSource !== null && leadSource !== undefined && leadSource !== "") {
+				leadSourceCondition = "AND c.lead_source = ?";
+				leadSourceArgs.push(leadSource);
+			}
+			if (leadSource === "") {
+				leadSourceCondition = "AND c.lead_source IS NULL";
+			}
+
+			const tagArgs: (string | number)[] = [];
+			let tagCondition = "";
+			if (tags.length) {
+				const placeholders = tags.map(() => "?").join(",");
+				tagCondition = `AND EXISTS (SELECT 1 FROM client_tags ct2 WHERE ct2.client_id = c.id AND ct2.tag_id IN (${placeholders}))`;
+				tagArgs.push(...tags);
+			}
+
+			// Registry opportunity-count FILTER is deferred per SPEC.md open question (SPEC.md:210):
+			// whether it counts archived opportunities is not approved. The HAVING filter is intentionally
+			// not applied. The Opportunities column still reports all linked opportunities (including
+			// archived) as an informational total; no filter on it is shipped until the decision is made.
+			let havingCondition = "";
+			let orderBy: string;
+			switch (sort) {
+				case "people":
+					orderBy = `(SELECT json_group_array(name) FROM (SELECT DISTINCT p.name FROM client_people p WHERE p.client_id = c.id AND p.name IS NOT NULL AND p.name <> '' ORDER BY p.name LIMIT 1)) COLLATE NOCASE ${sortDir}, c.name COLLATE NOCASE ASC, c.id ASC`;
+					break;
+				case "address":
+					orderBy = `(SELECT json_group_array(address) FROM (SELECT DISTINCT a.address FROM client_addresses a WHERE a.client_id = c.id AND a.address IS NOT NULL AND a.address <> '' ORDER BY a.address LIMIT 1)) COLLATE NOCASE ${sortDir}, c.name COLLATE NOCASE ASC, c.id ASC`;
+					break;
+				case "leadSource":
+					orderBy = `c.lead_source COLLATE NOCASE ${sortDir}, c.name COLLATE NOCASE ASC, c.id ASC`;
+					break;
+				case "tags":
+					orderBy = `(SELECT json_group_array(name) FROM (SELECT DISTINCT tg.name FROM client_tags ct JOIN tags tg ON tg.id = ct.tag_id WHERE ct.client_id = c.id AND tg.name IS NOT NULL AND tg.name <> '' ORDER BY tg.name LIMIT 1)) COLLATE NOCASE ${sortDir}, c.name COLLATE NOCASE ASC, c.id ASC`;
+					break;
+				case "opportunities":
+					orderBy = `COUNT(DISTINCT oc.opportunity_id) ${sortDir}, c.id ASC`;
+					break;
+				default:
+					orderBy = `c.name COLLATE NOCASE ${sortDir}, c.id ASC`;
+					break;
+			}
+
+			const baseWhere = `WHERE ${archivedCondition} ${searchCondition} ${leadSourceCondition} ${tagCondition}`;
+			const pageArgs = [...searchArgs, ...leadSourceArgs, ...tagArgs, pageSize, offset];
+			const countArgs = [...searchArgs, ...leadSourceArgs, ...tagArgs];
+
+			const [pageResult, countResult] = await Promise.all([
+				stmt(
+					`SELECT c.id, c.name, c.lead_source AS leadSource, c.archived_at AS archivedAt, COUNT(DISTINCT oc.opportunity_id) AS opportunity_count,
+					(SELECT json_group_array(name) FROM (SELECT DISTINCT p.name FROM client_people p WHERE p.client_id = c.id AND p.name IS NOT NULL AND p.name <> '' ORDER BY p.name)) AS people_names_json,
+					(SELECT json_group_array(address) FROM (SELECT DISTINCT a.address FROM client_addresses a WHERE a.client_id = c.id AND a.address IS NOT NULL AND a.address <> '' ORDER BY a.address)) AS addresses_json,
+					(SELECT json_group_array(name) FROM (SELECT DISTINCT tg.name FROM client_tags ct JOIN tags tg ON tg.id = ct.tag_id WHERE ct.client_id = c.id AND tg.name IS NOT NULL AND tg.name <> '' ORDER BY tg.name)) AS tag_names_json,
+					(SELECT ph.value FROM client_people p JOIN person_phones ph ON ph.person_id = p.id WHERE p.client_id = c.id AND ph.value <> '' ORDER BY p.position, ph.position LIMIT 1) AS phone,
+					(SELECT pe.value FROM client_people p JOIN person_emails pe ON pe.person_id = p.id WHERE p.client_id = c.id AND pe.value <> '' ORDER BY p.position, pe.position LIMIT 1) AS email
+					FROM clients c LEFT JOIN opportunity_clients oc ON oc.client_id = c.id ${baseWhere}
+					GROUP BY c.id ${havingCondition} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
+					...pageArgs,
+				).all<{
+					id: string;
+					name: string;
+					leadSource: string | null;
+					archivedAt: string | null;
+					opportunity_count: number;
+					people_names_json: string | null;
+					addresses_json: string | null;
+					tag_names_json: string | null;
+					phone: string | null;
+					email: string | null;
+				}>(),
+				stmt(
+					`SELECT count(*) AS total FROM (SELECT c.id FROM clients c LEFT JOIN opportunity_clients oc ON oc.client_id = c.id ${baseWhere} GROUP BY c.id ${havingCondition})`,
+					...countArgs,
+				).first<{ total: number }>(),
+			]);
+
+			const list = (json: string | null): string[] => {
+				try {
+					const parsed: unknown = JSON.parse(json ?? "[]");
+					return Array.isArray(parsed)
+						? parsed.filter((item): item is string => typeof item === "string")
+						: [];
+				} catch {
+					return [];
+				}
+			};
+			const clients = pageResult.results.map((row) => ({
+				id: row.id,
+				name: row.name,
+				archivedAt: row.archivedAt,
+				leadSource: row.leadSource,
+				peopleNames: list(row.people_names_json),
+				addresses: list(row.addresses_json),
+				tagNames: list(row.tag_names_json),
+				phone: row.phone,
+				email: row.email,
+				opportunityCount: row.opportunity_count,
+			}));
+
+			return { clients, total: countResult?.total ?? 0 };
 		},
 		async workspace(input: unknown) {
 			const { archived } = v.parse(workspaceInput, input);
@@ -608,9 +743,9 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				{ operation: "save-checklist-step", ...value },
 				{ id: value.checklistId, revision: value.revision + 1 },
 				(guard, now) => [
-					// Guard both the list and its visible item source; a stale save cannot resurrect a removed step or write to another opportunity's list.
+					// Guard the list revision and item source together so a stale save cannot write to another opportunity's checklist.
 					stmt(
-						"UPDATE stage_checklists SET revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL) AND EXISTS (SELECT 1 FROM checklist_items i WHERE i.id = ? AND i.revision = ? AND ((customized = 0 AND i.template_id = stage_checklists.template_id) OR (customized = 1 AND i.checklist_id = stage_checklists.id)))",
+						"UPDATE stage_checklists SET revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND EXISTS (SELECT 1 FROM opportunities o WHERE o.id = opportunity_id AND o.archived_at IS NULL) AND EXISTS (SELECT 1 FROM checklist_items i WHERE i.id = ? AND i.revision = ? AND (i.checklist_id = stage_checklists.id OR (i.template_id = stage_checklists.template_id AND i.template_id IS NOT NULL)))",
 						now,
 						value.checklistId,
 						value.revision,
@@ -1068,7 +1203,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				value.requestId,
 				{ operation: "delete-opportunity", ...value },
 				{ id: value.id, revision: value.revision },
-				(guard, now) => {
+				(guard, _now) => {
 					// Resolve checklist ids via subqueries in SQL since the statements builder is sync.
 					return [
 						// 1. checklist_progress for this opportunity's checklists

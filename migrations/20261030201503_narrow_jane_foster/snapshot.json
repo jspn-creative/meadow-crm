@@ -1,0 +1,3686 @@
+{
+	"version": "7",
+	"dialect": "sqlite",
+	"id": "4fb085d8-7aee-4889-b82d-5b99dba43f44",
+	"prevIds": ["00000000-0000-0000-0000-000000000000"],
+	"ddl": [
+		{
+			"name": "business_settings",
+			"entityType": "tables"
+		},
+		{
+			"name": "checklist_items",
+			"entityType": "tables"
+		},
+		{
+			"name": "checklist_progress",
+			"entityType": "tables"
+		},
+		{
+			"name": "checklist_templates",
+			"entityType": "tables"
+		},
+		{
+			"name": "client_addresses",
+			"entityType": "tables"
+		},
+		{
+			"name": "client_key_dates",
+			"entityType": "tables"
+		},
+		{
+			"name": "client_people",
+			"entityType": "tables"
+		},
+		{
+			"name": "client_relationships",
+			"entityType": "tables"
+		},
+		{
+			"name": "client_tags",
+			"entityType": "tables"
+		},
+		{
+			"name": "clients",
+			"entityType": "tables"
+		},
+		{
+			"name": "history",
+			"entityType": "tables"
+		},
+		{
+			"name": "mutation_guards",
+			"entityType": "tables"
+		},
+		{
+			"name": "mutation_receipts",
+			"entityType": "tables"
+		},
+		{
+			"name": "opportunities",
+			"entityType": "tables"
+		},
+		{
+			"name": "opportunity_clients",
+			"entityType": "tables"
+		},
+		{
+			"name": "person_emails",
+			"entityType": "tables"
+		},
+		{
+			"name": "person_phones",
+			"entityType": "tables"
+		},
+		{
+			"name": "record_references",
+			"entityType": "tables"
+		},
+		{
+			"name": "stage_checklists",
+			"entityType": "tables"
+		},
+		{
+			"name": "tags",
+			"entityType": "tables"
+		},
+		{
+			"name": "tasks",
+			"entityType": "tables"
+		},
+		{
+			"name": "auth_account",
+			"entityType": "tables"
+		},
+		{
+			"name": "auth_rate_limit",
+			"entityType": "tables"
+		},
+		{
+			"name": "auth_session",
+			"entityType": "tables"
+		},
+		{
+			"name": "auth_support_impersonation",
+			"entityType": "tables"
+		},
+		{
+			"name": "auth_user",
+			"entityType": "tables"
+		},
+		{
+			"name": "auth_verification",
+			"entityType": "tables"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "timezone",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'MMM d, yyyy'",
+			"generated": null,
+			"name": "date_format",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "true",
+			"generated": null,
+			"name": "tasks_enabled",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'all-visited'",
+			"generated": null,
+			"name": "attention_scope",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "business_settings"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "template_id",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "checklist_id",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "title",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "checklist_items"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "checklist_id",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "item_id",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "completed_at",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "due_date",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "checklist_progress"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "checklist_templates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "type",
+			"entityType": "columns",
+			"table": "checklist_templates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "stage",
+			"entityType": "columns",
+			"table": "checklist_templates"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "checklist_templates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "checklist_templates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "checklist_templates"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "address",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "owned",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "0",
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "client_addresses"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "date",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "client_key_dates"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "birthday",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "0",
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "client_people"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "related_client_id",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "client_relationships"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "client_tags"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "tag_id",
+			"entityType": "columns",
+			"table": "client_tags"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "email",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "phone",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "address",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "lead_source",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "''",
+			"generated": null,
+			"name": "notes",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'[]'",
+			"generated": null,
+			"name": "imported_data",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "''",
+			"generated": null,
+			"name": "preferences",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "preferred_contact_method",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "referred_by_client_id",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "referred_by_name",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "true",
+			"generated": null,
+			"name": "consent_call",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "true",
+			"generated": null,
+			"name": "consent_text",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "true",
+			"generated": null,
+			"name": "consent_email",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "true",
+			"generated": null,
+			"name": "consent_mail",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "archived_at",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "fictional",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "record_kind",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "record_id",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "actor_user_id",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "effective_user_id",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "action",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "data",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "fictional",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "history"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "mutation_guards"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "passed",
+			"entityType": "columns",
+			"table": "mutation_guards"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "mutation_receipts"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "actor_user_id",
+			"entityType": "columns",
+			"table": "mutation_receipts"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "effective_user_id",
+			"entityType": "columns",
+			"table": "mutation_receipts"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "payload_hash",
+			"entityType": "columns",
+			"table": "mutation_receipts"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "result",
+			"entityType": "columns",
+			"table": "mutation_receipts"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "mutation_receipts"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "title",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "type",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "stage",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "timeline",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "address",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "budget_cents",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "''",
+			"generated": null,
+			"name": "notes",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "archived_at",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "pinned_at",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "fictional",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "opportunities"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "opportunity_id",
+			"entityType": "columns",
+			"table": "opportunity_clients"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "opportunity_clients"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "person_id",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "value",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "0",
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "person_emails"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "person_id",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "value",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "0",
+			"generated": null,
+			"name": "position",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "person_phones"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "opportunity_id",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "label",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "kind",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "url",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "target_client_id",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "target_opportunity_id",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "record_references"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "opportunity_id",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "stage",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "template_id",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'[]'",
+			"generated": null,
+			"name": "removed_template_items",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "stage_checklists"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "color",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "retired_at",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "tags"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "title",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "assigned_user_id",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'realtor'",
+			"generated": null,
+			"name": "assigned_role",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "client_id",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "opportunity_id",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "source_stage",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "date",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "due_date",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "completed_at",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "fictional",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "1",
+			"generated": null,
+			"name": "revision",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "tasks"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "account_id",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "provider_id",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "access_token",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "refresh_token",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id_token",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "access_token_expires_at",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "refresh_token_expires_at",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "scope",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "password",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "auth_account"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "auth_rate_limit"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "key",
+			"entityType": "columns",
+			"table": "auth_rate_limit"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "count",
+			"entityType": "columns",
+			"table": "auth_rate_limit"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "last_request",
+			"entityType": "columns",
+			"table": "auth_rate_limit"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "token",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "expires_at",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "ip_address",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "user_agent",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "impersonated_by",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "auth_session"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "support_session_id",
+			"entityType": "columns",
+			"table": "auth_support_impersonation"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "impersonation_session_id",
+			"entityType": "columns",
+			"table": "auth_support_impersonation"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "name",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "email",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "email_verified",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "image",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": "'user'",
+			"generated": null,
+			"name": "role",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": "false",
+			"generated": null,
+			"name": "banned",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "ban_reason",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "integer",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "ban_expires",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "auth_user"
+		},
+		{
+			"type": "text",
+			"notNull": false,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "id",
+			"entityType": "columns",
+			"table": "auth_verification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "identifier",
+			"entityType": "columns",
+			"table": "auth_verification"
+		},
+		{
+			"type": "text",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "value",
+			"entityType": "columns",
+			"table": "auth_verification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "expires_at",
+			"entityType": "columns",
+			"table": "auth_verification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"table": "auth_verification"
+		},
+		{
+			"type": "integer",
+			"notNull": true,
+			"autoincrement": false,
+			"default": null,
+			"generated": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"table": "auth_verification"
+		},
+		{
+			"columns": ["template_id"],
+			"tableTo": "checklist_templates",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_checklist_items_template_id_checklist_templates_id_fk",
+			"entityType": "fks",
+			"table": "checklist_items"
+		},
+		{
+			"columns": ["checklist_id"],
+			"tableTo": "stage_checklists",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_checklist_items_checklist_id_stage_checklists_id_fk",
+			"entityType": "fks",
+			"table": "checklist_items"
+		},
+		{
+			"columns": ["checklist_id"],
+			"tableTo": "stage_checklists",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_checklist_progress_checklist_id_stage_checklists_id_fk",
+			"entityType": "fks",
+			"table": "checklist_progress"
+		},
+		{
+			"columns": ["item_id"],
+			"tableTo": "checklist_items",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_checklist_progress_item_id_checklist_items_id_fk",
+			"entityType": "fks",
+			"table": "checklist_progress"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_addresses_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "client_addresses"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_key_dates_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "client_key_dates"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_people_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "client_people"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_relationships_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "client_relationships"
+		},
+		{
+			"columns": ["related_client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_relationships_related_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "client_relationships"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_tags_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "client_tags"
+		},
+		{
+			"columns": ["tag_id"],
+			"tableTo": "tags",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_client_tags_tag_id_tags_id_fk",
+			"entityType": "fks",
+			"table": "client_tags"
+		},
+		{
+			"columns": ["referred_by_client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_clients_referred_by_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "clients"
+		},
+		{
+			"columns": ["opportunity_id"],
+			"tableTo": "opportunities",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_opportunity_clients_opportunity_id_opportunities_id_fk",
+			"entityType": "fks",
+			"table": "opportunity_clients"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_opportunity_clients_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "opportunity_clients"
+		},
+		{
+			"columns": ["person_id"],
+			"tableTo": "client_people",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_person_emails_person_id_client_people_id_fk",
+			"entityType": "fks",
+			"table": "person_emails"
+		},
+		{
+			"columns": ["person_id"],
+			"tableTo": "client_people",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_person_phones_person_id_client_people_id_fk",
+			"entityType": "fks",
+			"table": "person_phones"
+		},
+		{
+			"columns": ["opportunity_id"],
+			"tableTo": "opportunities",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_record_references_opportunity_id_opportunities_id_fk",
+			"entityType": "fks",
+			"table": "record_references"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_record_references_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "record_references"
+		},
+		{
+			"columns": ["target_client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_record_references_target_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "record_references"
+		},
+		{
+			"columns": ["target_opportunity_id"],
+			"tableTo": "opportunities",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_record_references_target_opportunity_id_opportunities_id_fk",
+			"entityType": "fks",
+			"table": "record_references"
+		},
+		{
+			"columns": ["opportunity_id"],
+			"tableTo": "opportunities",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_stage_checklists_opportunity_id_opportunities_id_fk",
+			"entityType": "fks",
+			"table": "stage_checklists"
+		},
+		{
+			"columns": ["template_id", "stage"],
+			"tableTo": "checklist_templates",
+			"columnsTo": ["id", "stage"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_stage_checklists_template_id_stage_checklist_templates_id_stage_fk",
+			"entityType": "fks",
+			"table": "stage_checklists"
+		},
+		{
+			"columns": ["client_id"],
+			"tableTo": "clients",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_tasks_client_id_clients_id_fk",
+			"entityType": "fks",
+			"table": "tasks"
+		},
+		{
+			"columns": ["opportunity_id"],
+			"tableTo": "opportunities",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "NO ACTION",
+			"nameExplicit": false,
+			"name": "fk_tasks_opportunity_id_opportunities_id_fk",
+			"entityType": "fks",
+			"table": "tasks"
+		},
+		{
+			"columns": ["user_id"],
+			"tableTo": "auth_user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_auth_account_user_id_auth_user_id_fk",
+			"entityType": "fks",
+			"table": "auth_account"
+		},
+		{
+			"columns": ["user_id"],
+			"tableTo": "auth_user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_auth_session_user_id_auth_user_id_fk",
+			"entityType": "fks",
+			"table": "auth_session"
+		},
+		{
+			"columns": ["support_session_id"],
+			"tableTo": "auth_session",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_auth_support_impersonation_support_session_id_auth_session_id_fk",
+			"entityType": "fks",
+			"table": "auth_support_impersonation"
+		},
+		{
+			"columns": ["impersonation_session_id"],
+			"tableTo": "auth_session",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"nameExplicit": false,
+			"name": "fk_auth_support_impersonation_impersonation_session_id_auth_session_id_fk",
+			"entityType": "fks",
+			"table": "auth_support_impersonation"
+		},
+		{
+			"columns": ["checklist_id", "item_id"],
+			"nameExplicit": false,
+			"name": "checklist_progress_pk",
+			"entityType": "pks",
+			"table": "checklist_progress"
+		},
+		{
+			"columns": ["client_id", "tag_id"],
+			"nameExplicit": false,
+			"name": "client_tags_pk",
+			"entityType": "pks",
+			"table": "client_tags"
+		},
+		{
+			"columns": ["opportunity_id", "client_id"],
+			"nameExplicit": false,
+			"name": "opportunity_clients_pk",
+			"entityType": "pks",
+			"table": "opportunity_clients"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "business_settings_pk",
+			"table": "business_settings",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "checklist_items_pk",
+			"table": "checklist_items",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "checklist_templates_pk",
+			"table": "checklist_templates",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "client_addresses_pk",
+			"table": "client_addresses",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "client_key_dates_pk",
+			"table": "client_key_dates",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "client_people_pk",
+			"table": "client_people",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "client_relationships_pk",
+			"table": "client_relationships",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "clients_pk",
+			"table": "clients",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "history_pk",
+			"table": "history",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "mutation_guards_pk",
+			"table": "mutation_guards",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "mutation_receipts_pk",
+			"table": "mutation_receipts",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "opportunities_pk",
+			"table": "opportunities",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "person_emails_pk",
+			"table": "person_emails",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "person_phones_pk",
+			"table": "person_phones",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "record_references_pk",
+			"table": "record_references",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "stage_checklists_pk",
+			"table": "stage_checklists",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "tags_pk",
+			"table": "tags",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "tasks_pk",
+			"table": "tasks",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "auth_account_pk",
+			"table": "auth_account",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "auth_rate_limit_pk",
+			"table": "auth_rate_limit",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "auth_session_pk",
+			"table": "auth_session",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["support_session_id"],
+			"nameExplicit": false,
+			"name": "auth_support_impersonation_pk",
+			"table": "auth_support_impersonation",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "auth_user_pk",
+			"table": "auth_user",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "auth_verification_pk",
+			"table": "auth_verification",
+			"entityType": "pks"
+		},
+		{
+			"columns": [
+				{
+					"value": "template_id",
+					"isExpression": false
+				},
+				{
+					"value": "position",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "template_item_position",
+			"entityType": "indexes",
+			"table": "checklist_items"
+		},
+		{
+			"columns": [
+				{
+					"value": "checklist_id",
+					"isExpression": false
+				},
+				{
+					"value": "position",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "custom_item_position",
+			"entityType": "indexes",
+			"table": "checklist_items"
+		},
+		{
+			"columns": [
+				{
+					"value": "completed_at",
+					"isExpression": false
+				},
+				{
+					"value": "due_date",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "progress_attention",
+			"entityType": "indexes",
+			"table": "checklist_progress"
+		},
+		{
+			"columns": [
+				{
+					"value": "type",
+					"isExpression": false
+				},
+				{
+					"value": "stage",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "template_type_stage",
+			"entityType": "indexes",
+			"table": "checklist_templates"
+		},
+		{
+			"columns": [
+				{
+					"value": "id",
+					"isExpression": false
+				},
+				{
+					"value": "stage",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "template_id_stage",
+			"entityType": "indexes",
+			"table": "checklist_templates"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "client_addresses_client",
+			"entityType": "indexes",
+			"table": "client_addresses"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "client_key_dates_client",
+			"entityType": "indexes",
+			"table": "client_key_dates"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "client_people_client",
+			"entityType": "indexes",
+			"table": "client_people"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "client_relationships_client",
+			"entityType": "indexes",
+			"table": "client_relationships"
+		},
+		{
+			"columns": [
+				{
+					"value": "related_client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "client_relationships_related",
+			"entityType": "indexes",
+			"table": "client_relationships"
+		},
+		{
+			"columns": [
+				{
+					"value": "tag_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "client_tags_tag",
+			"entityType": "indexes",
+			"table": "client_tags"
+		},
+		{
+			"columns": [
+				{
+					"value": "archived_at",
+					"isExpression": false
+				},
+				{
+					"value": "name",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "clients_archive_name",
+			"entityType": "indexes",
+			"table": "clients"
+		},
+		{
+			"columns": [
+				{
+					"value": "record_kind",
+					"isExpression": false
+				},
+				{
+					"value": "record_id",
+					"isExpression": false
+				},
+				{
+					"value": "created_at",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "history_record",
+			"entityType": "indexes",
+			"table": "history"
+		},
+		{
+			"columns": [
+				{
+					"value": "archived_at",
+					"isExpression": false
+				},
+				{
+					"value": "stage",
+					"isExpression": false
+				},
+				{
+					"value": "timeline",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "opportunities_board",
+			"entityType": "indexes",
+			"table": "opportunities"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "opportunity_clients_client",
+			"entityType": "indexes",
+			"table": "opportunity_clients"
+		},
+		{
+			"columns": [
+				{
+					"value": "person_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "person_emails_person",
+			"entityType": "indexes",
+			"table": "person_emails"
+		},
+		{
+			"columns": [
+				{
+					"value": "person_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "person_phones_person",
+			"entityType": "indexes",
+			"table": "person_phones"
+		},
+		{
+			"columns": [
+				{
+					"value": "opportunity_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "references_opportunity",
+			"entityType": "indexes",
+			"table": "record_references"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "references_client",
+			"entityType": "indexes",
+			"table": "record_references"
+		},
+		{
+			"columns": [
+				{
+					"value": "opportunity_id",
+					"isExpression": false
+				},
+				{
+					"value": "stage",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "checklist_opportunity_stage",
+			"entityType": "indexes",
+			"table": "stage_checklists"
+		},
+		{
+			"columns": [
+				{
+					"value": "lower(\"name\")",
+					"isExpression": true
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "tags_name_unique",
+			"entityType": "indexes",
+			"table": "tags"
+		},
+		{
+			"columns": [
+				{
+					"value": "completed_at",
+					"isExpression": false
+				},
+				{
+					"value": "due_date",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "tasks_attention",
+			"entityType": "indexes",
+			"table": "tasks"
+		},
+		{
+			"columns": [
+				{
+					"value": "completed_at",
+					"isExpression": false
+				},
+				{
+					"value": "date",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "tasks_date",
+			"entityType": "indexes",
+			"table": "tasks"
+		},
+		{
+			"columns": [
+				{
+					"value": "client_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "tasks_client",
+			"entityType": "indexes",
+			"table": "tasks"
+		},
+		{
+			"columns": [
+				{
+					"value": "opportunity_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"origin": "manual",
+			"name": "tasks_opportunity",
+			"entityType": "indexes",
+			"table": "tasks"
+		},
+		{
+			"columns": [
+				{
+					"value": "provider_id",
+					"isExpression": false
+				},
+				{
+					"value": "account_id",
+					"isExpression": false
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"origin": "manual",
+			"name": "auth_account_provider_account",
+			"entityType": "indexes",
+			"table": "auth_account"
+		},
+		{
+			"columns": ["key"],
+			"nameExplicit": false,
+			"name": "auth_rate_limit_key_unique",
+			"entityType": "uniques",
+			"table": "auth_rate_limit"
+		},
+		{
+			"columns": ["token"],
+			"nameExplicit": false,
+			"name": "auth_session_token_unique",
+			"entityType": "uniques",
+			"table": "auth_session"
+		},
+		{
+			"columns": ["impersonation_session_id"],
+			"nameExplicit": false,
+			"name": "auth_support_impersonation_impersonation_session_id_unique",
+			"entityType": "uniques",
+			"table": "auth_support_impersonation"
+		},
+		{
+			"columns": ["email"],
+			"nameExplicit": false,
+			"name": "auth_user_email_unique",
+			"entityType": "uniques",
+			"table": "auth_user"
+		},
+		{
+			"value": "\"id\" = 1",
+			"name": "settings_singleton",
+			"entityType": "checks",
+			"table": "business_settings"
+		},
+		{
+			"value": "\"date_format\" IN ('M/d/yyyy', 'MMM d, yyyy')",
+			"name": "settings_date_format",
+			"entityType": "checks",
+			"table": "business_settings"
+		},
+		{
+			"value": "\"attention_scope\" IN ('all-visited', 'current-stage')",
+			"name": "settings_attention_scope",
+			"entityType": "checks",
+			"table": "business_settings"
+		},
+		{
+			"value": "\"tasks_enabled\" IN (0, 1)",
+			"name": "settings_tasks_boolean",
+			"entityType": "checks",
+			"table": "business_settings"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "settings_revision_positive",
+			"entityType": "checks",
+			"table": "business_settings"
+		},
+		{
+			"value": "(\"template_id\" IS NOT NULL AND \"checklist_id\" IS NULL) OR (\"template_id\" IS NULL AND \"checklist_id\" IS NOT NULL)",
+			"name": "item_owner",
+			"entityType": "checks",
+			"table": "checklist_items"
+		},
+		{
+			"value": "length(trim(\"title\")) > 0",
+			"name": "item_title_required",
+			"entityType": "checks",
+			"table": "checklist_items"
+		},
+		{
+			"value": "typeof(\"position\") = 'integer' AND \"position\" >= 0",
+			"name": "item_position",
+			"entityType": "checks",
+			"table": "checklist_items"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "item_revision_positive",
+			"entityType": "checks",
+			"table": "checklist_items"
+		},
+		{
+			"value": "\"due_date\" IS NULL OR \"due_date\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'",
+			"name": "progress_date_shape",
+			"entityType": "checks",
+			"table": "checklist_progress"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "progress_revision_positive",
+			"entityType": "checks",
+			"table": "checklist_progress"
+		},
+		{
+			"value": "\"type\" IN ('buyer', 'seller', 'estate-sale', 'construction')",
+			"name": "template_type",
+			"entityType": "checks",
+			"table": "checklist_templates"
+		},
+		{
+			"value": "\"stage\" IN ('new-lead', 'active-lead', 'under-contract', 'closed')",
+			"name": "template_stage",
+			"entityType": "checks",
+			"table": "checklist_templates"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "template_revision_positive",
+			"entityType": "checks",
+			"table": "checklist_templates"
+		},
+		{
+			"value": "length(trim(\"label\")) > 0",
+			"name": "client_address_label_required",
+			"entityType": "checks",
+			"table": "client_addresses"
+		},
+		{
+			"value": "length(trim(\"address\")) > 0",
+			"name": "client_address_value_required",
+			"entityType": "checks",
+			"table": "client_addresses"
+		},
+		{
+			"value": "\"owned\" IN (0, 1)",
+			"name": "client_address_owned_boolean",
+			"entityType": "checks",
+			"table": "client_addresses"
+		},
+		{
+			"value": "typeof(\"position\") = 'integer' AND \"position\" >= 0",
+			"name": "client_address_position",
+			"entityType": "checks",
+			"table": "client_addresses"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "client_address_revision_positive",
+			"entityType": "checks",
+			"table": "client_addresses"
+		},
+		{
+			"value": "length(trim(\"name\")) > 0",
+			"name": "client_key_date_name_required",
+			"entityType": "checks",
+			"table": "client_key_dates"
+		},
+		{
+			"value": "\"date\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'",
+			"name": "client_key_date_shape",
+			"entityType": "checks",
+			"table": "client_key_dates"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "client_key_date_revision_positive",
+			"entityType": "checks",
+			"table": "client_key_dates"
+		},
+		{
+			"value": "length(trim(\"name\")) > 0",
+			"name": "client_person_name_required",
+			"entityType": "checks",
+			"table": "client_people"
+		},
+		{
+			"value": "\"birthday\" IS NULL OR \"birthday\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'",
+			"name": "client_person_birthday_shape",
+			"entityType": "checks",
+			"table": "client_people"
+		},
+		{
+			"value": "typeof(\"position\") = 'integer' AND \"position\" >= 0",
+			"name": "client_person_position",
+			"entityType": "checks",
+			"table": "client_people"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "client_person_revision_positive",
+			"entityType": "checks",
+			"table": "client_people"
+		},
+		{
+			"value": "length(trim(\"label\")) > 0",
+			"name": "client_relationship_label_required",
+			"entityType": "checks",
+			"table": "client_relationships"
+		},
+		{
+			"value": "\"client_id\" <> \"related_client_id\"",
+			"name": "client_relationship_distinct",
+			"entityType": "checks",
+			"table": "client_relationships"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "client_relationship_revision_positive",
+			"entityType": "checks",
+			"table": "client_relationships"
+		},
+		{
+			"value": "length(trim(\"name\")) > 0",
+			"name": "client_name_required",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "client_revision_positive",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"preferred_contact_method\" IS NULL OR \"preferred_contact_method\" IN ('call', 'text', 'email', 'mail')",
+			"name": "client_preferred_contact_method",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"consent_call\" IN (0, 1)",
+			"name": "client_consent_call_boolean",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"consent_text\" IN (0, 1)",
+			"name": "client_consent_text_boolean",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"consent_email\" IN (0, 1)",
+			"name": "client_consent_email_boolean",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"consent_mail\" IN (0, 1)",
+			"name": "client_consent_mail_boolean",
+			"entityType": "checks",
+			"table": "clients"
+		},
+		{
+			"value": "\"record_kind\" IN ('client', 'opportunity', 'task', 'template', 'settings', 'tag')",
+			"name": "history_record_kind",
+			"entityType": "checks",
+			"table": "history"
+		},
+		{
+			"value": "json_valid(\"data\")",
+			"name": "history_json",
+			"entityType": "checks",
+			"table": "history"
+		},
+		{
+			"value": "length(\"actor_user_id\") > 0 AND length(\"effective_user_id\") > 0",
+			"name": "history_identity",
+			"entityType": "checks",
+			"table": "history"
+		},
+		{
+			"value": "\"passed\" = 1",
+			"name": "mutation_guard_passed",
+			"entityType": "checks",
+			"table": "mutation_guards"
+		},
+		{
+			"value": "json_valid(\"result\")",
+			"name": "receipt_result_json",
+			"entityType": "checks",
+			"table": "mutation_receipts"
+		},
+		{
+			"value": "length(trim(\"title\")) > 0",
+			"name": "opportunity_title_required",
+			"entityType": "checks",
+			"table": "opportunities"
+		},
+		{
+			"value": "\"type\" IN ('buyer', 'seller', 'estate-sale', 'construction')",
+			"name": "opportunity_type",
+			"entityType": "checks",
+			"table": "opportunities"
+		},
+		{
+			"value": "\"stage\" IN ('new-lead', 'active-lead', 'under-contract', 'closed')",
+			"name": "opportunity_stage",
+			"entityType": "checks",
+			"table": "opportunities"
+		},
+		{
+			"value": "\"timeline\" IS NULL OR \"timeline\" IN ('1-3-mo', '3-6-mo', '6-plus-mo')",
+			"name": "opportunity_timeline",
+			"entityType": "checks",
+			"table": "opportunities"
+		},
+		{
+			"value": "\"budget_cents\" IS NULL OR (typeof(\"budget_cents\") = 'integer' AND \"budget_cents\" >= 0)",
+			"name": "opportunity_budget",
+			"entityType": "checks",
+			"table": "opportunities"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "opportunity_revision_positive",
+			"entityType": "checks",
+			"table": "opportunities"
+		},
+		{
+			"value": "length(trim(\"label\")) > 0",
+			"name": "person_email_label_required",
+			"entityType": "checks",
+			"table": "person_emails"
+		},
+		{
+			"value": "length(trim(\"value\")) > 0",
+			"name": "person_email_value_required",
+			"entityType": "checks",
+			"table": "person_emails"
+		},
+		{
+			"value": "typeof(\"position\") = 'integer' AND \"position\" >= 0",
+			"name": "person_email_position",
+			"entityType": "checks",
+			"table": "person_emails"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "person_email_revision_positive",
+			"entityType": "checks",
+			"table": "person_emails"
+		},
+		{
+			"value": "length(trim(\"label\")) > 0",
+			"name": "person_phone_label_required",
+			"entityType": "checks",
+			"table": "person_phones"
+		},
+		{
+			"value": "length(trim(\"value\")) > 0",
+			"name": "person_phone_value_required",
+			"entityType": "checks",
+			"table": "person_phones"
+		},
+		{
+			"value": "typeof(\"position\") = 'integer' AND \"position\" >= 0",
+			"name": "person_phone_position",
+			"entityType": "checks",
+			"table": "person_phones"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "person_phone_revision_positive",
+			"entityType": "checks",
+			"table": "person_phones"
+		},
+		{
+			"value": "length(trim(\"label\")) > 0",
+			"name": "reference_label_required",
+			"entityType": "checks",
+			"table": "record_references"
+		},
+		{
+			"value": "(\"opportunity_id\" IS NOT NULL AND \"client_id\" IS NULL) OR (\"opportunity_id\" IS NULL AND \"client_id\" IS NOT NULL)",
+			"name": "reference_owner",
+			"entityType": "checks",
+			"table": "record_references"
+		},
+		{
+			"value": "\"kind\" IN ('url', 'client', 'opportunity')",
+			"name": "reference_kind",
+			"entityType": "checks",
+			"table": "record_references"
+		},
+		{
+			"value": "(\"kind\" = 'url' AND \"url\" IS NOT NULL AND (\"url\" LIKE 'https://%' OR \"url\" LIKE 'http://%') AND \"target_client_id\" IS NULL AND \"target_opportunity_id\" IS NULL) OR (\"kind\" = 'client' AND \"target_client_id\" IS NOT NULL AND \"url\" IS NULL AND \"target_opportunity_id\" IS NULL) OR (\"kind\" = 'opportunity' AND \"target_opportunity_id\" IS NOT NULL AND \"url\" IS NULL AND \"target_client_id\" IS NULL)",
+			"name": "reference_target",
+			"entityType": "checks",
+			"table": "record_references"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "reference_revision_positive",
+			"entityType": "checks",
+			"table": "record_references"
+		},
+		{
+			"value": "json_valid(\"removed_template_items\")",
+			"name": "checklist_removed_items_json",
+			"entityType": "checks",
+			"table": "stage_checklists"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "checklist_revision_positive",
+			"entityType": "checks",
+			"table": "stage_checklists"
+		},
+		{
+			"value": "length(trim(\"name\")) > 0",
+			"name": "tag_name_required",
+			"entityType": "checks",
+			"table": "tags"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "tag_revision_positive",
+			"entityType": "checks",
+			"table": "tags"
+		},
+		{
+			"value": "length(trim(\"title\")) > 0",
+			"name": "task_title_required",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"assigned_role\" = 'realtor'",
+			"name": "task_realtor_only",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"client_id\" IS NULL OR \"opportunity_id\" IS NULL",
+			"name": "task_single_link",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"source_stage\" IS NULL OR (\"opportunity_id\" IS NOT NULL AND \"source_stage\" IN ('new-lead', 'active-lead', 'under-contract', 'closed'))",
+			"name": "task_source_stage",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"due_date\" IS NULL OR \"due_date\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'",
+			"name": "task_date_shape",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"revision\" > 0",
+			"name": "task_revision_positive",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"date\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'",
+			"name": "task_start_date_shape",
+			"entityType": "checks",
+			"table": "tasks"
+		},
+		{
+			"value": "\"impersonated_by\" IS NULL OR \"impersonated_by\" = 'support-admin'",
+			"name": "auth_session_impersonated_by",
+			"entityType": "checks",
+			"table": "auth_session"
+		},
+		{
+			"value": "\"id\" IN ('business-realtor', 'business-assistant', 'support-admin')",
+			"name": "auth_user_id_allowed",
+			"entityType": "checks",
+			"table": "auth_user"
+		},
+		{
+			"value": "(\"id\" = 'support-admin' AND \"role\" = 'admin') OR (\"id\" <> 'support-admin' AND \"role\" = 'user')",
+			"name": "auth_user_role_by_id",
+			"entityType": "checks",
+			"table": "auth_user"
+		}
+	],
+	"renames": []
+}

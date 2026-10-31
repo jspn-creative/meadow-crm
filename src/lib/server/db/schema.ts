@@ -524,3 +524,5 @@ export const mutationGuards = sqliteTable(
 	},
 	(t) => [check("mutation_guard_passed", sql`${t.passed} = 1`)],
 );
+
+export * from "../auth-schema.ts";

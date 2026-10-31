@@ -49,6 +49,22 @@ const opportunityDetails = {
 };
 
 export const workspaceInput = v.strictObject({ archived: v.optional(v.boolean(), false) });
+
+// Read-only query input for the Registry table. Validates URL-driven pagination, filtering, and sorting without changing any record.
+// Strict validation rejects malformed API input; URL normalization in the view applies sensible defaults before calling the server.
+export const clientsQueryInput = v.strictObject({
+	archived: v.optional(v.boolean(), false),
+	q: v.optional(v.pipe(v.string(), v.maxLength(200)), ""),
+	tags: v.optional(v.pipe(v.array(v.string()), v.maxLength(50)), []),
+	leadSource: v.optional(v.nullable(v.string()), null),
+	sort: v.optional(
+		v.picklist(["name", "people", "address", "leadSource", "tags", "opportunities"]),
+		"name",
+	),
+	sortDir: v.optional(v.picklist(["asc", "desc"]), "asc"),
+	page: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1)), 1),
+	pageSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(100)), 25),
+});
 export const createClientInput = v.strictObject({
 	requestId: id,
 	id,
@@ -102,7 +118,7 @@ const personPhoneInput = v.strictObject({
 const personEmailInput = v.strictObject({
 	id,
 	label: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(100)),
-	value: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+	value: v.pipe(v.string(), v.trim(), v.toLowerCase(), v.minLength(1), v.maxLength(200)),
 });
 const personInput = v.strictObject({
 	id,

@@ -1,17 +1,11 @@
-import type { D1Database } from "@cloudflare/workers-types";
+import type { WebsiteEnv } from "../alchemy.run.ts";
 import type { DataService } from "#lib/server/data.js";
 import type { SupportState } from "#lib/server/support.js";
 
 // See https://svelte.dev/docs/kit/types#app.d.ts for information about these interfaces.
 declare global {
 	namespace Cloudflare {
-		interface Env {
-			DB: D1Database;
-			LOCAL_DEMO_USER?: "realtor" | "assistant";
-			LOCAL_IDENTITY_STUB?: string;
-			BETTER_AUTH_SECRET?: string;
-			BETTER_AUTH_URL?: string;
-		}
+		interface Env extends WebsiteEnv {}
 	}
 	namespace App {
 		// interface Error {}
@@ -22,7 +16,11 @@ declare global {
 		}
 		// interface PageData {}
 		// interface PageState {}
-		// interface Platform {}
+		interface Platform {
+			env: Cloudflare.Env;
+			context?: unknown;
+			caches?: unknown;
+		}
 	}
 }
 

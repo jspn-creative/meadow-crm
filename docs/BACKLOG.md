@@ -7,10 +7,12 @@ What is left to build, in order. [SPEC.md](./SPEC.md) says what the product does
 The goal is to deploy as soon as possible so the business can start using Meadow CRM and giving feedback. Only these items block the release; the scope decisions behind them are in [SPEC.md's First release](./SPEC.md#first-release). Visual redesign is not part of this work.
 
 6. Release checks: `vp run check`, the relevant automated tests, a production build, and a short phone and desktop pass of login, Pipeline, Registry, and tasks.
-7. Alchemy, the last step before deploying: prove it on a non-production stage, then adopt it if it passes the criteria in [WORKFLOW.md](./WORKFLOW.md#alchemy).
-8. Deploy: after the developer answers "lgtm ready to deploy?", provision production, deploy, apply migrations, create the two accounts, run the import, and confirm login on the production URL.
+7. Alchemy: rework deployment onto the documented path in the [deployment audit](./research/alchemy-deployment-audit.md#direction) and prove it locally with `alchemy dev`.
+8. Deploy: provision production, deploy, create the three accounts, run the import, and confirm login on the production URL, following [WORKFLOW.md](./WORKFLOW.md#deploy).
 
 ## After the first release
+
+Registry usability and SV Table, login transition restoration, and four useful dashboard scorecards are implemented but still await the authenticated acceptance recorded in [WORKFLOW.md](./WORKFLOW.md#next). Login functionality comes before motion review. Data cleanup remains developer-initiated; the remaining list below is not approval to add work to this batch.
 
 In rough dependency order; not started unless the developer reprioritizes. Behavior is in [SPEC.md](./SPEC.md), which was largely drafted with the developer rather than confirmed line by line, so confirm the details an item depends on when it is planned. "Done when" lists the checks worth keeping from the earlier plan.
 
@@ -28,6 +30,7 @@ In rough dependency order; not started unless the developer reprioritizes. Behav
 13. Checklist template editor, chosen from prototypes reviewed with the developer. Done when empty templates work, progress survives renaming and reordering, a failed save keeps the draft, and it is usable on a phone.
 14. Board view options, settled over review rounds with the developer.
 15. Git integration for deploys, attached after the first manual deploy.
+16. Production-shaped data for development without a push-back path, using Alchemy's D1 `clone` or `importFiles` as described in [the deployment audit](./research/alchemy-deployment-audit.md#production-shaped-local-data).
 
 ## Waiting on an open question
 

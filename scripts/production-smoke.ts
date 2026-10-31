@@ -1,32 +1,39 @@
 import assert from "node:assert/strict";
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { stringify } from "devalue";
-import { unstable_dev } from "wrangler";
+import { Miniflare } from "miniflare";
 
 const manifestPath = new URL("../.svelte-kit/output/server/manifest.js", import.meta.url).href;
 const { manifest } = await import(manifestPath);
 const ids = Object.keys(manifest.remotes);
 assert.equal(ids.length, 1, "Update the smoke test when another remote module is introduced.");
-// Local library API runs the already-vp-built Worker in workerd; this does not invoke the Wrangler CLI, rebuild the app, or contact a Cloudflare account.
-const server = await unstable_dev(".svelte-kit/cloudflare/_worker.js", {
-	config: "wrangler.jsonc",
-	local: true,
-	persist: false,
-	ip: "127.0.0.1",
-	port: 5181,
-	logLevel: "error",
-	vars: {
+// Isolated prebuilt production Worker in workerd: no Wrangler config, rebuild, migration runner, or Cloudflare account. Development and operational scripts use Alchemy's simulator instead.
+const root = fileURLToPath(new URL("../dist/server/", import.meta.url));
+const files = (await readdir(root, { recursive: true }))
+	.filter((file) => file.endsWith(".js") && file !== "index.js")
+	.sort();
+const server = new Miniflare({
+	modules: ["index.js", ...files].map((file) => ({ type: "ESModule", path: join(root, file) })),
+	modulesRoot: root,
+	compatibilityDate: "2026-07-30",
+	compatibilityFlags: ["nodejs_compat"],
+	d1Databases: ["DB"],
+	d1Persist: false,
+	port: 0,
+	assets: {
+		directory: ".svelte-kit/cloudflare",
+		binding: "ASSETS",
+		routerConfig: { has_user_worker: true, invoke_user_worker_ahead_of_assets: true },
+	},
+	bindings: {
 		BETTER_AUTH_SECRET: crypto.randomUUID() + crypto.randomUUID(),
 		BETTER_AUTH_URL: "https://meadow.example.invalid",
 		LOCAL_IDENTITY_STUB: "true",
 	},
-	experimental: {
-		forceLocal: true,
-		watch: false,
-		disableExperimentalWarning: true,
-		disableDevRegistry: true,
-	},
 });
-const origin = "http://127.0.0.1:5181";
+const origin = (await server.ready).origin;
 try {
 	const headers = {
 		origin,
@@ -40,7 +47,7 @@ try {
 		headers,
 	});
 	assert.equal(query.status, 401);
-	assert.match((await query.json()).message, /verified identity/);
+	assert.match(((await query.json()) as { message: string }).message, /verified identity/);
 	const command = await fetch(`${origin}/_app/remote/${ids[0]}/moveStage`, {
 		method: "POST",
 		headers: { ...headers, "content-type": "application/json" },
@@ -57,7 +64,7 @@ try {
 		}),
 	});
 	assert.equal(command.status, 401);
-	assert.match((await command.json()).message, /verified identity/);
+	assert.match(((await command.json()) as { message: string }).message, /verified identity/);
 	const form = new FormData();
 	form.set(`requestId/${ids[0]}/createClient`, "production-form-denied");
 	form.set(`id/${ids[0]}/createClient`, "production-client");
@@ -84,5 +91,5 @@ try {
 		"Production query, command, and form fail closed despite configured or forged demo identities.",
 	);
 } finally {
-	await server.stop();
+	await server.dispose();
 }

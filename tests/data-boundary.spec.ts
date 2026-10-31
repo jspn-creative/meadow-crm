@@ -25,7 +25,7 @@ test("direct remote form persists once and cross-origin query requests are denie
 	for (let retry = 0; retry < 2; retry++) {
 		const response = await request.post(binding.action, {
 			multipart: fields,
-			headers: { origin: "http://127.0.0.1:5180", accept: "text/html" },
+			headers: { origin: new URL(page.url()).origin, accept: "text/html" },
 		});
 		expect(response.status()).toBe(200);
 	}
@@ -39,7 +39,7 @@ test("direct remote form persists once and cross-origin query requests are denie
 	}, id);
 	expect(rows).toHaveLength(1);
 	expect(rows[0].name).toBe("Boundary test client");
-	const remoteId = new URL(binding.action, "http://127.0.0.1:5180").searchParams.get("/remote")!;
+	const remoteId = new URL(binding.action, page.url()).searchParams.get("/remote")!;
 	const hash = remoteId.split("/")[0];
 	const response = await request.get(
 		`/_app/remote/${hash}/getWorkspace?payload=${btoa(stringify({ archived: false }))

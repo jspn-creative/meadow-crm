@@ -6,72 +6,87 @@ Checkpoint for the first release. [SPEC.md](./SPEC.md) is product direction, wit
 
 Deploy the first release as soon as possible so the business can use Meadow CRM and give feedback. The UI is largely built and its visuals are settled: work is function, security, data, and deployment, not redesign.
 
-## Status (verified 2026-10-30 by code audit, not runtime)
+## Status (2026-10-30; local runtime verified, production acceptance pending)
 
 - Done and persisted in D1: clients (people, addresses, tags, consent, history), opportunities, the board with stages, pins, and archive, per-stage checklists with per-item edits, web-link and record references, revision guards on saves, bookmarks in the browser, themes, the Glossary.
-- Tasks persist in D1 with a required date and optional due date (migration `0007_task_dates.sql`); checklist item dates are hidden in the release (`src/lib/data/release.ts`). Done 2026-10-30.
+- Tasks persist in D1 with a required date and optional due date, defined in the Drizzle schema and included in Alchemy's generated migrations; checklist item dates are hidden in the release (`src/lib/data/release.ts`). Done 2026-10-30.
 - The release dashboard shows Today's Tasks, Upcoming, and Recent activity from real records and history. Done 2026-10-30.
 - Better Auth login uses persisted D1 sessions for the two business users, fixed business identities, a disabled public signup, logout, and account-menu password change. `scripts/auth-users.ts` creates accounts and resets forgotten passwords by hand; resets revoke existing sessions. Real login is the local default; the loopback identity stub requires explicit `LOCAL_IDENTITY_STUB=true` and is ignored in production.
 - The support admin account uses the same account script with `role: "support-admin"`. Better Auth's admin plugin issues one-hour impersonation sessions; every CRM request verifies their binding to a live support-admin session. Before choosing a business user, after exiting, and after expiry, no CRM data is available. History records both identities; switching and exiting revoke the previous impersonated session and clear document caches, including other tabs.
 - Registry is a simple list with name search and a client side panel; usable for the release.
 - Settings is development-only; production returns 404 and the account menu omits it.
-- `vp run db:import-clients` dry-runs by default and applies to local D1 with `-- --apply`; it is local-only until Backlog 8.
-- `wrangler.jsonc` is local-only: placeholder D1 ID, `remote: false`, `LOCAL_DEMO_USER`.
+- `vp run db:import-clients` dry-runs by default; `-- --remote --apply` atomically replaces all `import-client-*` clients and their history, saving a private local backup first. `-- --remote --verify` compares every mapped field and aggregate counts. Both remote operations require the JSPN account ID and retained Meadow D1 ID in the environment, plus the existing production-approval flag; credentials stay in ignored `.env`.
+- Deployment now follows Alchemy's documented path; see [the deployment audit](./research/alchemy-deployment-audit.md). `alchemy.run.ts` uses Website.SvelteKit and Drizzle.Schema, with no Wrangler configuration or application migration runner. Local scripts share the simulator database through Alchemy's public runtime platform proxy; local runtime acceptance is recorded below.
 
 ## Cloudflare resources (read-only check, account JSPN, 2026-10-30)
 
-- No Meadow D1 database or R2 bucket exists, so production starts from nothing.
-- One Worker named `meadow` exists (created 2026-10-10, never updated). The developer confirmed on 2026-10-30 that it was a prototype and production may take over its name.
+- Worker `meadow` is deployed at `https://meadow.jspn.workers.dev`; Alchemy adopted the prototype.
+- D1 `meadow-db`, ID `f3dcaa0f-97ad-4403-b32d-a2164027c64d`, is provisioned with `RemovalPolicy.retain`. Read-only `cf` inspection confirms `__alchemy_migrations` exists and `meadow_migrations` does not.
+- Alchemy automatically bootstrapped the shared `alchemy-state-store`, within the authorized boundary; never destroy it.
 - Other Workers and D1 databases on the account belong to unrelated projects and are out of scope.
 
 ## Gates
 
-- [x] OpenSpec replaced by SPEC, BACKLOG, and this checkpoint (2026-10-30).
-- [x] First release scope confirmed by the developer in this session (2026-10-30), recorded in SPEC.
-- [x] Backlog 1-2: tasks and release dashboard implemented; `vp run check` passes (2026-10-30; DB tests, Playwright shell suite, and build also pass).
-- [x] Backlog 3: login implemented and every route and remote function refuses unauthenticated requests; `vp run check`, DB tests, Playwright shell suite, build, prebuilt production denial smoke, and local browser login/password change/logout pass (2026-10-30, verified by the orchestrator).
-- [x] Backlog 3a: support admin and impersonation implemented; check, build, prebuilt production forgery smoke, and local browser selection, both identities in history, switch/replay denial, exit, expiry, and business-user denial pass (2026-10-30). Verification tasks were deleted; no Cloudflare changes.
-- [x] Backlog 4-5: release tidy done; import rehearsed locally with counts reported to the developer (2026-10-30: Settings hidden in production; 827 of 840 clients import, 3 test records and 10 nameless skipped; unmapped columns go to the read-only Imported data field).
-- [x] Backlog 6: release checks pass (check, relevant tests, build, short phone and desktop pass). 2026-10-30: check, DB tests, Playwright shell suite, build, and production smoke pass; phone and desktop pass of dashboard, tasks, Pipeline, and Registry done with the dev identity. Login on a real URL is confirmed in Backlog 8, because local login is pinned to `localhost:5173`. The business timezone was corrected to America/Los_Angeles.
-- [ ] Backlog 7: Alchemy go or no-go decided by the developer from the spike's evidence.
-- [ ] Developer answers "lgtm ready to deploy?" with approval.
+- [x] Backlog 1-6 done and verified (2026-10-30): tasks, release dashboard, login, support admin and impersonation, release tidy, local import rehearsal (827 of 840 clients), and release checks.
+- [x] Backlog 7, Alchemy adopted (2026-10-30). The developer chose Alchemy's documented path in [the audit](./research/alchemy-deployment-audit.md#direction).
+- [x] Rework onto that path (2026-10-30): Alchemy dev at `http://localhost:1337` passed real browser login with a temporary local account, Dashboard/Pipeline/Registry rendering, Registry form persistence, opportunity creation and stage movement, checklist progress, and task creation/completion/deletion through authenticated app remotes. Temporary account and records removed. Drizzle.Schema owns `./migrations`; CHECK constraints remain, and the final legacy checklist-progress source invariant is enforced in application SQL. The pinned beta.84 runtime patch repairs nested D1 statement transport rather than introducing a second migrator.
 - [ ] Backlog 8: deployed; login confirmed on the production URL; import counts match the rehearsal.
 
-## Approval boundaries
+## Production checkpoint (2026-10-30)
 
-- Ask the developer before: anything that changes Cloudflare (creating, deleting, or deploying resources, secrets, DNS), running the import against production, adding or changing automated tests, changing scope beyond BACKLOG's First release, or choosing a product behavior SPEC does not settle.
-- "lgtm ready to deploy?" is the whole release gate. Ask it once Backlog 1-7 are done, with a few lines of evidence: checks run and their results, the Alchemy decision, and the production URL and resource names that will be created.
+- Deployment succeeded through approved environment variables and `vp run deploy -- --stage prod`; the wrapper passes Alchemy `--yes` while retaining the explicit production-approval guard. Alchemy generated the fresh migration baseline, provisioned the retained D1, and adopted `meadow`.
+- `vp run db:seed-remote` succeeded. A read-only `cf` query confirmed the business timezone is `America/Los_Angeles`. Public `/login` renders the expected login view; this is not authenticated production acceptance.
+- Account emails were supplied and the developer was given protected-stdin account commands; account creation was not independently verified. Production client import completed, and separate `--verify` readback matched 827 clients, 846 people, 811 emails, 795 phones, 103 addresses, and 827 import history rows. The first import attempt timed out after 134 clients; the atomic, idempotent retry completed without duplicating clients. Authenticated production acceptance, including impersonation, remains pending; the final gate stays unchecked.
+
+## Corrected client import (2026-10-30)
+
+- The developer authorized deleting and replacing all imported clients/history, discarding app edits to them, and delegated duplicate, legacy-field, and lead-source mapping decisions. SPEC's Getting data in section records the corrected policy. No schema, application UI, deployment, automated tests, commit, or unrelated records were changed by this correction.
+- A read-only Python audit outside the repository reproduced 929 CSV rows, 840 source rows, 827 previously imported clients, 21 combined couple names, four numeric-only names (173, 462, 467, 815), 15 duplicate groups covering 31 clients (six shared-phone groups), 41 lowercase names, five uppercase names, and 83 first-name-only names. Only aggregates, comparison flags, and source-row IDs were printed; no client data was sent to subagents.
+- All 15 duplicate groups remain separate, with their source-row IDs and matching evidence flagged in Imported data; shared names or phones alone do not establish one client. Numeric-only names remain unchanged and flagged because blank names violate client/person CHECK constraints. Source row 815's misplaced phone is now a real phone, and its junk address is gone. First-name-only names remain without invented surnames.
+- Client names retain the full couple name, both people inherit a shared surname when supplied, and four combined names without the old couple flag now split too. The result holds 23 clients with two people. Names use conservative case normalization; secondary mobile/home numbers, second emails, and named-spouse contact details use real labeled fields. Nineteen relay-email fields are retained in Imported data rather than used for sending. Legacy status and hashtags remain Imported data; lead sources use the existing app vocabulary.
+- The first apply stopped before D1 access because account/database IDs were absent from the environment. With the known production IDs supplied, the single transactional replacement succeeded, then an independent `--remote --verify` passed every mapped-field comparison and matched **827 clients, 850 people, 814 emails, 802 phones, 102 addresses, and 827 import history rows**. Three test records and ten nameless source rows remain skipped. All imported clients retain `import-client-<source_row>` IDs, Source row metadata, and exactly one deterministic import history row. A mode-0600 pre-replacement backup remains in a private local temporary directory, outside the repository.
+- Additional read-only production checks confirmed zero noncanonical lead sources, all four numeric names flagged, row 815 with one phone and zero addresses, all 31 possible duplicate clients flagged, zero relay sending emails, zero clients with multiple/missing history rows, and zero foreign-key violations.
+- Follow-up email normalization (2026-10-30): atomically lowercased 84 person emails and two retained relay-email fields across 86 production clients, with a private pre-write backup and client revision increments to reject stale saves. No client re-import, app-edit loss, login identity changes, or extra history rows. Readback confirmed zero mixed-case email fields. The importer and server save validation now normalize emails too; the save-validation change remains local until deployment, which was not performed as part of this data-only correction. Svelte checking and focused strict TypeScript checking passed.
+- `vp run check` passed with zero errors and warnings; the importer and name helper also passed focused strict TypeScript checking with explicit Node types. No test suite was run. Beam Free failed twice on quota; a paid default-model subagent wrote only the generic casing helper, and the user-requested OpenRouter Nemotron 3.5 Super VL (free) completed a data-free review. Authenticated production UI acceptance remains separate and pending.
+
+## Live development checkpoint
+
+- The developer explicitly requested localhost connected to the live production D1, not a snapshot or clone, so manual cleanup affects production. `vp run dev:live` now runs at `http://localhost:1337` using production accounts. The separate `alchemy.live.ts` references Meadow's retained production database through Alchemy's native resource reference without declaring a database, migrations, seeds, or imports. Read-only startup preflight verified the database identity and 827 clients; login returns 200 and Registry requires authentication. Authenticated localhost acceptance awaits developer login; `vp run check` passed with zero errors and warnings.
+- Ordinary dev, tests, and local operational scripts remain isolated; never use the live-connected server for automated tests or fictional seeding. No data cleanup was performed. Sanitization means identifying and correcting real data-quality issues after improving visibility, not automatically masking or replacing imported data.
+- The developer approved the parallel usability batch, excluding data cleanup and extra generic backlog items. Nemotron 3.5 Super VL (free) implemented Registry server pagination/search/filter/sort with URL state and existing table primitives, restored the login shell transition with identity-safe full navigation, and added four real dashboard scorecards (Clients, Today's Tasks, Overdue tasks, Upcoming). The opportunity-count filter remains deferred under SPEC's explicit question about counting archived opportunities. The final combined `vp run check` passed with zero errors and warnings. Changes remain uncommitted and undeployed; no production records were changed by this batch. Authenticated rendering, measured Registry performance, phone layout, and actual login motion remain pending because no authenticated browser session was available. The Registry editor still loads the broad workspace snapshot, so pagination alone is not evidence that all latency is resolved. The separate coordination sheet was redundant with this checkpoint and the three module plans and has been removed.
+- Login diagnosis: the developer confirmed the support admin password works on production and on the live-connected localhost server. The reported failure came from a separate bare `vp dev` server, which has no Alchemy database or auth bindings. Development now reports missing database bindings as a setup error rather than displaying a login form that cannot work. Use `vp run dev:live` for production accounts/data; `vp run dev` remains isolated with separate local accounts. Read-only inspection confirmed all three production accounts have credential records and are unbanned; it did not verify all three passwords or impersonation.
+
+## Integration evidence (2026-10-30)
+
+- Risk 1, Vite+ compatibility: Website.SvelteKit ran locally with real bindings and authenticated app actions; `vp run check` reported zero errors and warnings, and Alchemy's adapter/workerd build produced 65 server modules. Plain `vp build` was not used as adapter proof.
+- Risk 2, SQL invariants: CHECK constraints remain in the schema. The final legacy checklist-progress source predicate, without the obsolete `customized` condition, is enforced in application SQL; the other progress insert copies to a new local item on the same checklist. All 29 restored DB tests passed against generated SQL and isolated Alchemy bindings. No second production migrator remains.
+- Risk 3, non-interactive generation: installed provider code fails ambiguous rename/data-loss decisions with drizzle-kit's `missing_hints` exit 2 rather than guessing. The fresh production baseline generated successfully; no ambiguous rename was exercised. Deployment-plan approval required `--yes`, separately from schema decisions.
+- Risk 4, state: dev uses `Alchemy.localState()` and production uses `Cloudflare.state()`. Local runs used simulator storage; production's automatic shared state-store bootstrap succeeded within the approved boundary.
+- Beta.84 runtime risk solution: a pinned package patch repairs recursive encoding and decoding of pending statement chains inside arrays and objects, which otherwise breaks native `D1.batch()` in Website dev and operational scripts. It preserves transactions and Alchemy's migration ownership; remove only after validating an upstream fix. The ported isolated binding and prebuilt production-denial smoke checks passed. See [the audit's local proof](./research/alchemy-deployment-audit.md#local-integration-proof-2026-10-30) for implementation evidence.
+- The intended focused Playwright command unexpectedly expanded to the full suite because a literal `--` was forwarded: 40 passed, 34 skipped. This was an unintended verification-scope expansion, not a claim that skipped coverage passed. It used fictional local fixtures, not the real client CSV.
+- Paid integration repair was used after Beam Free failed the same bounded task twice and its free quota was exhausted, as Delegation permits. No commit or push was made.
+
+## Boundaries
+
+- Nobody depends on production yet. Deploying, redeploying, seeding, creating accounts, importing client data, and replacing the prototype `meadow` resources need no separate approval; do them as part of the work and report results. Never touch other projects' Cloudflare resources or destroy the shared `alchemy-state-store`.
+- Ask the developer only for what an agent cannot supply: the three account emails and passwords (typed by the developer, never through chat), or a product behavior SPEC does not settle.
 - The developer authorized on 2026-10-30 one commit per completed backlog item, at most, after commit preparation checks. Never push.
 - The developer authorized on 2026-10-30 updating or deleting existing automated tests that a change breaks or that are low-value; writing new tests still needs a request.
-- Security and data safety are not waived by the light gate: no public signup, login on every request, secrets only as Worker secrets, no client data in logs, and the production D1 protected from deletion by tooling.
+- Security basics stay: no public signup, login on every request, secrets bound through `Config.Redacted`, no secrets, state, or client data in logs, and the production D1 retained.
 - `docs/client-data.csv` holds real client data and is tracked in git. Do not copy it into build output, logs, or prompts; tell the developer before any push to a shared remote.
 
-## Alchemy
+## Deploy
 
-The developer wants Alchemy adopted as the last step before deploying, while production resources do not yet exist and can still be recreated freely. Evidence from 2026-10-30 research:
-
-- Alchemy is v2 beta (`2.0.0-beta.84`, 2026-10-24) and its README expects breaking changes. Pin an exact version.
-- `Cloudflare.Website.SvelteKit` loads `vite.config.ts` and injects its own adapter during its own build; no documented way to deploy prebuilt output or to make `vp build` its build command. Compatibility with the `vite-plus-core` override and `@sveltejs/adapter-cloudflare` 8 is undocumented.
-- State lives in `.alchemy/<app>/<stage>/` by default (committable) or in a Cloudflare state store. Removing a resource from code or running destroy deletes it unless it has a retain policy.
-- `Cloudflare.D1.Database` applies numbered SQL migrations from a directory, tracks them in `__alchemy_migrations`, and is documented to adopt Drizzle and Wrangler history; confirm `drizzle/` naming fits.
-- Worker secrets use `Config.Redacted`; `ALCHEMY_PASSWORD` encrypts secrets in state and is separate from Worker secrets. OAuth or `CLOUDFLARE_API_TOKEN` authenticate.
-
-The developer approved the spike on 2026-10-30: a temporary `spike`-suffixed Worker, D1, and Worker secret on account JSPN with fictional data only, destroyed afterwards. Spike on a non-production stage, timeboxed to two focused attempts. Go only if all hold:
-
-1. Alchemy builds and deploys this app with the Vite+ override in place, and `vp dev`, `vp build`, and `vp run check` still work unchanged locally.
-2. A stage D1 is created and `drizzle/` migrations apply in order.
-3. A Worker secret reaches the app, and login works on the stage URL.
-4. The production D1 is declared with a retain policy, and state storage is chosen (committed `.alchemy/` or a remote store) and recorded.
-5. The stage is destroyed afterwards and nothing outside it changed.
-
-On no-go, stop and bring the evidence to the developer; do not fall back silently. The alternative is a production config for the adapter plus `cf deploy --prebuilt`.
-
-On go, AGENTS.md's Cloudflare section needs revising in the same change: Alchemy owns provisioning and deploys and its build path is the one exception to "`vp` owns build" for deployment only; `cf` stays for read-only inspection; `wrangler.jsonc` stays for local D1 development unless the spike proves Alchemy's dev path works with Vite+; state location, the retain rule for production data, and `ALCHEMY_PASSWORD` handling are recorded.
+1. Read-only `cf` check of the account, then `alchemy deploy --stage prod` through the project's deploy script. If it fails, fix the cause and rerun; ask only if the fix needs a new credential or permission.
+2. Seed defaults and confirm the business timezone is America/Los_Angeles.
+3. Ask for the three account emails, then create the accounts with the developer typing passwords in their own terminal.
+4. Run the client import and its `--verify` readback; the corrected mapping expects 827 clients, 850 people, 814 emails, 802 phones, 102 addresses, and 827 import history rows. Apply replaces imported clients and discards their app edits; do not rerun it as an acceptance check.
+5. Log in on the production URL, check impersonation and a few imported clients, record the result here, and stop. No CI, snapshots, or token changes.
 
 ## Delegation
 
-The orchestrating session keeps cross-item decisions and final verification. Use GPT-6 Luna (`openai/gpt-6-luna`) for scouting and mechanical work with objective acceptance, such as the release tidy and the import script's field mapping; GPT-6.1 Sol (`openai/gpt-6.1-sol`) for bounded difficult work, such as the tasks data layer, login and route protection, and the Alchemy spike. Do not parallelize items that touch `schema.ts`, `data.ts`, or `crm.remote.ts`.
+Default every subagent to Beam Free (`opencode/beam-free`): docs lookups, scouting, code edits, mechanical refactors, and running checks. The orchestrating session plans, reviews diffs, and makes cross-item decisions; it hands large docs and broad file reads to a Beam Free subagent that returns only the relevant excerpt, rather than reading them itself. Use a paid model only after Beam Free fails the same bounded task twice, and say so in the report. Do not parallelize items that touch `schema.ts`, `data.ts`, or `crm.remote.ts`.
 
 ## Next
 
-Orchestration session running Backlog 1-8, through deployment and not beyond. Next: the approved Alchemy spike (Backlog 7). The first attempt stopped on a model usage limit before creating any Cloudflare resource; its uncommitted `alchemy.run.ts`, `.alchemy/`, and `package.json`/`bun.lock` changes remain.
+The developer chose live production as the current `vp dev` default: the shortcut delegates to `vp run dev:live` at `http://localhost:1337`, using the confirmed working production login. `vp run dev` and automated tests remain isolated. Complete authenticated production acceptance, including support admin impersonation, before checking Backlog 8. Then review the implemented usability changes against [Registry usability](./plans/registry-usability.md), [dashboard scorecards](./plans/dashboard-scorecards.md), and [login transition](./plans/login-transition.md): combined Registry search/tag/lead-source/archive filters, sort, paging, URL navigation, column visibility, client panel links, phone width and relevant sidebar transitions; scorecard values against the existing widgets; actual successful login motion with normal/reduced motion. These remain acceptance tasks, not established by static checks. The live server writes to production; never use it for automated tests. No cleanup, deployment, commit, or further backlog work is queued automatically. The archived-opportunity counting decision and any measured need for a lazy client-detail query remain separate from this acceptance.

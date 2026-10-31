@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { getPlatformProxy } from "wrangler";
+import { getPlatformProxy } from "@alchemy.run/cloudflare-runtime/core/platform-proxy";
+import { D1 } from "@alchemy.run/cloudflare-runtime/core/bindings";
 import type { D1Database } from "@cloudflare/workers-types";
 
-// This uses the adapter's local binding API, never the Wrangler CLI or a remote database.
+// Isolated Alchemy simulator binding only; no application state, migration runner, or Cloudflare account.
 const proxy = await getPlatformProxy<{ DB: D1Database }>({
-	configPath: "wrangler.jsonc",
+	bindings: [D1.local({ binding: "DB", id: crypto.randomUUID() })],
 	persist: false,
 });
 try {

@@ -1,29 +1,24 @@
 import { afterAll, beforeAll, expect, test } from "vite-plus/test";
-import { getPlatformProxy } from "wrangler";
+import { createTestDatabase } from "./test-database.ts";
 import type { D1Database } from "@cloudflare/workers-types";
 import { drizzle } from "drizzle-orm/d1";
-import { readMigrations } from "../../../../scripts/migrations.ts";
-import { migrate } from "./migrate.ts";
+import { createDataService, DataConflict } from "../data.ts";
 import { clients, opportunities } from "./schema.ts";
 
-let proxy: Awaited<ReturnType<typeof getPlatformProxy<{ DB: D1Database }>>>;
+let proxy: Awaited<ReturnType<typeof createTestDatabase>>;
 let db: D1Database;
 const now = "2026-10-13T12:00:00.000Z";
 
 beforeAll(async () => {
-	proxy = await getPlatformProxy<{ DB: D1Database }>({
-		configPath: "wrangler.jsonc",
-		persist: false,
-	});
+	proxy = await createTestDatabase();
 	db = proxy.env.DB;
-	await migrate(db, await readMigrations());
 }, 30_000);
 
 afterAll(async () => {
 	await proxy?.dispose();
 });
 
-test("fresh and repeated local migrations retain records and have no broken foreign keys", async () => {
+test("generated migrations create the schema and have no broken foreign keys", async () => {
 	const orm = drizzle(db);
 	await orm
 		.insert(clients)
@@ -37,11 +32,6 @@ test("fresh and repeated local migrations retain records and have no broken fore
 		createdAt: now,
 		updatedAt: now,
 	});
-	const migrations = await readMigrations();
-	await migrate(db, migrations);
-	expect(
-		(await db.prepare("SELECT count(*) AS n FROM meadow_migrations").first<{ n: number }>())?.n,
-	).toBe(migrations.length);
 	expect(
 		(await db.prepare("SELECT budget_cents FROM opportunities WHERE id = 'opportunity-a'").first())
 			?.budget_cents,
@@ -103,14 +93,26 @@ test("visited-stage sources, stable item IDs, overrides, and progress cannot cro
 			.bind(now, now)
 			.run(),
 	).rejects.toThrow();
-	const progress = (item: string) =>
-		db
-			.prepare(
-				"INSERT INTO checklist_progress (checklist_id, item_id, due_date, created_at, updated_at) VALUES ('checklist-a', ?, '2026-10-12', ?, ?)",
-			)
-			.bind(item, now, now)
-			.run();
-	await expect(progress("template-b-item")).rejects.toThrow(/stage source/);
+	const service = createDataService(db, {
+		actorUserId: "business-realtor",
+		effectiveUserId: "business-realtor",
+		role: "realtor",
+	});
+	const progress = async (item: string) => {
+		const list = await db
+			.prepare("SELECT revision FROM stage_checklists WHERE id = 'checklist-a'")
+			.first<{ revision: number }>();
+		await service.saveChecklistStep({
+			requestId: crypto.randomUUID(),
+			checklistId: "checklist-a",
+			revision: list!.revision,
+			itemId: item,
+			itemRevision: 1,
+			completed: false,
+			dueDate: "2026-10-12",
+		});
+	};
+	await expect(progress("template-b-item")).rejects.toBeInstanceOf(DataConflict);
 	await progress("template-a-item");
 	await db
 		.prepare(
@@ -141,7 +143,11 @@ test("history requires both identities and tasks reject assistant assignment or 
 		)
 		.bind(now)
 		.run();
-	expect(await db.prepare("SELECT actor_user_id, effective_user_id FROM history").first()).toEqual({
+	expect(
+		await db
+			.prepare("SELECT actor_user_id, effective_user_id FROM history WHERE id = 'history-a'")
+			.first(),
+	).toEqual({
 		actor_user_id: "support-admin",
 		effective_user_id: "business-assistant",
 	});
@@ -149,7 +155,7 @@ test("history requires both identities and tasks reject assistant assignment or 
 	await expect(
 		db
 			.prepare(
-				"INSERT INTO tasks (id, title, assigned_user_id, assigned_role, created_at, updated_at) VALUES ('task-a', 'Task', 'assistant', 'assistant', ?, ?)",
+				"INSERT INTO tasks (id, title, assigned_user_id, assigned_role, date, created_at, updated_at) VALUES ('task-a', 'Task', 'assistant', 'assistant', '2026-10-13', ?, ?)",
 			)
 			.bind(now, now)
 			.run(),

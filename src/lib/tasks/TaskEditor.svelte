@@ -4,7 +4,6 @@
 	import { createTask, saveTask, completeTask, deleteTask, getWorkspace } from "#lib/crm.remote.js";
 	import type { Workspace } from "#lib/data/workspace.js";
 	import Select from "#lib/ui/Select.svelte";
-	import ImpersonationIndicator from "#lib/shell/ImpersonationIndicator.svelte";
 	type Task = Workspace["tasks"][number];
 	let { task, workspace, remote, close }: { task?: Task; workspace: Workspace; remote: ReturnType<typeof getWorkspace>; close: () => void } = $props();
 	const heading = $props.id();
@@ -83,7 +82,6 @@
 		else close();
 	}}
 	onclose={close}>
-	<ImpersonationIndicator />
 	<header class="bg-canvas/95 border-hairline sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
 		<span class="text-muted text-sm">{task ? "Task" : "New task"}</span>
 		<button type="button" class="control ml-auto" data-variant="ghost" data-size="sm" data-icon aria-label="Close task" disabled={pending} onclick={close}><X size={17} aria-hidden="true" /></button>

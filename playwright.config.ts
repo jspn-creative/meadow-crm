@@ -2,8 +2,9 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
 	testDir: "./tests",
+	globalSetup: "./scripts/playwright-setup.ts",
 	fullyParallel: true,
-	use: { baseURL: "http://127.0.0.1:5180", trace: "retain-on-failure" },
+	use: { baseURL: "http://localhost:1337", trace: "retain-on-failure" },
 	projects: [
 		{
 			name: "desktop",
@@ -20,10 +21,9 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command:
-			"vp run db:migrate && vp run db:seed && vp run db:seed-fictional -- --today=2026-10-13 && vp dev --host 127.0.0.1 --port 5180 --strictPort",
-		env: { MEADOW_LOCAL_STATE_DIR: ".wrangler/test-shell", LOCAL_IDENTITY_STUB: "true" },
-		url: "http://127.0.0.1:5180",
+		command: "vp exec -- alchemy dev --stage dev --env-file .dev.vars",
+		env: { LOCAL_IDENTITY_STUB: "true" },
+		url: "http://localhost:1337",
 		reuseExistingServer: false,
 	},
 });

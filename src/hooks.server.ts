@@ -1,5 +1,4 @@
 import { dev } from "$app/env";
-import { env } from "cloudflare:workers";
 import type { Handle } from "@sveltejs/kit/hooks";
 import { createDataService } from "#lib/server/data.js";
 import { resolveLocalIdentity } from "#lib/server/identity.js";
@@ -12,6 +11,7 @@ import {
 } from "#lib/server/support.js";
 
 export const handle: Handle = async ({ event, resolve }) => {
+	const env = event.platform?.env ?? ({} as Cloudflare.Env);
 	event.locals.requestOrigin = event.url.origin;
 	const auth = createAuth(env, dev);
 	const path = event.url.pathname;
@@ -19,6 +19,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		response.headers.set("cache-control", "private, no-store");
 		return response;
 	};
+	if (dev && !env.DB)
+		return noStore(
+			new Response(
+				"Meadow's Alchemy database bindings are unavailable. Restart with vp dev for live production accounts and data (all app writes affect production), or vp run dev for an isolated local database. Both servers use http://localhost:1337; run only one at a time.",
+				{ status: 503, headers: { "content-type": "text/plain; charset=utf-8" } },
+			),
+		);
 	const stub = resolveLocalIdentity(
 		dev,
 		event.url,
@@ -109,6 +116,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			try {
 				const body = await request.json();
 				request = new Request(request, {
+					method: "POST",
 					body: JSON.stringify({ ...body, revokeOtherSessions: true }),
 				});
 			} catch {

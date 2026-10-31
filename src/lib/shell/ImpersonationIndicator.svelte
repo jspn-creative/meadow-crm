@@ -1,29 +1,25 @@
 <script lang="ts">
-	import { replaceSession } from "./session-navigation.js";
-	import { page } from "$app/state";
-	let { role }: { role?: "realtor" | "assistant" } = $props();
-	let effectiveRole = $derived(role ?? page.data.support?.effectiveUser);
+	import { exitImpersonation } from "./session-navigation.js";
+	let { role }: { role: "realtor" | "assistant" } = $props();
 	let pending = $state(false);
 	let message = $state("");
 	async function exit() {
 		if (pending) return;
 		pending = true;
-		try {
-			const response = await fetch("/api/support/exit", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
-			if (!response.ok) throw new Error();
-			replaceSession("/support");
-		} catch {
-			message = "Unable to exit impersonation. Try again.";
+		message = "";
+		if (!(await exitImpersonation())) {
+			message = "Unable to exit. Try again.";
 			pending = false;
 		}
 	}
 </script>
 
-{#if effectiveRole}
-	<aside aria-label="Impersonation" class="surface sticky top-0 z-30 flex flex-wrap items-center gap-3 px-5 py-3 sm:px-8">
-		<p class="min-w-0 flex-1 text-sm">Support admin · Impersonating {effectiveRole === "realtor" ? "Realtor" : "Assistant"}</p>
-		<button class="control" disabled={pending} onclick={exit}>Switch business user</button>
-		<button class="control" disabled={pending} onclick={exit}>Exit impersonation</button>
-		{#if message}<p role="alert" class="text-urgent w-full text-sm">{message}</p>{/if}
-	</aside>
-{/if}
+<!-- A thin toned edge that is always visible while impersonating; its actions surface on hover or keyboard focus, and the account menu carries them for touch. -->
+<aside aria-label="Impersonation" class="impersonation-strip group fixed inset-x-0 top-0 z-40 flex h-(--impersonation-strip) items-center justify-center gap-3 px-4 text-xs font-medium [--action-color:var(--color-white)]">
+	<p class="truncate">Impersonating the {role === "realtor" ? "Realtor" : "Assistant"} <span class="opacity-75">· Support admin</span></p>
+	{#if message}<p role="alert" class="shrink-0">{message}</p>{/if}
+	<div class="flex shrink-0 items-center gap-3 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100 motion-reduce:transition-none pointer-coarse:hidden">
+		<button type="button" class="text-action text-xs" disabled={pending} onclick={exit}>Switch user</button>
+		<button type="button" class="text-action text-xs" disabled={pending} onclick={exit}>Exit</button>
+	</div>
+</aside>

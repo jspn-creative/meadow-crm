@@ -2,9 +2,9 @@
 	import { afterNavigate } from "$app/navigation";
 	import { onMount } from "svelte";
 	import { page } from "$app/state";
-	import { replaceSession } from "./session-navigation.js";
+	import { exitImpersonation, replaceSession } from "./session-navigation.js";
 	import { dev } from "$app/env";
-	import { BookOpen, LogOut, KeyRound, Settings2 } from "@lucide/svelte";
+	import { BookOpen, LogOut, KeyRound, Settings2, UserRoundCog, UserRoundX } from "@lucide/svelte";
 	import { themes, chooseTheme } from "./themes.js";
 	let theme = $state("pop");
 	let { compact = false, accountOnly = false }: { compact?: boolean; accountOnly?: boolean } = $props();
@@ -13,6 +13,18 @@
 	let changingPassword = $state(false);
 	let pending = $state(false);
 	let message = $state("");
+	// While impersonating, the chip shows who the support admin is acting as, in the impersonation tone, and its menu carries switching and exiting.
+	let impersonating = $derived(page.data.support?.effectiveUser as "realtor" | "assistant" | null | undefined);
+	let roleLabel = $derived(impersonating === "realtor" ? "Realtor" : "Assistant");
+	async function leaveImpersonation() {
+		if (pending) return;
+		pending = true;
+		message = "";
+		if (!(await exitImpersonation())) {
+			message = "Unable to exit impersonation. Try again.";
+			pending = false;
+		}
+	}
 	async function logout() {
 		pending = true;
 		message = "";
@@ -71,10 +83,22 @@
 
 <div bind:this={root} class="user-chip" data-open={open} data-compact={compact}>
 	<button type="button" class="control w-full justify-start text-left" disabled={!ready} aria-label="Workspace account" aria-expanded={open} onclick={() => (open = !open)}>
-		<span class="bg-success-soft text-success flex size-8 shrink-0 items-center justify-center rounded-full"><span class="text-xs font-semibold" aria-hidden="true">ML</span></span>
-		<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{accountOnly ? "Support admin" : "Meadow Lane"}</span><span class="text-2xs text-muted block">{accountOnly ? "Choose a business user" : "Shared workspace"}</span></span>
+		{#if impersonating}
+			<span class="bg-pending-soft text-pending ring-pending flex size-8 shrink-0 items-center justify-center rounded-full ring-2"><UserRoundCog size={16} aria-hidden="true" /></span>
+			<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{roleLabel}</span><span class="text-2xs text-pending block truncate">via Support admin</span></span>
+		{:else}
+			<span class="bg-success-soft text-success flex size-8 shrink-0 items-center justify-center rounded-full"><span class="text-xs font-semibold" aria-hidden="true">ML</span></span>
+			<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{accountOnly ? "Support admin" : "Meadow Lane"}</span><span class="text-2xs text-muted block">{accountOnly ? "Choose a business user" : "Shared workspace"}</span></span>
+		{/if}
 	</button>
 	<div class="account-menu surface surface-floating menu max-h-[70dvh] overflow-y-auto" inert={!open}>
+		{#if impersonating}
+			<div class="border-hairline mb-2 border-b pb-2">
+				<p class="text-pending px-2.5 pt-1 pb-1.5 text-xs font-medium">Impersonating the {roleLabel}</p>
+				<button type="button" class="menu-item" disabled={pending} onclick={leaveImpersonation}><UserRoundCog size={16} aria-hidden="true" />Switch business user</button>
+				<button type="button" class="menu-item" disabled={pending} onclick={leaveImpersonation}><UserRoundX size={16} aria-hidden="true" />Exit impersonation</button>
+			</div>
+		{/if}
 		{#if !accountOnly}
 			{#if dev}<a href="/settings" class="menu-item"><Settings2 size={16} aria-hidden="true" />Settings</a>{/if}
 			<a href="/glossary" class="menu-item"><BookOpen size={16} aria-hidden="true" />Glossary</a>

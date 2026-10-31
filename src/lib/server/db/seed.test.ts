@@ -1,24 +1,18 @@
 import { readFile } from "node:fs/promises";
 import { afterAll, beforeAll, expect, test } from "vite-plus/test";
-import { getPlatformProxy } from "wrangler";
+import { createTestDatabase } from "./test-database.ts";
 import type { D1Database } from "@cloudflare/workers-types";
-import { readMigrations } from "../../../../scripts/migrations.ts";
 import { resetFictional, seedFictional } from "../../../../scripts/fictional-seed.ts";
 import { defaultChecklists, defaultItemId } from "./defaults.ts";
-import { migrate } from "./migrate.ts";
 import { seedDefaults } from "./seed.ts";
 
-let proxy: Awaited<ReturnType<typeof getPlatformProxy<{ DB: D1Database }>>>;
+let proxy: Awaited<ReturnType<typeof createTestDatabase>>;
 let db: D1Database;
 const now = "2026-10-13T12:00:00.000Z";
 
 beforeAll(async () => {
-	proxy = await getPlatformProxy<{ DB: D1Database }>({
-		configPath: "wrangler.jsonc",
-		persist: false,
-	});
+	proxy = await createTestDatabase();
 	db = proxy.env.DB;
-	await migrate(db, await readMigrations());
 }, 30_000);
 afterAll(async () => {
 	await proxy?.dispose();

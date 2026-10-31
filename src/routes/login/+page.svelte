@@ -2,12 +2,14 @@
 	import { page } from "$app/state";
 	import { ArrowRight } from "@lucide/svelte";
 	import { onMount } from "svelte";
-	import { replaceSession } from "#lib/shell/session-navigation.js";
+	import { markLoginEntry, replaceSession } from "#lib/shell/session-navigation.js";
+	const supportsCrossDocViewTransition = typeof window !== "undefined" && "CSSViewTransitionRule" in window;
 	let ready = $state(false);
 	onMount(() => {
 		ready = true;
 	});
 	let pending = $state(false);
+	let exiting = $state(false);
 	let error = $state("");
 	function destination() {
 		const next = page.url.searchParams.get("next");
@@ -24,7 +26,12 @@
 		try {
 			const response = await fetch("/api/auth/sign-in/email", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: form.get("email"), password: form.get("password") }) });
 			if (!response.ok) throw new Error();
-			// A full navigation drops all previously cached workspace data.
+			// Mark the entrance for the CSS fallback (unsupported browsers) before navigating. Native cross-document view transitions handle the morph; otherwise the pre-navigation exit motion runs first so the form fades out before replaceSession. The failure path never reaches this, so no wait can hide a failed login.
+			markLoginEntry(destination());
+			if (!supportsCrossDocViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+				exiting = true;
+				await new Promise((resolve) => window.setTimeout(resolve, 300));
+			}
 			replaceSession(destination());
 		} catch {
 			error = "Unable to sign in. Check your email and password and try again.";
@@ -36,7 +43,7 @@
 <svelte:head><title>Login · Meadow Lane</title></svelte:head>
 
 <div class="flex min-h-[calc(100dvh-6rem)] items-center justify-center px-5 py-12 sm:px-8 lg:min-h-[calc(100dvh-1.5rem)] lg:px-10">
-	<form method="POST" class="w-full max-w-sm" onsubmit={signIn}>
+	<form method="POST" class={["w-full max-w-sm", exiting && "login-form-exit"]} onsubmit={signIn}>
 		<h2 class="font-display text-4xl tracking-tight">Welcome back.</h2>
 		<p class="text-muted mt-3">Open your shared workspace.</p>
 		<div class="mt-8"><label for="email" class="mb-2 block font-medium">Email</label><input id="email" name="email" type="email" autocomplete="username" class="field" required /></div>

@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { admin } from "better-auth/plugins";
-import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./auth-schema.js";
 import type { BusinessIdentity } from "./identity.js";
@@ -35,7 +35,7 @@ export function createAuth(env: Cloudflare.Env, development: boolean) {
 		baseURL: origin,
 		secret: env.BETTER_AUTH_SECRET,
 		trustedOrigins: [origin],
-		database: drizzleAdapter(drizzle(env.DB, { schema }), {
+		database: drizzleAdapter(drizzle(env.DB), {
 			provider: "sqlite",
 			schema,
 			transaction: false,

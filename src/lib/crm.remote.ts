@@ -22,6 +22,7 @@ import {
 	saveTaskInput,
 	completeTaskInput,
 	deleteTaskInput,
+	clientsQueryInput,
 } from "#lib/server/validation.js";
 
 function services() {
@@ -36,6 +37,7 @@ function services() {
 export const getWorkspace = query(workspaceInput, (input) => services().workspace(input));
 export const getIdentity = query(() => services().identity);
 export const getRecentActivity = query(() => services().recentActivity());
+export const getClients = query(clientsQueryInput, (input) => services().clients(input));
 
 export const createTask = command(createTaskInput, (input) => {
 	const data = services();
@@ -58,6 +60,7 @@ async function save(action: () => Promise<Record<string, unknown>>) {
 	try {
 		const result = await action();
 		await requested(getWorkspace, 2).refreshAll();
+		await requested(getClients, 2).refreshAll();
 		await getRecentActivity().refresh();
 		return result;
 	} catch (cause) {

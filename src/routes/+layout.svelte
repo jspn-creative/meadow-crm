@@ -9,7 +9,7 @@
 	import Motif from "#lib/shell/Motif.svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
 	import ImpersonationIndicator from "#lib/shell/ImpersonationIndicator.svelte";
-	import { identityChangeKey, replaceSession } from "#lib/shell/session-navigation.js";
+	import { identityChangeKey, loginEntryKey, replaceSession } from "#lib/shell/session-navigation.js";
 	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
 	import PipelineView from "#lib/pipeline/PipelineView.svelte";
 	import VariantHost from "#lib/dev/VariantHost.svelte";
@@ -41,9 +41,71 @@
 	$effect(() => {
 		if (dev) document.documentElement.dataset.material = material.value.toLowerCase();
 	});
+	// Cross-document view transitions are opt-in via the @view-transition CSS at-rule in layout.css; CSSViewTransitionRule (Exposed=Window) is the cross-document interface, so its presence is the correct signal to suppress the CSS entry fallback. document.startViewTransition only signals same-document support and is not used here.
+	const supportsCrossDocViewTransition = typeof window !== "undefined" && "CSSViewTransitionRule" in window;
 	let collapsed = $state(false);
 	let ready = $state(false);
-	let mobileScrolled = $state(false);
+	let loginEntrance = $state(false);
+
+	/**
+	 * Reads the one-shot login-entry marker without consuming it; the new
+	 * document consumes and clears it in onMount. Safe when storage is absent.
+	 */
+	function readLoginEntryMarker(): string | null {
+		try {
+			return sessionStorage.getItem(loginEntryKey) ?? null;
+		} catch {
+			return null;
+		}
+	}
+
+	// Skip cross-document view-transition screenshots of cached CRM data unless this document is /login about to navigate to the validated marker target. PageswapEvent is not in the Svelte window attribute set, so listen natively with cleanup instead of an unsupported svelte:window property.
+	function onPageSwap(event: Event) {
+		const swap = event as unknown as {
+			viewTransition?: { skipTransition(): void } | null;
+			activation?: { entry?: { url?: string } | null } | null;
+		};
+		const vt = swap?.viewTransition;
+		if (!vt) return;
+		const authorized = page.url.pathname === "/login" && !!readLoginEntryMarker();
+		let targetMatches = false;
+		if (authorized) {
+			const url = swap.activation?.entry?.url;
+			if (url) {
+				try {
+					const dest = new URL(url);
+					const marker = readLoginEntryMarker();
+					targetMatches = marker !== null && dest.pathname + dest.search + dest.hash === marker;
+				} catch {
+					targetMatches = false;
+				}
+			}
+		}
+		if (!authorized || !targetMatches) vt.skipTransition();
+	}
+
+	onMount(() => {
+		ready = true;
+		// Catch identity changes that happened before this document finished hydrating and attached its storage listener.
+		void verifySupportSession();
+		// Always clear the one-shot login-entry marker so it never replays on a reload or identity-change refresh. Only play the CSS entry fallback when actually arriving from login, not reduced motion, and cross-document view transitions are not handling the morph.
+		let marker = "";
+		try {
+			marker = sessionStorage.getItem(loginEntryKey) ?? "";
+		} catch {
+			/* Without storage the dashboard plays its normal load motion. */
+		}
+		try {
+			sessionStorage.removeItem(loginEntryKey);
+		} catch {
+			/* The marker is one-shot; a failed clear is harmless. */
+		}
+		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		const current = `${page.url.pathname}${page.url.search}${page.url.hash}`;
+		if (marker && marker === current && !isLogin && !reduced && !supportsCrossDocViewTransition) loginEntrance = true;
+		window.addEventListener("pageswap", onPageSwap);
+		return () => window.removeEventListener("pageswap", onPageSwap);
+	});
 	let bookmarkedOpportunity = $state<{ id: string } | null>(null);
 	function openOpportunity(id: string) {
 		// Each click is a fresh request, even when reopening the same opportunity.
@@ -59,6 +121,7 @@
 	const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 	const desktop = new MediaQuery("(min-width: 64rem)");
 	let sidebarCollapsed = $derived(desktop.current && collapsed);
+	let mobileScrolled = $state(false);
 	// The nav scrolls sideways below desktop, and vertically on desktop only for the style guide's longer list; the app's desktop nav never scrolls, so it skips the mask that would clip its focus rings.
 	const navFadeX = overflowFade({ axis: "x", fadePercent: 12 });
 	const navFadeY = overflowFade({ axis: "y", fadePercent: 12 });
@@ -68,6 +131,21 @@
 		ready = true;
 		// Catch identity changes that happened before this document finished hydrating and attached its storage listener.
 		void verifySupportSession();
+		// Always clear the one-shot login-entry marker so it never replays on a reload or identity-change refresh. Only play the CSS entry fallback when actually arriving from login, not reduced motion, and cross-document view transitions are not handling the morph.
+		let marker = "";
+		try {
+			marker = sessionStorage.getItem(loginEntryKey) ?? "";
+		} catch {
+			/* Without storage the dashboard plays its normal load motion. */
+		}
+		try {
+			sessionStorage.removeItem(loginEntryKey);
+		} catch {
+			/* The marker is one-shot; a failed clear is harmless. */
+		}
+		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		const current = `${page.url.pathname}${page.url.search}${page.url.hash}`;
+		if (marker && marker === current && !isLogin && !reduced && !supportsCrossDocViewTransition) loginEntrance = true;
 	});
 	afterNavigate(({ from, to }) => {
 		if (from && to && from.url.href !== to.url.href) {
@@ -122,7 +200,8 @@
 	{@render children()}
 {:else}
 	<a href="#workspace-main" class="control fixed top-3 left-3 z-50 -translate-y-24 focus:translate-y-0">Skip to content</a>
-	<div class="workspace" data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed}>
+	{#if data.support?.effectiveUser && !isLogin}<ImpersonationIndicator role={data.support.effectiveUser} />{/if}
+	<div class="workspace" data-impersonating={!!data.support?.effectiveUser && !isLogin} data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed} data-login-entrance={loginEntrance}>
 		<Motif />
 		<aside class="rail" aria-label={isLogin ? "Meadow Lane" : "Workspace navigation"}>
 			<div class="flex shrink-0 items-center justify-between gap-2">
@@ -205,7 +284,6 @@
 				if (scrollTop > 24) mobileScrolled = true;
 				else if (scrollTop <= 0) mobileScrolled = false;
 			}}>
-			{#if data.support?.effectiveUser}<ImpersonationIndicator role={data.support.effectiveUser} />{/if}
 			{#if !isLogin}
 				<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
 					<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
