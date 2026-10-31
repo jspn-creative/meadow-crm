@@ -881,6 +881,20 @@
 				<label class="text-muted flex min-h-9 items-center gap-2.5"><input type="checkbox" class="check" disabled />Disabled</label>
 				<label class="text-muted flex min-h-9 items-center gap-2.5"><input type="checkbox" class="check" disabled checked />Disabled</label>
 			</div>
+			<p class="text-muted mt-4 mb-2 text-xs">Selection and filters</p>
+			<div class="grid grid-cols-2 gap-3 text-sm">
+				<label class="flex min-h-9 items-center gap-2.5"><input type="checkbox" class="check" data-shape="box" />Unchecked</label>
+				<label class="flex min-h-9 items-center gap-2.5"><input type="checkbox" class="check" data-shape="box" checked />Checked</label>
+				<label class="flex min-h-9 items-center gap-2.5"
+					><input
+						type="checkbox"
+						class="check"
+						data-shape="box"
+						{@attach (node) => {
+							node.indeterminate = true;
+						}} />Part selected</label>
+				<label class="text-muted flex min-h-9 items-center gap-2.5"><input type="checkbox" class="check" data-shape="box" disabled checked />Disabled</label>
+			</div>
 		</div>
 		<div data-sg-panel class="border-hairline rounded-3xl border bg-white p-5">
 			{@render subheading("Check list", "Choosing clients in the opportunity editor. Adjacent chosen rows join into one block.")}

@@ -21,6 +21,8 @@
 	import { onMount } from "svelte";
 
 	let { children, data } = $props();
+	// Capture request state during component initialization on the server, before asynchronous children render. On the client this remains reactive across full navigations.
+	let routeUrl = $derived(page.url);
 	async function verifySupportSession() {
 		const expected = data.support?.sessionId;
 		if (!expected) return;
@@ -67,7 +69,7 @@
 		};
 		const vt = swap?.viewTransition;
 		if (!vt) return;
-		const authorized = page.url.pathname === "/login" && !!readLoginEntryMarker();
+		const authorized = routeUrl.pathname === "/login" && !!readLoginEntryMarker();
 		let targetMatches = false;
 		if (authorized) {
 			const url = swap.activation?.entry?.url;
@@ -101,7 +103,7 @@
 			/* The marker is one-shot; a failed clear is harmless. */
 		}
 		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-		const current = `${page.url.pathname}${page.url.search}${page.url.hash}`;
+		const current = `${routeUrl.pathname}${routeUrl.search}${routeUrl.hash}`;
 		if (marker && marker === current && !isLogin && !reduced && !supportsCrossDocViewTransition) loginEntrance = true;
 		window.addEventListener("pageswap", onPageSwap);
 		return () => window.removeEventListener("pageswap", onPageSwap);
@@ -111,12 +113,12 @@
 		// Each click is a fresh request, even when reopening the same opportunity.
 		bookmarkedOpportunity = { id };
 	}
-	let isLogin = $derived(page.url.pathname === "/login");
+	let isLogin = $derived(routeUrl.pathname === "/login");
 	// The development-only style guide borrows the rail for its own sections.
-	let isGuide = $derived(dev && page.url.pathname === "/style-guide");
+	let isGuide = $derived(dev && routeUrl.pathname === "/style-guide");
 	// A module's nested views, such as archived opportunities, still belong to that module's sidebar item.
-	let current = $derived(destinations.find((destination) => destination.href === page.url.pathname || (destination.href !== "/" && page.url.pathname.startsWith(`${destination.href}/`))));
-	let title = $derived(current?.label ?? { "/settings": "Settings", "/glossary": "Glossary", "/style-guide": "Style guide" }[page.url.pathname as "/settings" | "/glossary" | "/style-guide"] ?? "Workspace");
+	let current = $derived(destinations.find((destination) => destination.href === routeUrl.pathname || (destination.href !== "/" && routeUrl.pathname.startsWith(`${destination.href}/`))));
+	let title = $derived(current?.label ?? { "/settings": "Settings", "/glossary": "Glossary", "/style-guide": "Style guide" }[routeUrl.pathname as "/settings" | "/glossary" | "/style-guide"] ?? "Workspace");
 	let transition: ViewTransition | undefined;
 	const reducedMotion = new MediaQuery("(prefers-reduced-motion: reduce)");
 	const desktop = new MediaQuery("(min-width: 64rem)");
@@ -127,35 +129,16 @@
 	const navFadeY = overflowFade({ axis: "y", fadePercent: 12 });
 	let navFade = $derived(desktop.current ? (isGuide ? navFadeY : null) : navFadeX);
 	let greetingHidden = $derived(desktop.current ? collapsed : mobileScrolled);
-	onMount(() => {
-		ready = true;
-		// Catch identity changes that happened before this document finished hydrating and attached its storage listener.
-		void verifySupportSession();
-		// Always clear the one-shot login-entry marker so it never replays on a reload or identity-change refresh. Only play the CSS entry fallback when actually arriving from login, not reduced motion, and cross-document view transitions are not handling the morph.
-		let marker = "";
-		try {
-			marker = sessionStorage.getItem(loginEntryKey) ?? "";
-		} catch {
-			/* Without storage the dashboard plays its normal load motion. */
-		}
-		try {
-			sessionStorage.removeItem(loginEntryKey);
-		} catch {
-			/* The marker is one-shot; a failed clear is harmless. */
-		}
-		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-		const current = `${page.url.pathname}${page.url.search}${page.url.hash}`;
-		if (marker && marker === current && !isLogin && !reduced && !supportsCrossDocViewTransition) loginEntrance = true;
-	});
-	afterNavigate(({ from, to }) => {
-		if (from && to && from.url.href !== to.url.href) {
+	// Shallow navigations change a view's own state, such as the Registry's filters, so they keep the scroll position and skip the shell transition.
+	afterNavigate(({ from, to, shallow }) => {
+		if (from && to && !shallow && from.url.href !== to.url.href) {
 			document.getElementById("workspace-main")?.scrollTo({ top: 0, behavior: "instant" });
 			mobileScrolled = false;
 		}
 	});
 
 	onNavigate((navigation) => {
-		if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		if (navigation.shallow || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 		transition?.skipTransition();
 		return new Promise<void>((resolve) => {
 			let released = false;
@@ -196,7 +179,7 @@
 		else void verifySupportSession();
 	}} />
 
-{#if page.url.pathname === "/support"}
+{#if routeUrl.pathname === "/support"}
 	{@render children()}
 {:else}
 	<a href="#workspace-main" class="control fixed top-3 left-3 z-50 -translate-y-24 focus:translate-y-0">Skip to content</a>

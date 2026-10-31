@@ -22,9 +22,9 @@ In rough dependency order; not started unless the developer reprioritizes. Behav
 5. Previous-stage checklist inspection: the visited-stage strip with previews and a way back. Done when it works by touch and keyboard, never moves the opportunity, and keeps unsaved edits.
 6. Role-specific dashboards: the realtor's Key dates; the assistant's Inbox, Realtor's day, and Pipeline summary.
 7. Uploaded files as references (R2), after the rules noted in SPEC.md's open questions.
-8. Registry table on TanStack Table with hand-added, restyled SV Table components: search, filters, sorting, pagination, and column controls. Done when combined search and filters behave together, the layout works on phones, and no client shows a tag twice.
-9. Registry search, filters, sorting, and page in the URL. Done when reload, bookmarks, Back, Forward, and invalid values all restore a sensible view.
-10. Bulk tag and archive, with "Select all matching clients", skipped clients and reasons, and Undo for the whole change; archived clients can be searched and restored.
+8. Registry SV Table acceptance and performance follow-up: adaptation implemented with server filters, incremental scrolling, column controls, and phone selection/sorting; finish the remaining acceptance and virtualization evaluation in [the handoff](./registry-sv-table-handoff.md).
+9. Registry URL acceptance: search, filters, archived state, and sorting implemented; finish Back/Forward and malformed-value acceptance in [the handoff](./registry-sv-table-handoff.md).
+10. Registry bulk acceptance: tag, archive/restore, select-all-matching up to 2,000, skip reasons, receipt replay, and revision-scoped Undo implemented; finish the concurrency and failure-path verification in [the handoff](./registry-sv-table-handoff.md).
 11. Delete a client from the Registry, with the notice for its opportunities and tasks.
 12. Settings panels: User preferences, Business settings, the tag vocabulary, relationship and address labels.
 13. Checklist template editor, chosen from prototypes reviewed with the developer. Done when empty templates work, progress survives renaming and reordering, a failed save keeps the draft, and it is usable on a phone.

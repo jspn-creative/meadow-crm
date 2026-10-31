@@ -1,6 +1,7 @@
 <!-- Adapted from SV Table's Debounce Input (https://sv-table.vercel.app/components/debounce-input): Meadow's `field` replaces shadcn's input group, and a local timer replaces runed's Debounced. -->
 <script lang="ts">
 	import { Search, X } from "@lucide/svelte";
+	import { onDestroy } from "svelte";
 
 	type Props = {
 		value?: string;
@@ -17,6 +18,7 @@
 	// Typing updates the field at once; `value` and `onChange` follow after the pause. An outside change to `value` resets the field.
 	let inputValue = $derived(value);
 	let timer: ReturnType<typeof setTimeout> | undefined;
+	onDestroy(() => clearTimeout(timer));
 	function commit(next: string) {
 		clearTimeout(timer);
 		if (next === value) return;

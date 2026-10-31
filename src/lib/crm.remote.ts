@@ -23,6 +23,8 @@ import {
 	completeTaskInput,
 	deleteTaskInput,
 	clientsQueryInput,
+	clientFiltersInput,
+	bulkUpdateClientsInput,
 } from "#lib/server/validation.js";
 
 function services() {
@@ -38,6 +40,8 @@ export const getWorkspace = query(workspaceInput, (input) => services().workspac
 export const getIdentity = query(() => services().identity);
 export const getRecentActivity = query(() => services().recentActivity());
 export const getClients = query(clientsQueryInput, (input) => services().clients(input));
+export const getClientFacets = query(clientFiltersInput, (input) => services().clientFacets(input));
+export const getClientIds = query(clientFiltersInput, (input) => services().clientIds(input));
 
 export const createTask = command(createTaskInput, (input) => {
 	const data = services();
@@ -60,7 +64,8 @@ async function save(action: () => Promise<Record<string, unknown>>) {
 	try {
 		const result = await action();
 		await requested(getWorkspace, 2).refreshAll();
-		await requested(getClients, 2).refreshAll();
+		await requested(getClients, 40).refreshAll();
+		await requested(getClientFacets, 2).refreshAll();
 		await getRecentActivity().refresh();
 		return result;
 	} catch (cause) {
@@ -73,6 +78,11 @@ async function save(action: () => Promise<Record<string, unknown>>) {
 export const createClient = form(createClientInput, (input) => {
 	const data = services();
 	return save(() => data.createClient(input));
+});
+
+export const bulkUpdateClients = command(bulkUpdateClientsInput, (input) => {
+	const data = services();
+	return save(() => data.bulkUpdateClients(input));
 });
 
 export const saveClient = command(saveClientInput, (input) => {

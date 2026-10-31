@@ -52,18 +52,90 @@ export const workspaceInput = v.strictObject({ archived: v.optional(v.boolean(),
 
 // Read-only query input for the Registry table. Validates URL-driven pagination, filtering, and sorting without changing any record.
 // Strict validation rejects malformed API input; URL normalization in the view applies sensible defaults before calling the server.
-export const clientsQueryInput = v.strictObject({
+const filterDate = v.pipe(
+	v.string(),
+	v.regex(/^\d{4}-\d{2}-\d{2}$/),
+	v.check((date) => {
+		const parsed = new Date(`${date}T00:00:00Z`);
+		return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+	}, "Choose a valid calendar date."),
+);
+const filterCount = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1000));
+const countFilter = v.variant("op", [
+	v.strictObject({ op: v.picklist(["eq", "gte", "lte"]), value: filterCount }),
+	v.strictObject({ op: v.literal("between"), min: filterCount, max: filterCount }),
+]);
+export const consentChannels = ["call", "text", "email", "mail"] as const;
+const clientFilters = {
 	archived: v.optional(v.boolean(), false),
 	q: v.optional(v.pipe(v.string(), v.maxLength(200)), ""),
-	tags: v.optional(v.pipe(v.array(v.string()), v.maxLength(50)), []),
-	leadSource: v.optional(v.nullable(v.string()), null),
-	sort: v.optional(
-		v.picklist(["name", "people", "address", "leadSource", "tags", "opportunities"]),
-		"name",
+	/** Tag ids, matched by `tagMode`: any of them, all of them, or none of them. */
+	tags: v.optional(v.pipe(v.array(id), v.maxLength(50)), []),
+	tagMode: v.optional(v.picklist(["any", "all", "none"]), "any"),
+	/** Lead sources, where an empty string means no lead source; `leadSourceMode` keeps or excludes them. */
+	leadSources: v.optional(
+		v.pipe(v.array(v.pipe(v.string(), v.maxLength(200))), v.maxLength(50)),
+		[],
 	),
+	leadSourceMode: v.optional(v.picklist(["is", "not"]), "is"),
+	/** Linked opportunities that are not archived. */
+	opportunities: v.optional(countFilter),
+	/** Every linked opportunity, archived ones included. */
+	allOpportunities: v.optional(countFilter),
+	/** `allows`: every listed channel is on. `blocks`: every listed channel is off. */
+	consent: v.optional(
+		v.strictObject({
+			op: v.picklist(["allows", "blocks"]),
+			channels: v.pipe(v.array(v.picklist(consentChannels)), v.minLength(1), v.maxLength(4)),
+		}),
+	),
+	referredBy: v.optional(
+		v.variant("op", [
+			v.strictObject({ op: v.picklist(["set", "empty"]) }),
+			v.strictObject({
+				op: v.literal("contains"),
+				text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+			}),
+		]),
+	),
+	/** Calendar days in the business's timezone, inclusive. */
+	created: v.optional(
+		v.variant("op", [
+			v.strictObject({ op: v.picklist(["onOrAfter", "onOrBefore"]), date: filterDate }),
+			v.strictObject({ op: v.literal("between"), from: filterDate, to: filterDate }),
+		]),
+	),
+};
+export const clientFiltersInput = v.strictObject(clientFilters);
+export const clientSortIds = [
+	"name",
+	"address",
+	"leadSource",
+	"tags",
+	"opportunities",
+	"referredBy",
+	"created",
+] as const;
+export const clientsQueryInput = v.strictObject({
+	...clientFilters,
+	sort: v.optional(v.picklist(clientSortIds), "name"),
 	sortDir: v.optional(v.picklist(["asc", "desc"]), "asc"),
 	page: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1)), 1),
-	pageSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(100)), 25),
+	pageSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(100)), 50),
+});
+export const bulkUpdateClientsInput = v.strictObject({
+	requestId: id,
+	undoOf: v.optional(id),
+	clientIds: v.pipe(
+		v.array(id),
+		v.minLength(1),
+		v.maxLength(2000),
+		v.check((ids) => new Set(ids).size === ids.length, "Select each client once."),
+	),
+	action: v.variant("kind", [
+		v.strictObject({ kind: v.picklist(["addTag", "removeTag"]), tagId: id }),
+		v.strictObject({ kind: v.picklist(["archive", "restore"]) }),
+	]),
 });
 export const createClientInput = v.strictObject({
 	requestId: id,

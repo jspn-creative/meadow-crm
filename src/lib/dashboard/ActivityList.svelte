@@ -27,6 +27,10 @@
 				return `archived this ${kind}`;
 			case "restore":
 				return `restored this ${kind}`;
+			case "tag":
+				return typeof change.data.tagName === "string" ? `tagged this client “${change.data.tagName}”` : "tagged this client";
+			case "untag":
+				return typeof change.data.tagName === "string" ? `removed “${change.data.tagName}” from this client` : "removed a tag from this client";
 			case "pin":
 				return "pinned this opportunity";
 			case "unpin":

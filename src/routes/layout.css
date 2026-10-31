@@ -210,6 +210,13 @@
 	.main-surface {
 		@apply shadow-shell relative mb-3 ml-3 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-none rounded-l-2xl bg-white/70;
 		view-transition-name: white-surface;
+		/* A view marked data-fill takes the height left under the title, so it can scroll a region of its own, such as a table under a sticky heading. */
+		&:has(> [data-fill]) {
+			@apply flex flex-col;
+			> [data-fill] {
+				@apply min-h-0 flex-1;
+			}
+		}
 		@media (min-width: 64rem) {
 			@apply mt-3 rounded-l-3xl;
 		}

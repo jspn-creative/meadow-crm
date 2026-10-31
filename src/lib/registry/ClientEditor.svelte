@@ -12,6 +12,7 @@
 		draft = $bindable(),
 		workspace,
 		remote,
+		updates = [],
 		saved,
 		fresh = false,
 		opportunities,
@@ -20,6 +21,8 @@
 		draft: ClientDraft;
 		workspace: Workspace;
 		remote: ReturnType<typeof import("#lib/crm.remote.js").getWorkspace>;
+		/** Other queries showing this client, such as the Registry list, refreshed with the save. */
+		updates?: Parameters<ReturnType<typeof saveClient>["updates"]>;
 		saved: () => void;
 		/** A client just created from a name: start with their first person open for editing. */
 		fresh?: boolean;
@@ -106,7 +109,7 @@
 		}
 		pending = true;
 		try {
-			await saveClient({ ...body, requestId }).updates(remote);
+			await saveClient({ ...body, requestId }).updates(remote, ...updates);
 			draft.revision += 1;
 			editing.clear();
 			saved();
