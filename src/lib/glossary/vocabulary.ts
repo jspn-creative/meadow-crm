@@ -162,7 +162,7 @@ export const vocabulary: Term[] = [
 				term: "Bookmark",
 				kind: "Action",
 				meaning:
-					"Keep an opportunity at hand in the sidebar's Bookmarks stack, which fans out on click so one can be opened from any view. Each user has their own bookmarks, saved in their browser, and only that user removes them.",
+					"Keep an opportunity at hand in the sidebar's Bookmarks stack, which fans out on click so one can be opened from any view; a lone bookmark opens directly. Each user has their own bookmarks, saved in their browser, and only that user removes them.",
 				not: ["favorite", "pin", "star", "quick access"],
 			},
 		],

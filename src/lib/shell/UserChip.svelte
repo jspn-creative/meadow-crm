@@ -121,7 +121,7 @@
 			{#if changingPassword}
 				<form method="POST" class="grid gap-3 p-2" onsubmit={changePassword}>
 					<label class="grid gap-1 text-xs">Current password<input class="field" name="currentPassword" type="password" autocomplete="current-password" required /></label>
-					<label class="grid gap-1 text-xs">New password (12–128 characters)<input class="field" name="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required /></label>
+					<label class="grid gap-1 text-xs">New password (8–128 characters)<input class="field" name="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label>
 					<button class="control" data-variant="primary" disabled={pending}>Change password</button>
 				</form>
 			{/if}

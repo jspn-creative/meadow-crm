@@ -59,8 +59,9 @@ class RemoteStatement {
 	}
 }
 
-export function remoteD1Database(): D1Database {
-	requireProjectCloudflareCredentials(true);
+/** Read-only access needs no production-change approval, because it rejects anything but a single SELECT. */
+export function remoteD1Database({ readOnly = false }: { readOnly?: boolean } = {}): D1Database {
+	requireProjectCloudflareCredentials(!readOnly);
 	const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 	const databaseId = process.env.MEADOW_D1_DATABASE_ID;
 	const token = process.env.CLOUDFLARE_API_TOKEN;
@@ -93,6 +94,8 @@ export function remoteD1Database(): D1Database {
 	const request = async (
 		body: { sql: string; params: unknown[] } | { batch: { sql: string; params: unknown[] }[] },
 	) => {
+		if (readOnly && !("sql" in body && /^\s*SELECT\b[^;]*;?\s*$/i.test(body.sql)))
+			throw new Error("This remote D1 connection is read-only.");
 		await (verified ??= verifyTarget());
 		const response = await fetch(endpoint, {
 			method: "POST",

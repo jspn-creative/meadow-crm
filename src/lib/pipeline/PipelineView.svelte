@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { lightDismiss } from "#lib/ui/light-dismiss.js";
 	let { opportunity = "", dialogOnly = false, onclose = () => {} }: { opportunity?: string; dialogOnly?: boolean; onclose?: () => void } = $props();
 	import { onDestroy, onMount, untrack } from "svelte";
 	import { Archive, ArrowLeft, Banknote, Bookmark, Clock3, Columns3, ContactRound, Link2, MapPin, PencilLine, Pin, PinOff, Plus, RefreshCw, Shapes, SlidersHorizontal, Tags, Trash2, Undo2, UserRound, X } from "@lucide/svelte";
@@ -23,10 +24,10 @@
 	type Stage = keyof typeof stageLabels;
 	type OpportunityType = keyof typeof typeLabels;
 	const remote = getWorkspace({ archived: false });
-	await remote;
+	const initialWorkspace = await remote;
 	const data = workspaceData(remote);
 	onDestroy(() => data.dispose());
-	let workspace = $derived(await remote);
+	let workspace = $derived(remote.current ?? initialWorkspace);
 	let creating = $state(false);
 	let opportunityId = $state("");
 	let drafts = $state<Record<string, OpportunityDraft>>({});
@@ -197,6 +198,7 @@
 		if (await run("Archiving opportunity…", "Opportunity archived.", "Opportunity could not be archived or has changed. Refresh before retrying.", () => data.archive({ requestId: crypto.randomUUID(), id: opportunity.id, revision: opportunity.revision }))) if (selectedId === opportunity.id) closeOpportunity();
 	}
 	async function pin(opportunity: { id: string; revision: number; stage: Stage; pinnedAt: string | null }) {
+		if (pending) return;
 		const pinned = !opportunity.pinnedAt;
 		await run(pinned ? "Pinning opportunity…" : "Unpinning opportunity…", pinned ? `Pinned to the top of ${stageLabels[opportunity.stage]}.` : "Opportunity unpinned.", `Opportunity could not be ${pinned ? "pinned" : "unpinned"} or has changed. Refresh before retrying.`, () =>
 			data.pin({ requestId: crypto.randomUUID(), id: opportunity.id, revision: opportunity.revision, pinned }),
@@ -474,6 +476,8 @@
 	{@const TypeIcon = style.icon}
 	<dialog
 		{@attach showDialog}
+		{@attach lightDismiss}
+		closedby="any"
 		aria-labelledby="opportunity-heading"
 		class="dialog"
 		data-size="lg"

@@ -1,4 +1,4 @@
-/** Create: pipe JSON {"role":"realtor"|"assistant"|"support-admin","email":"…","password":"…"} to vp run auth:create. Reset: pipe JSON {"role":"…","password":"…"} to vp run auth:reset-password. Use protected stdin, not command-line arguments; passwords must be 12–128 characters. Local D1 is the default and shares Alchemy's dev database; start vp run dev first. Production: append -- --remote with approved project credentials. This script never provisions, migrates, deploys, or prints credentials. Reset revokes all sessions, including impersonation. */
+/** Create: pipe JSON {"role":"realtor"|"assistant"|"support-admin","email":"…","password":"…"} to vp run auth:create. Reset: pipe JSON {"role":"…","password":"…"} to vp run auth:reset-password. Use protected stdin, not command-line arguments; passwords must be 8–128 characters. Local D1 is the default and shares Alchemy's dev database; start vp run dev:local first. Production: append -- --remote with approved project credentials. This script never provisions, migrates, deploys, or prints credentials. Reset revokes all sessions, including impersonation. */
 import { hashPassword } from "better-auth/crypto";
 import { loadProjectEnv } from "./project-env.ts";
 import { remoteD1Database } from "./remote-d1.ts";
@@ -28,10 +28,10 @@ if (
 	!data ||
 	!["realtor", "assistant", "support-admin"].includes(data.role) ||
 	typeof data.password !== "string" ||
-	data.password.length < 12 ||
+	data.password.length < 8 ||
 	data.password.length > 128
 )
-	throw new Error("A valid account role and a 12–128 character password are required.");
+	throw new Error("A valid account role and an 8–128 character password are required.");
 const id = data.role === "support-admin" ? "support-admin" : `business-${data.role}`;
 const now = Date.now();
 const hash = await hashPassword(data.password);

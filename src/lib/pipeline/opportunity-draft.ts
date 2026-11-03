@@ -34,7 +34,9 @@ export function opportunityDraft(
 		stage: row?.stage ?? "new-lead",
 		clientIds: row
 			? workspace.links.filter((link) => link.opportunityId === id).map((link) => link.clientId)
-			: [clientId ?? workspace.clients[0]?.id ?? ""].filter(Boolean),
+			: clientId
+				? [clientId]
+				: [],
 		timeline: row?.timeline ?? "",
 		address: row?.address ?? "",
 		budget: row?.budgetCents == null ? "" : (row.budgetCents / 100).toFixed(2),

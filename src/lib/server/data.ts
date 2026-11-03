@@ -179,10 +179,10 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		return JSON.parse(saved.result) as Record<string, unknown>;
 	}
 
-	async function mutation(
+	async function mutation<T extends Record<string, unknown>>(
 		requestId: string,
 		payload: unknown,
-		result: Record<string, unknown>,
+		result: T | ((now: string) => T),
 		statements: (guard: string, now: string) => D1PreparedStatement[],
 	) {
 		const hash = Array.from(
@@ -204,12 +204,13 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				saved.payload_hash !== hash
 			)
 				throw new Error("This request ID is already used by a different operation or identity.");
-			return JSON.parse(saved.result) as Record<string, unknown>;
+			return JSON.parse(saved.result) as T;
 		};
 		const existing = await receipt();
 		if (existing) return replay(existing);
 		const guard = crypto.randomUUID();
 		const now = new Date().toISOString();
+		const confirmed = typeof result === "function" ? result(now) : result;
 		try {
 			await db.batch([
 				...statements(guard, now),
@@ -220,7 +221,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					user.actorUserId,
 					user.effectiveUserId,
 					hash,
-					JSON.stringify(result),
+					JSON.stringify(confirmed),
 					now,
 					guard,
 				),
@@ -234,7 +235,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				throw new DataConflict();
 			throw error;
 		}
-		return result;
+		return confirmed;
 	}
 
 	const appendHistory = (
@@ -244,11 +245,12 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		id: string,
 		action: string,
 		data: unknown,
+		historyId = crypto.randomUUID(),
 	) =>
 		stmt(
 			"INSERT INTO history (id, record_kind, record_id, actor_user_id, effective_user_id, action, data, created_at) SELECT ?, ?, ?, ?, ?, ?, ?, ? WHERE " +
 				guardExists,
-			crypto.randomUUID(),
+			historyId,
 			kind,
 			id,
 			user.actorUserId,
@@ -1411,10 +1413,27 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		},
 		async pinOpportunity(input: unknown) {
 			const value = v.parse(pinOpportunityInput, input);
+			const historyId = crypto.randomUUID();
 			return mutation(
 				value.requestId,
 				{ operation: "pin-opportunity", ...value },
-				{ id: value.id, revision: value.revision + 1 },
+				(now) => ({
+					id: value.id,
+					revision: value.revision + 1,
+					pinnedAt: value.pinned ? now : null,
+					updatedAt: now,
+					history: {
+						id: historyId,
+						recordKind: "opportunity" as const,
+						recordId: value.id,
+						actorUserId: user.actorUserId,
+						effectiveUserId: user.effectiveUserId,
+						action: value.pinned ? "pin" : "unpin",
+						data: { revision: value.revision, pinnedAt: value.pinned ? now : null },
+						fictional: false,
+						createdAt: now,
+					},
+				}),
 				(guard, now) => [
 					// Pinning an already-pinned opportunity (or unpinning an unpinned one) matches no row, so it conflicts like a stale revision.
 					stmt(
@@ -1425,10 +1444,15 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						value.revision,
 					),
 					stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
-					appendHistory(guard, now, "opportunity", value.id, value.pinned ? "pin" : "unpin", {
-						revision: value.revision,
-						pinnedAt: value.pinned ? now : null,
-					}),
+					appendHistory(
+						guard,
+						now,
+						"opportunity",
+						value.id,
+						value.pinned ? "pin" : "unpin",
+						{ revision: value.revision, pinnedAt: value.pinned ? now : null },
+						historyId,
+					),
 				],
 			);
 		},

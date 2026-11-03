@@ -96,7 +96,7 @@
 		--radius-outer: var(--radius-3xl);
 		@apply text-ink m-auto max-h-[min(92dvh,64rem)] w-[calc(100%-1rem)] max-w-[64rem] overflow-y-auto overscroll-contain rounded-3xl p-0 sm:w-[calc(100%-2rem)];
 		&::backdrop {
-			@apply bg-ink/30;
+			@apply bg-white/40;
 			backdrop-filter: blur(2px);
 			:root[data-theme="evening"] & {
 				background: color-mix(in oklab, var(--color-black) 55%, transparent);
@@ -740,8 +740,18 @@
 		}
 	}
 
-	/* Glow sits after the primitives and materials so a bordered primitive's accent edge wins over its resting edge. */
-	:focus-visible,
+	/* Glow belongs to interactive targets, not programmatic focus destinations such as workspace surfaces. It sits after the primitives and materials so a bordered primitive's accent edge wins over its resting edge. */
+	:focus-visible:where(
+		a[href],
+		area[href],
+		button,
+		input,
+		select,
+		textarea,
+		summary,
+		[contenteditable="true"],
+		[tabindex]:not([tabindex="-1"])
+	),
 	.field-group:has(.field-bare:focus-visible),
 	.segmented > label:has(:focus-visible),
 	.choice:has(:focus-visible) {

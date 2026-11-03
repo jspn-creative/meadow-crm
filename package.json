@@ -8,8 +8,9 @@
 		"#lib/*": "./src/lib/*"
 	},
 	"scripts": {
-		"dev": "alchemy dev --stage dev --env-file .dev.vars",
+		"dev": "node --experimental-strip-types scripts/dev-live.ts",
 		"dev:live": "node --experimental-strip-types scripts/dev-live.ts",
+		"dev:local": "alchemy dev --stage dev --env-file .dev.vars",
 		"dev:host": "MEADOW_DEV_HOST=0.0.0.0 alchemy dev --stage dev --env-file .dev.vars",
 		"build": "node --experimental-strip-types scripts/build.ts",
 		"preview": "vp preview",
@@ -31,6 +32,7 @@
 		"db:help": "node --experimental-strip-types scripts/local-db.ts help",
 		"db:seed-fictional": "node --experimental-strip-types scripts/local-db.ts seed-fictional",
 		"db:reset-fictional": "node --experimental-strip-types scripts/local-db.ts reset-fictional",
+		"db:pull-prod": "node --experimental-strip-types scripts/pull-prod.ts",
 		"db:import-clients": "node --experimental-strip-types scripts/import-clients.ts",
 		"deploy": "node --experimental-strip-types scripts/deploy.ts",
 		"state:bootstrap": "node --experimental-strip-types scripts/bootstrap-state.ts"

@@ -1,14 +1,16 @@
 <script lang="ts">
-	import { Link2, Plus, X } from "@lucide/svelte";
+	import { Link2, Plus, UsersRound, X } from "@lucide/svelte";
 	import { createOpportunityRecord, saveOpportunity } from "#lib/crm.remote.js";
 	import type { Workspace } from "#lib/data/workspace.js";
 	import Select, { optionsFrom } from "#lib/ui/Select.svelte";
+	import Combobox from "#lib/ui/Combobox.svelte";
 	import { draftInput, referenceKinds, referenceTargets, type OpportunityDraft } from "./opportunity-draft.js";
 	import { stageLabels, timelineLabels, typeLabels } from "./labels.js";
 	let { draft = $bindable(), workspace, remote, saved, cancel, pending = $bindable(false) }: { draft: OpportunityDraft; workspace: Workspace; remote: ReturnType<typeof import("#lib/crm.remote.js").getWorkspace>; saved: () => void; cancel: () => void; pending?: boolean } = $props();
 	let failure = $state("");
 	let previousPayload = "";
 	let requestId = "";
+	let clientOptions = $derived(workspace.referenceClients.filter((client) => !client.archivedAt || draft.clientIds.includes(client.id)).map((client) => ({ value: client.id, label: `${client.name}${client.archivedAt ? " (archived)" : ""}` })));
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
 		failure = "";
@@ -50,16 +52,10 @@
 			<label class="block min-w-0 space-y-1.5"><span class={label}>Budget (USD, optional)</span><input class="field tabular-nums" inputmode="decimal" bind:value={draft.budget} placeholder="125000.50" /></label>
 		</div>
 		<label class="block space-y-1.5"><span class={label}>Property address (optional)</span><input class="field" bind:value={draft.address} maxlength="1000" /></label>
-		<fieldset class="min-w-0">
-			<legend class={[label, "mb-1.5"]}>Clients · choose one or more</legend>
-			<div class="border-hairline grid max-h-48 overflow-y-auto rounded-xl border bg-white p-1 @min-[28rem]/opportunity:grid-cols-2">
-				{#each workspace.referenceClients.filter((client) => !client.archivedAt || draft.clientIds.includes(client.id)) as client (client.id)}<label
-						class="has-checked:bg-selected flex min-h-11 items-center gap-3 rounded-lg px-2.5 has-checked:has-[+label_:checked]:rounded-b-none has-checked:[label:has(:checked)+&]:rounded-t-none"
-						><input type="checkbox" class="check" value={client.id} bind:group={draft.clientIds} /><span class="min-w-0 wrap-anywhere">{client.name}{client.archivedAt ? " (archived)" : ""}</span></label
-					>{/each}
-			</div>
-		</fieldset>
-		<label class="block space-y-1.5"><span class={label}>Notes</span><textarea class="field field-sizing-content" bind:value={draft.notes} maxlength="20000"></textarea></label>
+		<Combobox label="Clients (optional)" placeholder="Start typing a client's name…" options={clientOptions} bind:values={draft.clientIds} disabled={pending}>
+			{#snippet chipIcon()}<span class="flex size-4 shrink-0 items-center justify-center rounded-sm bg-white"><UsersRound size={12} aria-hidden="true" /></span>{/snippet}
+		</Combobox>
+		{#if draft.revision}<label class="block space-y-1.5"><span class={label}>Notes</span><textarea class="field field-sizing-content" bind:value={draft.notes} maxlength="20000"></textarea></label>{/if}
 		<section aria-label="Edit references" class="min-w-0 space-y-2">
 			<h3 class={label}>References</h3>
 			{#each draft.references as reference, index (reference.key)}

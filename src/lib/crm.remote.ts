@@ -63,10 +63,12 @@ export const deleteTask = command(deleteTaskInput, (input) => {
 async function save(action: () => Promise<Record<string, unknown>>) {
 	try {
 		const result = await action();
-		await requested(getWorkspace, 2).refreshAll();
-		await requested(getClients, 40).refreshAll();
-		await requested(getClientFacets, 2).refreshAll();
-		await getRecentActivity().refresh();
+		await Promise.all([
+			requested(getWorkspace, 2).refreshAll(),
+			requested(getClients, 40).refreshAll(),
+			requested(getClientFacets, 2).refreshAll(),
+			getRecentActivity().refresh(),
+		]);
 		return result;
 	} catch (cause) {
 		if (cause instanceof DataConflict) error(409, cause.message);
@@ -125,9 +127,18 @@ export const restoreOpportunity = command(restoreOpportunityInput, (input) => {
 	return save(() => data.restoreOpportunity(input));
 });
 
-export const pinOpportunity = command(pinOpportunityInput, (input) => {
+export const pinOpportunity = command(pinOpportunityInput, async (input) => {
 	const data = services();
-	return save(() => data.pinOpportunity(input));
+	try {
+		// Pinning changes no Registry fields; return its confirmed patch instead of reloading the workspace.
+		const result = await data.pinOpportunity(input);
+		await getRecentActivity().refresh();
+		return result;
+	} catch (cause) {
+		if (cause instanceof DataConflict) error(409, cause.message);
+		if (cause instanceof DataInvalid) error(400, cause.message);
+		throw cause;
+	}
 });
 
 export const deleteOpportunity = command(deleteOpportunityInput, (input) => {

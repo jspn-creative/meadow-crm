@@ -95,16 +95,36 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		},
 		async pin(input: PinOpportunity) {
 			current();
-			await pinOpportunity(input).updates(
-				query.withOverride((snapshot) => ({
+			const pinnedAt = input.pinned ? new Date().toISOString() : null;
+			const rollback = query.withOverride((snapshot) => ({
+				...snapshot,
+				opportunities: snapshot.opportunities.map((row) =>
+					row.id === input.id && row.revision === input.revision ? { ...row, pinnedAt } : row,
+				),
+			}));
+			try {
+				// Manage the override ourselves: passing it to updates() would request a full workspace reload.
+				const confirmed = await pinOpportunity(input).updates();
+				const snapshot = current();
+				query.set({
 					...snapshot,
 					opportunities: snapshot.opportunities.map((row) =>
-						row.id === input.id
-							? { ...row, pinnedAt: input.pinned ? new Date().toISOString() : null }
+						row.id === input.id && row.revision === input.revision
+							? {
+									...row,
+									pinnedAt: confirmed.pinnedAt,
+									revision: confirmed.revision,
+									updatedAt: confirmed.updatedAt,
+								}
 							: row,
 					),
-				})),
-			);
+					history: snapshot.history.some((change) => change.id === confirmed.history.id)
+						? snapshot.history
+						: [confirmed.history, ...snapshot.history],
+				});
+			} finally {
+				rollback();
+			}
 		},
 		async delete(input: DeleteOpportunity) {
 			current();

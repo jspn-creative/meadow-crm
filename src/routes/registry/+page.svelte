@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { lightDismiss } from "#lib/ui/light-dismiss.js";
 	import { onMount, tick } from "svelte";
 	import { page } from "$app/state";
 	import { afterNavigate, goto } from "$app/navigation";
@@ -402,7 +403,11 @@
 		const target = event.target as HTMLElement;
 		if (target.closest("a, button, input, label") || getSelection()?.toString()) return;
 		if (target.closest("[data-select-zone]")) toggleRow(index, event);
-		else editClient(clients[index]!.id);
+		else {
+			// Return focus to the row's keyboard control instead of the workspace scroll surface.
+			(event.currentTarget as HTMLTableRowElement).querySelector<HTMLButtonElement>("button.item-title")?.focus({ preventScroll: true });
+			editClient(clients[index]!.id);
+		}
 	}
 
 	// --- Side panel ----------------------------------------------------------
@@ -1002,6 +1007,8 @@
 
 <dialog
 	bind:this={dialog}
+	{@attach lightDismiss}
+	closedby="any"
 	{onclose}
 	oncancel={(event) => {
 		if (pending) event.preventDefault();

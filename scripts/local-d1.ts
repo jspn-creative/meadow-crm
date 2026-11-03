@@ -14,7 +14,7 @@ export async function localD1Database() {
 			),
 		);
 	} catch {
-		throw new Error("Start vp run dev first; Alchemy must provision and migrate local D1.");
+		throw new Error("Start vp run dev:local first; Alchemy must provision and migrate local D1.");
 	}
 	if (!output.databaseId?.startsWith("dev:")) throw new Error("Refusing a nonlocal database ID.");
 	return getPlatformProxy<{ DB: D1Database }>({

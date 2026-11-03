@@ -4,7 +4,7 @@
 	import { cubicOut } from "svelte/easing";
 	import { MediaQuery } from "svelte/reactivity";
 	import { afterNavigate, goto } from "$app/navigation";
-	import { Archive, Check, CircleOff, Pencil, X } from "@lucide/svelte";
+	import { Archive, Check, CircleOff, Ellipsis, Pencil, X } from "@lucide/svelte";
 	import { getWorkspace } from "#lib/crm.remote.js";
 	import { stageLabels, typeLabels, typeStyles } from "#lib/pipeline/labels.js";
 	import { bookmarks } from "./bookmarks.svelte.js";
@@ -22,6 +22,7 @@
 	let trigger = $state<HTMLButtonElement>();
 	let front = $state<HTMLElement>();
 	let fan = $state<HTMLElement>();
+	let options = $state<HTMLButtonElement>();
 	let open = $state(false);
 	let mode = $state<"rail" | "collapsed" | "compact">("rail");
 	let placement = $state("");
@@ -49,11 +50,15 @@
 		});
 	});
 	let deck = $derived(entries.slice(0, 3));
+	let single = $derived(entries.length === 1 ? entries[0] : undefined);
 	let topColors = $derived(tone(deck[0]));
 	let countLabel = $derived(`${ids.length} ${ids.length === 1 ? "opportunity" : "opportunities"}`);
 
 	onMount(() => bookmarks.hydrate());
 	afterNavigate(() => fan?.hidePopover());
+	$effect(() => {
+		if (ids.length === 1) fan?.hidePopover();
+	});
 
 	function title(entry: Entry) {
 		if (entry.state === "active" || entry.state === "archived") return entry.title;
@@ -152,6 +157,11 @@
 		bookmarks.remove(entry.id);
 		announcement = `Removed ${title(entry)} from bookmarks`;
 		await tick();
+		if (single) {
+			fan?.hidePopover();
+			(single.state === "active" || single.state === "archived" ? trigger : options)?.focus();
+			return;
+		}
 		const list = primaries().filter((element) => !element.closest("li")?.hasAttribute("data-leaving"));
 		const target = list[Math.min(index, list.length - 1)];
 		if (target) target.focus();
@@ -211,15 +221,20 @@
 {/snippet}
 
 {#if shown}
-	<div class={["bookmark-stack", variant === "rail" && "mb-5 shrink-0"]} data-variant={variant} data-open={open}>
+	<div class={["bookmark-stack relative", variant === "rail" && "mb-5 shrink-0"]} data-variant={variant} data-open={open}>
 		<button
 			bind:this={trigger}
 			type="button"
-			popovertarget={`${id}-fan`}
-			aria-controls={`${id}-fan`}
-			aria-expanded={open}
-			aria-label={`Bookmarks, ${countLabel}`}
-			title={variant === "rail" ? undefined : "Bookmarks"}
+			popovertarget={single ? undefined : `${id}-fan`}
+			aria-controls={single ? undefined : `${id}-fan`}
+			aria-expanded={single ? undefined : open}
+			aria-label={single ? `${single.state === "archived" ? "View archived opportunities" : "Open opportunity"}: ${title(single)}` : `Bookmarks, ${countLabel}`}
+			aria-disabled={single?.state === "loading" || single?.state === "missing" || undefined}
+			title={single ? title(single) : variant === "rail" ? undefined : "Bookmarks"}
+			onclick={(event) => {
+				if (single?.state === "active") openBookmarkedOpportunity(event, single.id);
+				else if (single?.state === "archived") openEntry(event, "/pipeline/archived");
+			}}
 			class={["stack-trigger group/stack relative flex min-h-11 items-center rounded-xl text-left", variant === "rail" ? "w-full" : "size-11 shrink-0 justify-center [--card-h:2.75rem]"]}>
 			<span class="relative block w-full">
 				{#each deck.slice(1) as entry, index (entry.id)}
@@ -229,10 +244,23 @@
 				<span bind:this={front} class={["surface stack-card stack-front relative flex items-center", variant === "rail" ? "gap-3 px-3" : "justify-center"]} style:--wash={topColors.wash} style:--ink={topColors.ink} style:--edge={topColors.edge} aria-hidden="true">
 					{@render tile(deck[0])}
 					{#if variant === "rail"}<span class="stack-text flex min-w-0 flex-1">{@render face(deck[0])}</span>{/if}
-					<span class="stack-count bg-ink ring-paper text-2xs pointer-events-none absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-semibold text-white tabular-nums ring-2">{ids.length}</span>
+					{#if !single}<span class="stack-count bg-ink ring-paper text-2xs pointer-events-none absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-semibold text-white tabular-nums ring-2">{ids.length}</span>{/if}
 				</span>
 			</span>
 		</button>
+		{#if single}
+			<button
+				bind:this={options}
+				type="button"
+				popovertarget={`${id}-fan`}
+				aria-controls={`${id}-fan`}
+				aria-expanded={open}
+				aria-label={`Bookmark options: ${title(single)}`}
+				title="Bookmark options"
+				class="bg-ink ring-paper absolute -top-1.5 -right-1.5 z-10 flex size-5 items-center justify-center rounded-full text-white ring-2 after:absolute after:-inset-1.5">
+				<Ellipsis size={14} aria-hidden="true" />
+			</button>
+		{/if}
 
 		<div
 			bind:this={fan}
@@ -252,11 +280,11 @@
 				open = event.newState === "open";
 				if (open && fan?.matches(":popover-open")) {
 					primaries()[0]?.focus({ preventScroll: true });
-				} else if (fan?.contains(document.activeElement)) trigger?.focus();
+				} else if (fan?.contains(document.activeElement)) (single ? options : trigger)?.focus();
 			}}
 			onfocusout={(event) => {
 				const next = event.relatedTarget as Node | null;
-				if (next && !fan?.contains(next) && next !== trigger) fan?.hidePopover();
+				if (next && !fan?.contains(next) && next !== trigger && next !== options) fan?.hidePopover();
 			}}>
 			<ul class={["flex gap-2", mode === "compact" ? "flex-col" : "flex-col-reverse"]} style:--n={entries.length}>
 				{#each entries as entry, index (entry.id)}

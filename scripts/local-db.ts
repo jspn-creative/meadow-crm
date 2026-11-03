@@ -4,7 +4,7 @@ import { resetFictional, seedFictional } from "./fictional-seed.ts";
 
 const [command, ...args] = process.argv.slice(2).filter((arg: string) => arg !== "--");
 const help =
-	"Local Alchemy D1 only: vp run db:seed | vp run db:seed-fictional -- --today=YYYY-MM-DD | vp run db:reset-fictional -- --confirm-fictional-reset. Start vp run dev first; Alchemy exclusively owns migrations.";
+	"Local Alchemy D1 only: vp run db:seed | vp run db:seed-fictional -- --today=YYYY-MM-DD | vp run db:reset-fictional -- --confirm-fictional-reset. Start vp run dev:local first; Alchemy exclusively owns migrations.";
 if (!command || command === "help") console.log(help);
 else {
 	if (!["seed", "seed-fictional", "reset-fictional"].includes(command)) throw new Error(help);

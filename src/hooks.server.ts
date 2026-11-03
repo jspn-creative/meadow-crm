@@ -22,7 +22,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (dev && !env.DB)
 		return noStore(
 			new Response(
-				"Meadow's Alchemy database bindings are unavailable. Restart with vp dev for live production accounts and data (all app writes affect production), or vp run dev for an isolated local database. Both servers use http://localhost:1337; run only one at a time.",
+				"Meadow's Alchemy database bindings are unavailable. Restart with vp dev for live production accounts and data (all app writes affect production), or vp run dev:local for an isolated local database. Both servers use http://localhost:1337; run only one at a time.",
 				{ status: 503, headers: { "content-type": "text/plain; charset=utf-8" } },
 			),
 		);

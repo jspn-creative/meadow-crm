@@ -13,7 +13,7 @@ export function liveDevShortcut(): Plugin {
 		async configResolved(config) {
 			if (config.plugins.some((plugin) => plugin.name === "distilled-sveltekit-config")) return;
 			console.warn(
-				"vp dev starts LIVE PRODUCTION development. All app writes affect production. Use vp run dev for an isolated local database.",
+				"vp dev starts LIVE PRODUCTION development. All app writes affect production. Use vp run dev:local for an isolated local database.",
 			);
 			const child = spawn("vp", ["run", "dev:live"], { cwd: config.root, stdio: "inherit" });
 			const interrupt = () => child.kill("SIGINT");
