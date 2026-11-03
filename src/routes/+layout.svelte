@@ -11,6 +11,7 @@
 	import ImpersonationIndicator from "#lib/shell/ImpersonationIndicator.svelte";
 	import { identityChangeKey, loginEntryKey, replaceSession } from "#lib/shell/session-navigation.js";
 	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
+	import FeedbackTool from "#lib/feedback/FeedbackTool.svelte";
 	import PipelineView from "#lib/pipeline/PipelineView.svelte";
 	import VariantHost from "#lib/dev/VariantHost.svelte";
 	import { variantSetting } from "#lib/dev/variants.svelte.js";
@@ -291,4 +292,5 @@
 		{/key}
 	{/if}
 	<VariantHost />
+	{#if data.identity && !isLogin}<FeedbackTool />{/if}
 {/if}

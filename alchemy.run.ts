@@ -20,16 +20,26 @@ export const Database = Cloudflare.D1.Database(
 	}),
 ).pipe(RemovalPolicy.retain(Effect.map(Stage, (stage) => stage === "prod")));
 
+// Temporary beta feedback notes and drawings, kept apart from the CRM's records.
+export const Feedback = Cloudflare.KV.Namespace(
+	"Feedback",
+	Effect.map(Stage, (stage) => ({
+		title: stage === "prod" ? "meadow-feedback" : `meadow-feedback-${stage}`,
+	})),
+).pipe(RemovalPolicy.retain(Effect.map(Stage, (stage) => stage === "prod")));
+
 export const Website = Cloudflare.Website.SvelteKit(
 	"Website",
 	Effect.gen(function* () {
 		const stage = yield* Stage;
 		const database = yield* Database;
+		const feedback = yield* Feedback;
 		return {
 			name: stage === "prod" ? "meadow" : stage === "spike" ? "meadow-spike" : "meadow-dev",
 			dev: { host: process.env.MEADOW_DEV_HOST ?? "localhost", port: 1337, strictPort: true },
 			env: {
 				DB: database,
+				FEEDBACK: feedback,
 				BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
 				BETTER_AUTH_URL:
 					stage === "prod"

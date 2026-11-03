@@ -24,11 +24,16 @@ export default Alchemy.Stack(
 			stack: "Meadow",
 			stage: "prod",
 		});
+		const feedback = yield* Cloudflare.KV.Namespace.ref("Feedback", {
+			stack: "Meadow",
+			stage: "prod",
+		});
 		const site = yield* Cloudflare.Website.SvelteKit("Website", {
 			name: "meadow-live-dev",
 			dev: { host: "localhost", port: 1337, strictPort: true },
 			env: {
 				DB: database,
+				FEEDBACK: feedback,
 				BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
 				BETTER_AUTH_URL: "http://localhost:1337",
 				LOCAL_IDENTITY_STUB: "false",

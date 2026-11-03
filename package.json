@@ -41,6 +41,7 @@
 		"@tanstack/svelte-table": "^9.3.1",
 		"better-auth": "^1.7.7",
 		"drizzle-orm": "1.0.0-rc.5-ab785fc",
+		"modern-screenshot": "^4.7.0",
 		"valibot": "^1.5.0"
 	},
 	"devDependencies": {
