@@ -19,7 +19,10 @@ afterAll(async () => {
 });
 
 test("production defaults exactly preserve all 16 documented checklists and do not seed fictional records", async () => {
-	const doc = await readFile(new URL("../../../../docs/checklists.md", import.meta.url), "utf8");
+	const doc = await readFile(
+		new URL("../../../../docs/misc/checklists.md", import.meta.url),
+		"utf8",
+	);
 	const documentedTitles = doc
 		.split("## Editing notes")[0]
 		.split("\n")

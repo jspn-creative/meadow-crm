@@ -1,6 +1,6 @@
 # Design: Meadow CRM
 
-This records the intent behind the visual language. Tokens and themes live in `src/routes/layout.css` and the stylesheets it imports, shared primitives are CSS classes in its components layer, and the development-only `/style-guide` route renders all of them. Product scope and vocabulary stay in [docs/SPEC.md](docs/SPEC.md) and the Vocabulary section of [AGENTS.md](AGENTS.md#vocabulary).
+This records the intent behind the visual language. Tokens and themes live in `src/routes/layout.css` and the stylesheets it imports, shared primitives are CSS classes in its components layer, and the development-only `/style-guide` route renders all of them. Product scope and vocabulary stay in [docs/requirements.md](docs/requirements.md) and the Vocabulary section of [AGENTS.md](AGENTS.md#vocabulary).
 
 ## Character
 
@@ -12,7 +12,7 @@ This records the intent behind the visual language. Tokens and themes live in `s
 
 ## Themes
 
-A theme sets the palette and type pairing for the whole app. It is chosen in the account menu, saved in the user's browser, and applied as `data-theme` on `<html>` before first paint. Cream is the default; Evening is the dark theme. Cream, Pop, and Evening must be fully correct; Sage & clay, Lilac, and Butter are offered but only need to be coherent.
+A theme sets the colors for the whole app. It is chosen in the account menu, where hovering a theme previews it across the app until one is chosen or the menu is left, saved in the user's browser, and applied as `data-theme` on `<html>` before first paint. Cream is the default; Evening is the dark theme. Cream, Pop, and Evening must be fully correct; Sage & clay, Lilac, and Butter are offered but only need to be coherent.
 
 Every theme defines the same complete set of semantic tokens below; no token exists outside the themes, and no theme leans on another's values or on fixed colors. Each theme supplies a short list of inputs (its neutrals, accent, status hues, category hues, and shade) and derives the rest with the same rules, so components only ever read semantic tokens:
 
@@ -36,18 +36,15 @@ Current mappings, which any palette change must preserve as distinct signals:
 
 ## Type
 
-Each theme has its own pairing of a display face and a sans, set as `--font-display` and `--font-sans`:
+A font pairs a display face with a sans, set as `--font-display` and `--font-sans`. It is chosen in the account menu independently of the theme, saved in the user's browser, and applied as `data-font` on `<html>` before first paint. Bricolage is the default:
 
-| Theme | Display | Sans |
+| Font | Display | Sans |
 | --- | --- | --- |
-| Pop | Bricolage Grotesque | Bricolage Grotesque |
-| Cream | Newsreader | DM Sans |
-| Evening | Instrument Serif | Instrument Sans |
-| Sage & clay | Young Serif | Work Sans |
-| Lilac | Fraunces | Figtree |
-| Butter | Fredoka | Nunito |
+| Bricolage | Bricolage Grotesque | Bricolage Grotesque |
+| Fraunces | Fraunces | Figtree |
+| Young Serif | Young Serif | Work Sans |
 
-Load only the active theme's faces where practical. The display face is for page titles, widget and section headings, opportunity titles, and prominent figures. The sans (weights 400, 500, and 600) is for everything else, including charts. There is no mono or label family.
+One stylesheet declares every font's faces, so the browser downloads only the faces in use and switching is quick. The display face is for page titles, widget and section headings, opportunity titles, and prominent figures. The sans (weights 400, 500, and 600) is for everything else, including charts. There is no mono or label family.
 
 Body text is 14px; supporting details are 12px. Interactive labels use weight 500. Single-line item titles use `.item-title` so wrapping never costs more height than the row budgeted. `text-2xs` is for badges only; use tracked uppercase sparingly.
 

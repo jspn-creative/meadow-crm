@@ -1,6 +1,6 @@
 # Default checklists
 
-Seed content for the 16 editable Pipeline templates (four types × four stages), automatically inherited on first entry to a stage. These are editable guidance, not enforced procedures or completion gates. Inheritance, customization, and deliberate resets follow [SPEC.md](./SPEC.md); preserve this content when implementing the seed data.
+Seed content for the 16 editable Pipeline templates (four types × four stages), automatically inherited on first entry to a stage. These are editable guidance, not enforced procedures or completion gates. Inheritance, customization, and deliberate resets follow [requirements.md](../requirements.md); preserve this content when implementing the seed data.
 
 These actions are manual checklist guidance, not requirements for calendar integration, commission reporting, nurture automation, or automatic archiving. Completion and dates retain template linkage; structural customization detaches only that opportunity's stage checklist. Template resets preserve still-present linked progress, while an opportunity-stage reset deliberately clears that stage's customization, completion, and dates.
 

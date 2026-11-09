@@ -5,7 +5,7 @@ import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import { normalizeImportName } from "./import-name.ts";
 
 // One-time importer. Target selection and --apply are always explicit; a dry run opens no database.
-const sourcePath = "docs/client-data.csv";
+const sourcePath = "docs/misc/client-data.csv";
 const args = process.argv.slice(2).filter((arg: string) => arg !== "--");
 const applying = args.includes("--apply");
 const verifying = args.includes("--verify");

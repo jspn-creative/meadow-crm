@@ -1,6 +1,6 @@
 # Phone discovery — deferred
 
-No provider, number, feature set, or delivery commitment exists. This is a question list, not requirements; see [SPEC.md](../SPEC.md).
+No provider, number, feature set, or delivery commitment exists. This is a question list, not requirements; see [requirements.md](../requirements.md).
 
 - Value: which calls matter today, how many, who answers, and which problems justify a provider dependency and monthly cost?
 - Scope: logging, click-to-call, caller ID, routing, voicemail, recording, transcription, or missed-call follow-up—which are actually wanted?

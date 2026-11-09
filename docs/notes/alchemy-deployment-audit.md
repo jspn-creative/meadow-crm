@@ -37,7 +37,7 @@ None need cloud access; `alchemy dev` uses local simulators for D1 and the Websi
 2. **Hand-written SQL.** Migrations 0001 and 0003 contain triggers, and several contain `CHECK` constraints. Drizzle 1.0 expresses `check()` in the schema; triggers need a custom migration. Confirm Drizzle.Schema keeps a custom SQL file in its output directory across regenerations, or move the triggers into application code.
 3. **Non-interactive generation.** `drizzle-kit generate` prompts on ambiguous renames. Confirm what Drizzle.Schema does on a rename during deploy; if it fails or guesses, renames need a hand-written step.
 4. **State during dev.** `Cloudflare.state()` may bootstrap or upgrade the account-wide backend when loaded. Use `Alchemy.localState()` for dev stages unless the docs show dev skips the remote backend.
-5. **Tests.** Existing DB tests boot D1 through wrangler's `getPlatformProxy` and the old migrator. Port them to a local D1 with the generated migrations or delete low-value ones; WORKFLOW already authorizes updating tests a change breaks.
+5. **Tests.** Existing DB tests boot D1 through wrangler's `getPlatformProxy` and the old migrator. Port them to a local D1 with the generated migrations or delete low-value ones; AGENTS.md already authorizes updating tests a change breaks.
 
 ## Production-shaped local data
 

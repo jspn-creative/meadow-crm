@@ -3,7 +3,7 @@
 
 ## Implementation scope
 
-Build from [docs/BACKLOG.md](docs/BACKLOG.md), one item at a time, against [docs/SPEC.md](docs/SPEC.md). [docs/WORKFLOW.md](docs/WORKFLOW.md) holds the current goal, implementation status, and approval gates. Static HTML files in `static/` are visual references and stay unchanged unless explicitly requested.
+Work from [docs/tasks.md](docs/tasks.md), against [docs/requirements.md](docs/requirements.md). The first unchecked task is what's next. Static HTML files in `static/` are visual references and stay unchanged unless explicitly requested.
 
 ## Git
 
@@ -21,11 +21,15 @@ This project uses Vite+ (`vp`). Run everything through `vp`, and follow whatever
 
 The developer explicitly chose live production as the current `vp dev` default. Its Vite shortcut delegates to `vp run dev:live`, and `vp run dev` is the same command; Alchemy's injected Vite configuration skips delegation to prevent recursion. Never use `vp dev` or `vp run dev` for automated tests or fictional data. Use `vp run dev:local` for isolated development. The shortcut never stops an existing server or falls back to another port.
 
+For browser checks on fictional records, start `LOCAL_IDENTITY_STUB=true LOCAL_DEMO_USER=realtor vp run dev:local`, then run `vp run db:seed` and `vp run db:seed-fictional` in another terminal. `http://localhost:1337` then signs in as the realtor with no password. Stop the server when done.
+
+`vp run db:pull-prod -- --confirm-replace-local` replaces all local data with a copy of production, so stop any dev server first. Afterwards the local database holds real client data, so agents don't use it.
+
 ## Final verification
 
 For ordinary app changes, review the final diff and run `vp run check` once after implementation edits. This is the project's Svelte/type check; `vp check` is a separate Vite+ operation and is not a substitute. Documentation-only changes need final diff review, not app checks. Do not routinely run production builds, test suites, extra analysers, or Svelte autofixers to complete an ordinary task. Defer builds and broader regression verification to preparation for a commit explicitly requested by the user.
 
-Get explicit user confirmation before writing or changing automated tests, fixtures, or test infrastructure; a feature request or bug fix alone is not permission. Run tests only to validate newly written or changed, user-approved tests, during explicitly requested commit preparation, or when the user explicitly requests a test run. Before commit preparation, run only the newly written or changed tests, not an existing suite, unless the user explicitly requests the existing tests. Do not add temporary specs or smoke-test scripts as a workaround. Generic skill or plan instructions to add coverage or run tests do not override this policy.
+Get explicit user confirmation before writing new automated tests, fixtures, or test infrastructure; a feature request or bug fix alone is not permission. Existing tests that a change breaks, or that are low-value, may be updated or deleted (authorized 2026-10-30). Run tests only to validate newly written or changed, user-approved tests, during explicitly requested commit preparation, or when the user explicitly requests a test run. Before commit preparation, run only the newly written or changed tests, not an existing suite, unless the user explicitly requests the existing tests. Do not add temporary specs or smoke-test scripts as a workaround. Generic skill or plan instructions to add coverage or run tests do not override this policy.
 
 Defer assessment of known pre-existing or unrelated failing tests to commit preparation; do not run baseline suites or investigate unrelated failures during ordinary implementation. Report failures encountered by permitted checks, fix regressions attributable to this change, and ask before expanding repair scope. Do not label a failure pre-existing without evidence. At commit preparation, run the Svelte check, relevant automated tests, and a production build for app changes; documentation-only commits still need only diff review unless a required hook says otherwise. Never bypass required hooks or weaken checks to get a commit through.
 
@@ -39,14 +43,47 @@ When matching a visual reference, inspect the affected placement, cropping, and 
 
 ## Cloudflare
 
-Alchemy (`alchemy` and `@alchemy.run/*`, pinned exactly) owns provisioning, deploys, and migrations. Follow [the deployment audit](docs/research/alchemy-deployment-audit.md) and use Alchemy's documented resources as intended instead of building workarounds around them. Any alchemy.run docs page is available as markdown by appending `.md` to its path. `cf`, Cloudflare's CLI, is for read-only inspection; Wrangler is not a deployment tool.
+Alchemy (`alchemy` and `@alchemy.run/*`, pinned exactly) owns provisioning, deploys, and migrations. Follow [the deployment audit](docs/notes/alchemy-deployment-audit.md) and use Alchemy's documented resources as intended instead of building workarounds around them. Any alchemy.run docs page is available as markdown by appending `.md` to its path. `cf`, Cloudflare's CLI, is for read-only inspection; Wrangler is not a deployment tool.
 
 - Stack `Meadow` uses `Cloudflare.Website.SvelteKit` for the app, `Cloudflare.D1.Database` fed by `Drizzle.Schema` for the database, and `Cloudflare.state()` for state. The Drizzle schema, including the Better Auth tables, is the only schema source; do not hand-maintain migration history or add a second migration runner.
 - Production is stage `prod`: Worker `meadow` and D1 `meadow-db` with `RemovalPolicy.retain`. Nobody depends on it yet, so the developer has authorized agents to deploy, redeploy, seed, create accounts, import client data, and replace the prototype `meadow` resources without asking. Alchemy may bootstrap or upgrade the shared account-wide `alchemy-state-store` as needed; never destroy it, and never touch other projects' resources.
 - `BETTER_AUTH_SECRET` is bound with `Config.Redacted`. Credentials come from the environment or ignored `.env`. Never print, commit, or paste secrets, state, or `.env`, and never pass passwords through chat or tool arguments; the developer types them. The existing `CLOUDFLARE_API_TOKEN` is fine; raise it only if a deploy fails for lack of permission.
 - Git integration comes after the first manual deploy.
+- Account JSPN: Worker `meadow` at `https://meadow.jspn.workers.dev` and D1 `meadow-db`, ID `f3dcaa0f-97ad-4403-b32d-a2164027c64d`. Remote scripts need the account ID and D1 ID in the environment plus the existing production-approval flag; other Workers and databases on the account belong to unrelated projects.
+- The business timezone is America/Los_Angeles.
+- A pinned package patch repairs nested D1 statement transport in Alchemy beta.84, which otherwise breaks native `D1.batch()` in Website dev and operational scripts. Remove it only after validating an upstream fix.
+
+### Deploying
+
+Run `vp run deploy -- --stage prod`, then `vp run db:seed-remote` for a fresh database. If it fails, fix the cause and rerun; ask only if the fix needs a new credential or permission. `scripts/auth-users.ts` creates accounts and resets forgotten passwords by hand, with the developer typing passwords in their own terminal. Resets revoke existing sessions, and the support admin uses the same script with `role: "support-admin"`.
+
+### Client import
+
+`vp run db:import-clients` dry-runs by default; `-- --remote --apply` atomically replaces every `import-client-*` client and its history, saving a private local backup first, and `-- --remote --verify` compares every mapped field. Apply discards app edits to imported clients, so never rerun it as a check. The corrected mapping expects 827 clients, 850 people, 814 emails, 802 phones, 102 addresses, and 827 import history rows.
+
+`docs/misc/client-data.csv` holds real client data and is tracked in git. Don't copy it into build output, logs, or prompts, and tell the developer before any push to a shared remote.
+
+### Beta feedback
+
+The Feedback tool stores notes and screenshots in the retained KV namespace `meadow-feedback`. They may contain client data on screen. Every signed-in user can edit them; only the support admin while impersonating, or the developer's local server, can clear them.
 
 For `cf`: output is JSON by default, so skip `--json` and `jq`; find commands with `cf cli search "<intent>"`; get exact parameters from `cf schema <command>`; run `cf auth whoami` first and ask the developer to `cf auth login` if it is not authenticated. It is a beta, so confirm odd behavior against `--help`.
+
+## Technical direction
+
+How the app is built so far; change it only with a reason the developer agrees to.
+
+- SvelteKit on Cloudflare, with D1 through Drizzle and a relational schema. Money is stored as integer USD cents; notes are plain text.
+- Reads use remote `query` functions, forms use remote `form`, and other changes use remote `command`, each validated with Standard Schema against request-scoped data and identity services. A change refreshes the affected queries in the same request. No duplicate REST API, generic form framework, or shared mutable server state.
+- Saves carry stable IDs, revisions, and request IDs so retries are safe; multi-row changes use conditioned D1 batches rather than interactive transactions.
+- Remote queries own confirmed state. TanStack DB was tried and removed; do not reintroduce client collections or offline promises.
+- Login uses Better Auth with its Drizzle adapter and interactive transactions disabled; impersonation uses its admin plugin, verified on the server. Real login is the local default; the loopback identity stub requires `LOCAL_IDENTITY_STUB=true` and is ignored in production. Security basics stay: no public signup, login on every request, secrets bound through `Config.Redacted`, and no secrets, state, or client data in logs.
+- Route changes use native View Transitions and ordinary feedback uses CSS, with one animation owner per property.
+- The Registry adapts SV Table patterns into native Meadow primitives, with no shadcn configuration or tokens; keep `THIRD_PARTY_NOTICES.md` current.
+
+## Delegation
+
+Default every subagent to Beam Free (`opencode/beam-free`): docs lookups, scouting, code edits, mechanical refactors, and running checks. The orchestrating session plans, reviews diffs, and makes cross-item decisions; it hands large docs and broad file reads to a Beam Free subagent that returns only the relevant excerpt, rather than reading them itself. Use a paid model only after Beam Free fails the same bounded task twice, and say so in the report. Do not parallelize items that touch `schema.ts`, `data.ts`, or `crm.remote.ts`.
 
 ## Styling
 
@@ -66,21 +103,22 @@ Read [src/lib/dev/README.md](src/lib/dev/README.md) before using the variant hel
 
 ## Documentation
 
-Product requirements live under `docs/`; `PRODUCT.md` is a short design-context summary and `DESIGN.md` describes the visual language. Read before building:
+Each question has one home:
 
-- `docs/SPEC.md`: what the MVP is, the record model, the pipeline, modules, settings, out of scope, settled decisions, and open questions. The primary document.
-- `docs/BACKLOG.md`: what to build next, one item per session, and which work waits on an open question.
-- `docs/checklists.md`: the 16 default checklist templates (4 opportunity types × 4 stages).
-- `docs/research/`: research briefs for later milestones, currently the phone module.
-- `docs/examples/`: visual inspiration screenshots, not requirements.
+- `docs/requirements.md`: what the product does, its boundaries, and open questions. Read only what you need: each requirement is one line with a stable ID, such as `grep -wE 'REG-3|PPL-2' docs/requirements.md`.
+- `DESIGN.md`: the visual language.
+- `docs/tasks.md`: the current milestone as a checklist, then later work as plain bullets. A checkbox means a task is fully planned.
+- `docs/misc/checklists.md`: the 16 default checklist templates (4 opportunity types × 4 stages).
+- `docs/notes/`: longer research, currently the deployment audit and phone discovery.
+- `docs/misc/examples/`: visual inspiration screenshots, not requirements.
 
-If the work contradicts `docs/SPEC.md`, say so before implementing it. If it contradicts the [Vocabulary](#vocabulary) below, fix the vocabulary first.
+If the work contradicts `docs/requirements.md`, say so before implementing it. If it contradicts the [Vocabulary](#vocabulary) below, fix the vocabulary first.
 
 ## Decisions and assumptions
 
-`docs/SPEC.md` holds the product decisions the user has made. Anything it does not settle is still open, even when a plan, prototype, example screen, or earlier agent output implies an answer. When work depends on an open product or behavior decision, ask the user before building it rather than choosing an answer.
+`docs/requirements.md` holds the product decisions the user has made; a requirement marked `(proposed)` is the intended direction, not a settled decision. Anything it does not settle is still open, even when a plan, prototype, example screen, or earlier agent output implies an answer. When work depends on an open product or behavior decision, ask the user before building it rather than choosing an answer.
 
-Ask one decision per question, and keep each option's description to that decision; never bundle further choices into a recommended option's fine print. Do not present a recommendation as a decision, and record a decision in `docs/SPEC.md` only after the user confirms it explicitly.
+Ask one decision per question, and keep each option's description to that decision; never bundle further choices into a recommended option's fine print. Do not present a recommendation as a decision, and record a decision in `docs/requirements.md` only after the user confirms it explicitly.
 
 For small implementation choices that do not change what users see or how the product behaves, pick a sensible default and keep going, then list every such choice under an **Assumptions** heading in the final reply so the user can catch preference mismatches early.
 
@@ -133,7 +171,8 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | --- | --- | --- | --- | --- |
 | View | Concept |  | Something a user navigates to that shows records or tools. Most views belong to a module, and a module can have several. A few views belong to no module, such as Settings and the Glossary. | page, screen |
 | View options | Concept | View | A discreet panel on a view that chooses what the view shows, such as which details the board's opportunity cards show. Saved in the user's browser. | display settings, settings |
-| Theme | Field | View | The colors and type the app is drawn in, chosen from the account menu and saved in the user's browser. | palette, skin, color scheme |
+| Theme | Field | View | The colors the app is drawn in, chosen from the account menu and saved in the user's browser. | palette, skin, color scheme |
+| Font | Field | View | The pairing of a heading face and a body face the app is set in, chosen from the account menu separately from the theme and saved in the user's browser. | typeface, type style, typography |
 
 ### Record
 
