@@ -634,7 +634,7 @@
 		@apply bg-paper min-w-0 rounded-xl;
 	}
 	.item-title {
-		@apply text-ink text-sm/4.5 font-medium;
+		@apply text-ink text-sm leading-none font-medium;
 	}
 
 	/* Materials restyle the primitives' resting surface only. Exclusions sit in :where() so these rules keep single-class weight: variants, pressed, active, and invalid states, and the Glow edge all still win. Ghost, danger, .segmented, and .text-action stay plain. */

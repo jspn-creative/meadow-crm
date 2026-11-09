@@ -88,7 +88,7 @@
 	</header>
 	<div class="@container/task min-w-0 space-y-6 px-4 py-5 sm:px-8 sm:py-7">
 		<h2 id={heading} class="font-display text-3xl tracking-tight">{task ? task.title : "New task"}</h2>
-		{#if task}<p class="text-muted text-sm">{task.completedAt ? "Completed" : "Assigned to the realtor"}</p>{/if}
+		{#if task}<p class="text-muted text-sm leading-none">{task.completedAt ? "Completed" : "Assigned to the realtor"}</p>{/if}
 		{#if stale}<div class="bg-pending-soft space-y-2 rounded-xl p-3" role="alert">
 				<p>This task changed. Current saved title: {task?.title}. Load the current task before saving again.</p>
 				<button type="button" class="control" disabled={pending} onclick={loadCurrent}>Load current task</button>

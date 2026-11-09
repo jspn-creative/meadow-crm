@@ -81,7 +81,7 @@
 		<p class="text-ink/90 mt-5 max-w-prose text-[0.9375rem]/7 text-pretty">{entry.meaning}</p>
 		{#if entry.open}
 			<div class="bg-pending-soft text-pending mt-5 rounded-xl px-4 py-3 text-sm/6">
-				<p class="font-medium">Open question</p>
+				<p class="leading-none font-medium">Open question</p>
 				<p>{entry.open}</p>
 			</div>
 		{/if}

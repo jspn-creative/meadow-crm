@@ -45,7 +45,7 @@
 <div class="flex min-h-[calc(100dvh-6rem)] items-center justify-center px-5 py-12 sm:px-8 lg:min-h-[calc(100dvh-1.5rem)] lg:px-10">
 	<form method="POST" class={["w-full max-w-sm", exiting && "login-form-exit"]} onsubmit={signIn}>
 		<h2 class="font-display text-4xl tracking-tight">Welcome back.</h2>
-		<p class="text-muted mt-3">Open your shared workspace.</p>
+		<p class="text-muted mt-3 leading-none">Open your shared workspace.</p>
 		<div class="mt-8"><label for="email" class="mb-2 block font-medium">Email</label><input id="email" name="email" type="email" autocomplete="username" class="field" required /></div>
 		<div class="mt-4"><label for="password" class="mb-2 block font-medium">Password</label><input id="password" name="password" type="password" autocomplete="current-password" class="field" required /></div>
 		<button type="submit" class="control mt-5 w-full" data-variant="primary" disabled={!ready || pending} aria-busy={pending}>{pending ? "Signing in…" : "Sign in"}<ArrowRight size={17} aria-hidden="true" /></button>

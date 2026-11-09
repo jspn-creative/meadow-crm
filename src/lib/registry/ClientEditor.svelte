@@ -252,7 +252,7 @@
 						{/if}
 					</div>
 					<div role="group" aria-label="Tags" class="space-y-1.5">
-						<p class="text-muted text-xs font-medium" aria-hidden="true">Tags</p>
+						<p class="text-muted text-xs leading-none font-medium" aria-hidden="true">Tags</p>
 						<div class="flex flex-wrap gap-2">
 							{#each tagChoices as tag (tag.id)}
 								{@const applied = draft.tagIds.includes(tag.id)}
@@ -263,7 +263,7 @@
 						</div>
 					</div>
 					<div role="group" aria-label="May contact by" class="space-y-1.5">
-						<p class="text-muted text-xs font-medium" aria-hidden="true">May contact by</p>
+						<p class="text-muted text-xs leading-none font-medium" aria-hidden="true">May contact by</p>
 						<div class="flex flex-wrap gap-2">
 							{#each channels as [key, label] (key)}
 								<button type="button" class="control" data-size="sm" aria-pressed={draft[key]} onclick={() => (draft[key] = !draft[key])}>{label}</button>

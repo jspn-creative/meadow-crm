@@ -282,13 +282,19 @@
 	[data-font="bricolage"] {
 		--font-display: "Bricolage Grotesque", system-ui, sans-serif;
 		--font-sans: "Bricolage Grotesque", system-ui, sans-serif;
+		--font-body-tracking: normal;
+		letter-spacing: var(--font-body-tracking);
 	}
 	[data-font="fraunces"] {
 		--font-display: "Fraunces", Georgia, serif;
 		--font-sans: "Figtree", system-ui, sans-serif;
+		--font-body-tracking: normal;
+		letter-spacing: var(--font-body-tracking);
 	}
 	[data-font="young-serif"] {
 		--font-display: "Young Serif", Georgia, serif;
 		--font-sans: "Work Sans", system-ui, sans-serif;
+		--font-body-tracking: -0.02em;
+		letter-spacing: var(--font-body-tracking);
 	}
 }

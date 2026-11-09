@@ -121,13 +121,24 @@
 	}
 	body {
 		@apply h-full overscroll-none font-sans text-sm antialiased;
+		letter-spacing: var(--font-body-tracking);
 		text-rendering: optimizeLegibility;
+	}
+	.font-sans {
+		letter-spacing: var(--font-body-tracking);
+	}
+	.font-display {
+		letter-spacing: normal;
+	}
+	p {
+		@apply leading-[1.4];
 	}
 	button,
 	input,
 	select,
 	textarea {
 		font: inherit;
+		letter-spacing: inherit;
 		accent-color: var(--color-field);
 		caret-color: var(--color-field-deep);
 	}
@@ -313,11 +324,6 @@
 			opacity 160ms ease,
 			transform 200ms var(--ease-shell),
 			visibility 160ms ease;
-		&::after {
-			content: "";
-			position: absolute;
-			inset: 100% 0 -0.5rem;
-		}
 	}
 	/* The menu's items and an open theme or font list share one grid cell, so the menu is as tall as its items and grows only for a longer list. A closed list leaves the flow and is clipped to the menu, so it never adds height or scrolling. A list slides in from the end and the items slide aside toward the start. */
 	.menu-pane {
@@ -348,9 +354,6 @@
 		}
 		.account-menu {
 			@apply top-full right-0 bottom-auto left-auto mt-2 mb-0;
-			&::after {
-				inset: -0.5rem 0 100%;
-			}
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

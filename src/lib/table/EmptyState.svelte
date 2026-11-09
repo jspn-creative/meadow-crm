@@ -18,7 +18,7 @@
 	<span class="bg-paper text-muted flex size-11 items-center justify-center rounded-full" aria-hidden="true">
 		{#if icon}{@render icon()}{:else}<SearchX size={20} strokeWidth={1.4} />{/if}
 	</span>
-	<p class="font-display mt-4 text-xl">{title}</p>
+	<p class="font-display mt-4 text-xl leading-none">{title}</p>
 	{#if description}<p class="text-muted mt-1 max-w-sm text-sm text-pretty">{description}</p>{/if}
 	{#if actions}<div class="mt-5">{@render actions()}</div>{/if}
 </div>

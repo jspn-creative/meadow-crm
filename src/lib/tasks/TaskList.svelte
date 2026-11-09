@@ -24,7 +24,7 @@
 			</summary>
 			<div class="px-(--row-pad) pt-0 pb-(--row-pad) @min-[24rem]/tasks:pl-[calc(var(--row-pad)+--spacing(10))]">
 				{#if task.note}<p class="text-muted text-xs leading-5">{task.note}</p>{/if}
-				<p class={["text-xs font-medium", task.note && "mt-3"]}>Assigned to the realtor</p>
+				<p class={["text-xs leading-none font-medium", task.note && "mt-3"]}>Assigned to the realtor</p>
 				{#if open}<button type="button" class="text-action mt-3" disabled={busy} onclick={() => open?.(task.id)}>Open task</button>{/if}
 			</div>
 		</details>

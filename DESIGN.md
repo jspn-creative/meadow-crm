@@ -48,6 +48,8 @@ One stylesheet declares every font's faces, so the browser downloads only the fa
 
 Body text is 14px; supporting details are 12px. Interactive labels use weight 500. Single-line item titles use `.item-title` so wrapping never costs more height than the row budgeted. `text-2xs` is for badges only; use tracked uppercase sparingly.
 
+Paragraphs and other prose that can naturally wrap use a unitless line-height of approximately `1.4`, scaling with their font size. This includes empty-state guidance, descriptions, notes, and error messages; small text is not a reason to tighten prose. Paragraphs default to `1.4` even with `text-xs` or `text-sm`; longer-form reading may use more generous leading. Short phrases, buttons, tags, badges, single-line item titles, and supporting headline or eyebrow text intended to stay on one line use line-height `1`, keeping accidental wrapping compact. Choose by the text's purpose, not its tag: a short label rendered as `<p>` must explicitly use `leading-none`, while prose in another element must explicitly use `leading-[1.4]` or equivalent readable leading.
+
 ## Layout
 
 The desktop rail is transparent and 16rem wide, collapsing to 5rem. The main surface sits 12px from the top, bottom, and rail, reaches the right edge, scrolls independently, and rounds only its left corners. Main gutters step from 20px to 32px at 640px and to 40px at 1024px. There is no centered max-width container.

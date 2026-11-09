@@ -597,7 +597,7 @@
 			<div class="ml-auto flex shrink-0 items-center gap-2">
 				<button type="button" class="control @max-[48rem]/registry:hidden" data-icon popovertarget="registry-columns" style:anchor-name="--registry-columns" aria-label="Columns" title="Columns"><Columns3Cog size={18} aria-hidden="true" /></button>
 				<div id="registry-columns" popover="auto" role="group" aria-label="Columns" class="surface surface-floating menu w-64" style:position-anchor="--registry-columns">
-					<p class="text-muted px-2.5 pt-1 pb-1.5 text-xs font-medium">Show columns</p>
+					<p class="text-muted px-2.5 pt-1 pb-1.5 text-xs leading-none font-medium">Show columns</p>
 					{#each orderedColumns as id (id)}
 						<label class="menu-item has-[:focus-visible]:bg-highlight cursor-pointer gap-3 font-normal">
 							<input class="check" data-shape="box" type="checkbox" checked={columnVisibility[id] !== false} onchange={(event) => setColumnVisible(id, event.currentTarget.checked)} />
@@ -833,7 +833,7 @@
 														</span>
 														<div class="max-w-72 min-w-44">
 															<button type="button" class="item-title block max-w-full truncate text-left hover:underline hover:decoration-(--color-hairline) hover:underline-offset-4" disabled={!ready} onclick={() => editClient(c.id)}>{c.name}</button>
-															{#if others}<p class="text-muted mt-0.5 truncate text-xs">{others}</p>{/if}
+															{#if others}<p class="text-muted mt-0.5 truncate text-xs leading-none">{others}</p>{/if}
 														</div>
 													</div>
 												{:else if column.id === "contact"}
@@ -905,7 +905,7 @@
 									<input type="checkbox" class="check relative z-1 mt-1 shrink-0" data-shape="box" aria-label={`Select ${c.name}`} checked={selected.has(c.id)} onclick={(event) => toggleRow(index, event)} />
 									<div class="min-w-0 flex-1">
 										<button type="button" class="item-title block max-w-full truncate text-left after:absolute after:inset-0" disabled={!ready} onclick={() => editClient(c.id)}>{c.name}</button>
-										{#if others}<p class="text-muted mt-0.5 truncate text-xs">{others}</p>{/if}
+										{#if others}<p class="text-muted mt-0.5 truncate text-xs leading-none">{others}</p>{/if}
 										{#if c.phone || c.email}
 											<p class="text-muted mt-1 flex min-w-0 items-baseline gap-x-3 text-xs">
 												{#if c.phone}<a class="relative z-1 shrink-0 tabular-nums" href={`tel:${c.phone}`}>{formatPhone(c.phone)}</a>{/if}
@@ -928,7 +928,7 @@
 					</ul>
 
 					<div class="border-hairline text-muted flex min-h-10 shrink-0 items-center gap-3 border-t px-5 text-xs">
-						<p class="tabular-nums" role="status">{hasMore ? `${clients.length} of ${plural(total)}` : plural(total)}</p>
+						<p class="leading-none tabular-nums" role="status">{hasMore ? `${clients.length} of ${plural(total)}` : plural(total)}</p>
 					</div>
 				</div>
 			{/if}
@@ -940,7 +940,7 @@
 					{#if notice.skipped.length}
 						<button type="button" class="control" data-size="sm" popovertarget="registry-skipped" style:anchor-name="--registry-skipped">{notice.skipped.length} skipped</button>
 						<div id="registry-skipped" popover="auto" class="surface surface-floating menu w-80 p-3 [position-area:block-start]" style:position-anchor="--registry-skipped">
-							<p class="text-muted mb-2 text-xs font-medium">Skipped, with the reason</p>
+							<p class="text-muted mb-2 text-xs leading-none font-medium">Skipped, with the reason</p>
 							<ul class="max-h-64 space-y-1.5 overflow-y-auto overscroll-contain" {@attach overflowFade({ axis: "y" })}>
 								{#each notice.skipped as item (item.id)}
 									<li class="flex items-baseline justify-between gap-3"><span class="truncate font-medium">{item.name}</span><span class="text-muted shrink-0 text-xs">{item.reason}</span></li>

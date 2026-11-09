@@ -84,7 +84,7 @@
 	<div class="absolute top-2.5 right-2 z-10">
 		<Menu label="More actions" disabled={busy} class="text-(--card-ink)/70 pointer-fine:hover:bg-(--card-chip) pointer-fine:hover:text-(--card-ink)">
 			<div role="group" aria-labelledby={`${titleId}-move`}>
-				<p id={`${titleId}-move`} class="text-muted px-2.5 pt-1 pb-1.5 text-xs">Move to stage</p>
+				<p id={`${titleId}-move`} class="text-muted px-2.5 pt-1 pb-1.5 text-xs leading-none">Move to stage</p>
 				{#each Object.entries(stageLabels) as [stage, label] (stage)}
 					{@const current = stage === opportunity.stage}
 					<button type="button" role="menuitemradio" aria-checked={current} class="menu-item" disabled={current} onclick={() => move(stage as Stage)}>

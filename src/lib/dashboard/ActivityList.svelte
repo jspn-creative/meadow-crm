@@ -78,7 +78,7 @@
 				<div class="min-w-0 pt-0.5">
 					<p class="item-title">{item.title}</p>
 					<p class="text-muted mt-1 text-xs leading-5">{item.detail}</p>
-					<p class="text-muted mt-1 text-xs">{item.date}</p>
+					<p class="text-muted mt-1 text-xs leading-none">{item.date}</p>
 				</div>
 			</li>
 		{/each}

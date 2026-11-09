@@ -3,7 +3,6 @@
 	import { onMount, tick } from "svelte";
 	import { page } from "$app/state";
 	import { exitImpersonation, replaceSession } from "./session-navigation.js";
-	import { dev } from "$app/env";
 	import { BookOpen, Check, ChevronLeft, ChevronRight, LogOut, KeyRound, Settings2, UserRoundCog, UserRoundX } from "@lucide/svelte";
 	import { chooseFont, chooseTheme, endPreview, fonts, preview, themes, type FontId, type ThemeId } from "./themes.js";
 	const id = $props.id();
@@ -176,7 +175,7 @@
 		<div class="menu-pane" data-active={!list} inert={!!list}>
 			<button type="button" class="menu-item" disabled={pending} onclick={logout}><LogOut size={16} aria-hidden="true" />Log out</button>
 			{#if !accountOnly}
-				{#if dev}<a href="/settings" class="menu-item"><Settings2 size={16} aria-hidden="true" />Settings</a>{/if}
+				<a href="/settings" class="menu-item"><Settings2 size={16} aria-hidden="true" />Settings</a>
 				<a href="/glossary" class="menu-item"><BookOpen size={16} aria-hidden="true" />Glossary</a>
 			{/if}
 			{#if impersonating}
@@ -249,7 +248,7 @@
 </div>
 
 {#snippet heading(label: string)}
-	<p class="text-muted flex items-center gap-3 px-2.5 py-1.5 text-xs">{label}<span class="menu-divider border-hairline h-px min-w-0 flex-1 border-t" aria-hidden="true"></span></p>
+	<p class="text-muted flex items-center gap-3 px-2.5 py-1.5 text-xs leading-none">{label}<span class="menu-divider border-hairline h-px min-w-0 flex-1 border-t" aria-hidden="true"></span></p>
 {/snippet}
 
 {#snippet back()}
