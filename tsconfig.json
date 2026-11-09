@@ -1,7 +1,7 @@
 {
 	"extends": "$app/tsconfig",
 	"compilerOptions": {
-		"types": ["node"],
+		"types": ["node", "$app/types"],
 		"paths": {
 			"#lib": ["./src/lib/index.ts"],
 			"#lib/*": ["./src/lib/*"]
@@ -10,5 +10,11 @@
 		"sourceMap": true,
 		"strict": true
 	},
-	"include": ["src", "alchemy.run.ts", "alchemy.live.ts"]
+	"include": [
+		"src",
+		"alchemy.run.ts",
+		"alchemy.live.ts",
+		"stacks/preview-data.ts",
+		"scripts/preview-data.ts"
+	]
 }

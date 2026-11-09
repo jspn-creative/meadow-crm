@@ -1,12 +1,12 @@
 # Alchemy deployment audit
 
-Finalized 2026-10-30 against alchemy.run's current docs and the installed `2.0.0-beta.84` packages (still npm `latest`). Supersedes the earlier draft of this audit, which defended the spike's workarounds instead of following Alchemy's documented paths.
+Finalized 2026-10-30 against alchemy.run's current docs and the installed `2.0.0-beta.84` packages (still npm `latest`). Supersedes the earlier draft of this audit, which defended the initial experiment's workarounds instead of following Alchemy's documented paths.
 
 ## Direction
 
 The project is still in development with no real production data, so nothing about the current migration history, journal, or local migration runner needs preserving. Use Alchemy's tools the way its docs intend, and remove the workarounds built around them.
 
-- **Website:** replace the generic `Cloudflare.Worker` over prebuilt `vp build` output with `Cloudflare.Website.SvelteKit` ([guide](https://alchemy.run/cloudflare/frontend/sveltekit)). It loads `vite.config.ts`, injects its own wrangler-free adapter, binds `env` onto `platform.env` with an inferred `WebsiteEnv` type, and runs SvelteKit's own Vite dev server under `alchemy dev` with real local bindings. This retires `@sveltejs/adapter-cloudflare`, `wrangler.jsonc`, the hand-rolled platform proxy, and the deploy script's build step. The spike's objection ("no way to deploy prebuilt output") was a preference for keeping the old pipeline, not a defect.
+- **Website:** replace the generic `Cloudflare.Worker` over prebuilt `vp build` output with `Cloudflare.Website.SvelteKit` ([guide](https://alchemy.run/cloudflare/frontend/sveltekit)). It loads `vite.config.ts`, injects its own wrangler-free adapter, binds `env` onto `platform.env` with an inferred `WebsiteEnv` type, and runs SvelteKit's own Vite dev server under `alchemy dev` with real local bindings. This retires `@sveltejs/adapter-cloudflare`, `wrangler.jsonc`, the hand-rolled platform proxy, and the deploy script's build step. The initial experiment's objection ("no way to deploy prebuilt output") was a preference for keeping the old pipeline, not a defect.
 - **Database and migrations:** `Cloudflare.D1.Database({ migrations: schema })` fed by `Drizzle.Schema("Schema", { schema, dialect: "sqlite" })` from `@alchemy.run/drizzle` ([D1 reference](https://alchemy.run/providers/cloudflare/d1), [Drizzle.Schema](https://alchemy.run/providers/drizzle/schema)). Drizzle.Schema regenerates migration SQL from the TypeScript schema during `alchemy deploy` and `alchemy dev`; D1 applies it. Editing `schema.ts` is the whole workflow: no hand-run `drizzle-kit generate`, no journal, no second runner. Alchemy's `__alchemy_migrations` is the only history table, locally and in production.
 - **Fresh baseline:** delete `drizzle/` (SQL, snapshots, legacy journal), the `.alchemy/migrations` staging copy in `alchemy.run.ts`, `scripts/migrations.ts`, `src/lib/server/db/migrate.ts`, and the `meadow_migrations` table. Drizzle.Schema generates one initial migration from the current schema.
 - **Better Auth:** keep upstream `better-auth` with `@better-auth/drizzle-adapter`, and fold the auth tables into the single Drizzle schema so Drizzle.Schema owns them too. Generate them with the Better Auth CLI into `auth-schema.ts` and include that file in the schema input.
@@ -29,7 +29,7 @@ The [database comparison](https://alchemy.run/better-auth/databases/) frames D1 
 
 `@alchemy.run/drizzle@2.0.0-beta.84` peers on `drizzle-orm` and `drizzle-kit` `1.0.0-rc.5-ab785fc`; Meadow is on `drizzle-orm` 0.45 and `drizzle-kit` 0.31. Upgrade both to that exact pin. Meadow uses no relational `db.query` or `relations()` code, so the query-builder change is small. `@better-auth/drizzle-adapter` 1.7 supports Relations v2 via its `/relations-v2` entry. `@alchemy.run/frontend-frameworks@2.0.0-beta.84` is required as a dev dependency for `Website.SvelteKit`; it peers on `@sveltejs/kit >=3` and `vite ^7 || ^8`.
 
-## Risks to prove in the local spike
+## Risks to prove in the local experiment
 
 None need cloud access; `alchemy dev` uses local simulators for D1 and the Website.
 

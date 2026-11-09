@@ -35,6 +35,7 @@
 		"db:pull-prod": "node --experimental-strip-types scripts/pull-prod.ts",
 		"db:import-clients": "node --experimental-strip-types scripts/import-clients.ts",
 		"deploy": "node --experimental-strip-types scripts/deploy.ts",
+		"preview:data": "node --experimental-strip-types scripts/preview-data.ts",
 		"state:bootstrap": "node --experimental-strip-types scripts/bootstrap-state.ts"
 	},
 	"dependencies": {
@@ -51,6 +52,7 @@
 		"@alchemy.run/cloudflare-runtime": "2.0.0-beta.84",
 		"@alchemy.run/drizzle": "2.0.0-beta.84",
 		"@alchemy.run/frontend-frameworks": "2.0.0-beta.84",
+		"@alchemy.run/github": "2.0.0-beta.84",
 		"@cloudflare/workers-types": "^5.20261013.1",
 		"@effect/platform-node": "4.0.5",
 		"@effect/platform-node-shared": "4.0.5",

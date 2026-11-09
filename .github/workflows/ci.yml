@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, closed]
+  workflow_call:
+    inputs:
+      preview_pr:
+        type: number
+        required: true
+
+permissions:
+  contents: read
+
+# Serialize deployments and cleanup for each stage; never interrupt a migration.
+concurrency:
+  group: meadow-${{ inputs.preview_pr > 0 && format('pr-{0}', inputs.preview_pr) || github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'prod' }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        id: source
+        with:
+          ref: ${{ inputs.preview_pr > 0 && format('refs/pull/{0}/merge', inputs.preview_pr) || github.sha }}
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          version: '1.0.0'
+          node-version: '24'
+          cache: true
+          run-install: false
+      - run: vp install --frozen-lockfile
+      - run: vp run check
+      - run: vp test
+      - run: vp run build
+
+  snapshot:
+    needs: check
+    # Fork PRs get checks only: never give untrusted code deployment secrets.
+    if: inputs.preview_pr > 0 || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: meadow-preview-snapshot
+      cancel-in-progress: false
+    outputs:
+      database_id: ${{ steps.snapshot.outputs.database_id }}
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check.outputs.commit }}
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          version: '1.0.0'
+          node-version: '24'
+          cache: true
+          run-install: false
+      - run: vp install --frozen-lockfile
+      - run: vp exec -- alchemy provider check-env --provider Cloudflare
+      - name: Select a dated snapshot
+        id: snapshot
+        env:
+          REFRESH_MODE: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' && 'if-stale' || 'reuse' }}
+        run: vp run preview:data -- "$REFRESH_MODE"
+
+  deploy:
+    needs: [check, snapshot]
+    if: always() && needs.check.result == 'success' && (github.event_name == 'push' || needs.snapshot.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      STAGE: ${{ inputs.preview_pr > 0 && format('pr-{0}', inputs.preview_pr) || github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'prod' }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      BETTER_AUTH_SECRET: ${{ secrets[github.event_name == 'push' && 'BETTER_AUTH_SECRET' || 'PREVIEW_AUTH_SECRET'] }}
+      MEADOW_APPROVED_PRODUCTION: ${{ github.event_name == 'push' && 'true' || 'false' }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PULL_REQUEST: ${{ inputs.preview_pr > 0 && inputs.preview_pr || github.event_name == 'pull_request' && github.event.number || '' }}
+      MEADOW_PREVIEW_SNAPSHOT_ID: ${{ needs.snapshot.outputs.database_id }}
+    steps:
+      - uses: actions/checkout@v4
+        id: source
+        with:
+          ref: ${{ needs.check.outputs.commit }}
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          version: '1.0.0'
+          node-version: '24'
+          cache: true
+          run-install: false
+      - run: vp install --frozen-lockfile
+      - run: vp exec -- alchemy provider check-env --provider Cloudflare
+      - name: Skip previews whose PR has closed
+        id: preview
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "$STAGE" != "prod" ]]; then
+            active=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PULL_REQUEST" --jq '.state == "open" and .head.repo.full_name == .base.repo.full_name')
+            echo "active=$active" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy
+        if: steps.preview.outputs.active != 'false'
+        run: vp run deploy -- --stage "$STAGE"
+        env:
+          GITHUB_SHA: ${{ steps.source.outputs.commit }}
+
+  cleanup:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      STAGE: pr-${{ github.event.number }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      BETTER_AUTH_SECRET: ${{ secrets.PREVIEW_AUTH_SECRET }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PULL_REQUEST: ${{ github.event.number }}
+    steps:
+      # Use trusted main, including when a PR was closed without merging.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: voidzero-dev/setup-vp@v1.22.0
+        with:
+          version: '1.0.0'
+          node-version: '24'
+          cache: true
+          run-install: false
+      - run: vp install --frozen-lockfile
+      - run: vp exec -- alchemy provider check-env --provider Cloudflare
+      - name: Look up snapshot for stack evaluation without refreshing
+        id: snapshot
+        run: vp run preview:data -- lookup
+      - name: Destroy preview only
+        env:
+          MEADOW_PREVIEW_SNAPSHOT_ID: ${{ steps.snapshot.outputs.database_id }}
+        run: |
+          if [[ ! "$STAGE" =~ ^pr-[1-9][0-9]*$ ]]; then
+            echo "Refusing to destroy a non-preview stage."
+            exit 1
+          fi
+          vp exec -- alchemy destroy --stage "$STAGE" --yes --no-input

@@ -28,6 +28,8 @@ The developer confirmed every requirement here on 2026-11-05. A requirement mark
 - REL-10 A forgotten password is reset by the developer by hand with a script; there is no reset email or link.
 - REL-11 The production Worker may take over the existing `meadow` Worker's name; it was a prototype.
 - REL-12 Nobody depends on production before the business starts using it, so deploying needs no separate sign-off; it ships once it works locally.
+- REL-13 Supported environments are local dev, production, and isolated `pr-<number>` previews. CI checks pull requests and pushes to main, deploys same-repository PR previews, deploys production on pushes to main, and removes previews when their PR closes (decided 2026-11-09).
+- REL-14 PR previews clone a shared dated production snapshot with real records and login accounts, without live sessions or verification tokens, then apply their own migrations. Refresh the shared snapshot monthly, or when a PR opens and the last successful sync is over seven days old; ordinary PR updates reuse it without exporting production. Open preview databases refresh monthly, discarding preview edits; edits never sync back to production. Local simulator development and automated tests remain isolated (decided 2026-11-09).
 
 ## People (PPL)
 
