@@ -60,7 +60,7 @@
 		<header class="flex items-center gap-2 py-1.5 pr-1 pl-2.5">
 			<span class="size-2 shrink-0 rounded-full bg-(--stage-ink)" aria-hidden="true"></span>
 			<h2 class="truncate text-sm font-semibold">{label}</h2>
-			<span class="text-muted rounded-full bg-white/80 px-1.5 text-xs leading-5 font-medium tabular-nums">{count}</span>
+			<span class="text-muted rounded-full bg-white/80 px-1.5 text-xs leading-none font-medium tabular-nums">{count}</span>
 			<span class="ml-auto flex items-center">
 				<button
 					type="button"
@@ -94,7 +94,7 @@
 		onclick={swap}
 		class="pointer-events-none absolute inset-0 flex flex-col items-center gap-2.5 rounded-[1.25rem] pt-3.5 pb-3 text-(--stage-ink) opacity-0 transition-[opacity,background-color] delay-0 duration-100 ease-out group-data-[collapsed=true]/stage:pointer-events-auto group-data-[collapsed=true]/stage:opacity-100 group-data-[collapsed=true]/stage:delay-150 group-data-[collapsed=true]/stage:duration-200 focus-visible:-outline-offset-3 motion-reduce:group-data-[collapsed=true]/stage:delay-0 pointer-fine:hover:bg-[color-mix(in_oklab,var(--stage-soft)_70%,transparent)]">
 		<span class="size-2 shrink-0 rounded-full bg-(--stage-ink)" aria-hidden="true"></span>
-		<span class="text-muted min-w-6 rounded-full bg-white/80 px-1.5 text-center text-xs leading-5 font-medium tabular-nums" aria-hidden="true">{count}</span>
+		<span class="text-muted min-w-6 rounded-full bg-white/80 px-1.5 text-center text-xs leading-none font-medium tabular-nums" aria-hidden="true">{count}</span>
 		<span class="mt-1 min-h-0 flex-1 overflow-hidden text-sm font-semibold whitespace-nowrap [writing-mode:vertical-rl]" aria-hidden="true">{label}</span>
 		<ChevronsLeftRight size={15} class="text-muted shrink-0" aria-hidden="true" />
 	</button>

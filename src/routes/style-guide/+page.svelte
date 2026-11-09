@@ -3,7 +3,7 @@
 	import type { Attachment } from "svelte/attachments";
 	import { onMount } from "svelte";
 	import { Archive, ArrowLeft, Banknote, Bookmark, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, CircleAlert, Clock3, Columns3, ContactRound, DollarSign, Inbox, Link2, MapPin, PencilLine, Pin, PinOff, Plus, RefreshCw, Search, Shapes, Tags, Trash2, Undo2, UserRound, X } from "@lucide/svelte";
-	import { chooseTheme, themes } from "#lib/shell/themes.js";
+	import { chooseFont, chooseTheme, fonts, themes, type FontId, type ThemeId } from "#lib/shell/themes.js";
 	import DashboardCard from "#lib/dashboard/DashboardCard.svelte";
 	import Scorecard from "#lib/dashboard/Scorecard.svelte";
 	import TaskList from "#lib/tasks/TaskList.svelte";
@@ -26,25 +26,19 @@
 	type OpportunityType = keyof typeof typeLabels;
 
 	const pageId = $props.id();
-	const fontPairs = {
-		cream: { display: "Newsreader", body: "DM Sans" },
-		evening: { display: "Instrument Serif", body: "Instrument Sans" },
-		pop: { display: "Bricolage Grotesque", body: "Bricolage Grotesque" },
-		butter: { display: "Fredoka", body: "Nunito" },
-		sage: { display: "Young Serif", body: "Work Sans" },
-		lilac: { display: "Fraunces", body: "Figtree" },
-	} as const;
-	let activeTheme = $state<keyof typeof fontPairs>("pop");
-	let fontPair = $derived(fontPairs[activeTheme]);
+	let activeTheme = $state<ThemeId>("pop");
+	let activeFont = $state<FontId>("bricolage");
+	let fontPair = $derived(fonts.find((font) => font.id === activeFont) ?? fonts[0]);
 	let composition = $state("Original");
 	onMount(() => {
 		const sync = () => {
-			const value = document.documentElement.dataset.theme;
-			activeTheme = themes.find((theme) => theme.id === value)?.id ?? "pop";
+			const { theme, font } = document.documentElement.dataset;
+			activeTheme = themes.find((option) => option.id === theme)?.id ?? "pop";
+			activeFont = fonts.find((option) => option.id === font)?.id ?? "bricolage";
 		};
 		sync();
 		const observer = new MutationObserver(sync);
-		observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+		observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-font"] });
 		return () => observer.disconnect();
 	});
 
@@ -677,9 +671,14 @@
 
 {#snippet paletteBody()}
 	<div>
-		{@render subheading("Themes", "Choose a production theme. It applies to the entire app and is saved in your browser; only its font pairing loads.")}
-		<div class="segmented" role="group" aria-label="Theme">
-			{#each themes as theme (theme.id)}<label><input type="radio" name={`${pageId}-theme`} checked={activeTheme === theme.id} onchange={() => chooseTheme(theme.id)} />{theme.label}</label>{/each}
+		{@render subheading("Themes and fonts", "Choose a production theme and font. Each applies to the entire app and is saved in your browser.")}
+		<div class="grid gap-2">
+			<div class="segmented" role="group" aria-label="Theme">
+				{#each themes as theme (theme.id)}<label><input type="radio" name={`${pageId}-theme`} checked={activeTheme === theme.id} onchange={() => chooseTheme(theme.id)} />{theme.label}</label>{/each}
+			</div>
+			<div class="segmented" role="group" aria-label="Font">
+				{#each fonts as font (font.id)}<label><input type="radio" name={`${pageId}-font`} checked={activeFont === font.id} onchange={() => chooseFont(font.id)} />{font.label}</label>{/each}
+			</div>
 		</div>
 	</div>
 	<div>
@@ -731,7 +730,7 @@
 
 {#snippet typeBody()}
 	<div class="grid gap-3 @min-[40rem]/guide:grid-cols-2">
-		{#each [{ name: fontPair.display, family: "font-display", role: "View titles, headings, opportunity titles and figures", weights: fontPair.display === "Instrument Serif" ? "400 · italic" : "400 · 500" }, { name: fontPair.body, family: "font-sans", role: "Controls, records, body and supporting text", weights: "400 · 500 · 600" }] as face (face.family)}
+		{#each [{ name: fontPair.display, family: "font-display", role: "View titles, headings, opportunity titles and figures", weights: fontPair.display === "Young Serif" ? "400" : "400 · 500" }, { name: fontPair.body, family: "font-sans", role: "Controls, records, body and supporting text", weights: "400 · 500 · 600" }] as face (face.family)}
 			<div data-sg-panel class="border-hairline flex items-end justify-between gap-4 rounded-3xl border bg-white p-5">
 				<div class="min-w-0">
 					<p class="text-sm font-semibold">{face.name}</p>
@@ -938,7 +937,7 @@
 					{:else}
 						<span class="flex flex-wrap items-center gap-3">
 							<span class="chip tabular-nums">3</span>
-							<span data-chip data-pill class="bg-category-sky text-category-sky-ink inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs leading-5 font-medium tabular-nums"><Clock3 size={12} strokeWidth={2.25} aria-hidden="true" />1–3 mo</span>
+							<span data-chip data-pill class="bg-category-sky text-category-sky-ink inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs leading-none font-medium tabular-nums"><Clock3 size={12} strokeWidth={2.25} aria-hidden="true" />1–3 mo</span>
 							<span data-chip class="bg-category-sky text-category-sky-ink flex size-6 items-center justify-center rounded-full"><Pin size={12} strokeWidth={2.25} class="rotate-45 fill-current" aria-hidden="true" /><span class="sr-only">Pinned</span></span>
 							<span class="flex gap-0.75" role="img" aria-label="3 of 5 checklist items done"
 								>{#each { length: 5 }, index (index)}<span class={["size-1.5 rounded-full", index < 3 ? "bg-ink" : "bg-ink/20"]}></span>{/each}</span>
@@ -1065,7 +1064,7 @@
 	<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-8">
 		<div class="max-w-2xl space-y-2">
 			<p class="text-muted text-sm/6 text-pretty">The app’s shared classes and components, shown with fictional records. The variant toolbar restyles the whole workspace while this view is open. Records are never saved; local file selection and clipboard actions are identified where they occur.</p>
-			<p class="text-muted text-xs/5">Themes come from the account menu or Foundations. The development-only Material setting compares Glass and Tactile across every view. All specimens use production primitives.</p>
+			<p class="text-muted text-xs/5">Themes and fonts come from the account menu or Foundations. The development-only Material setting compares Glass and Tactile across every view. All specimens use production primitives.</p>
 		</div>
 		<div class="flex gap-2">
 			<button type="button" class="control" data-size="sm" onclick={() => guide.setAll(true)}><ChevronsUpDown size={15} aria-hidden="true" />Expand all</button>

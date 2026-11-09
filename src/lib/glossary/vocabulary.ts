@@ -111,8 +111,15 @@ export const vocabulary: Term[] = [
 				term: "Theme",
 				kind: "Field",
 				meaning:
-					"The colors and type the app is drawn in, chosen from the account menu and saved in the user's browser.",
+					"The colors the app is drawn in, chosen from the account menu and saved in the user's browser.",
 				not: ["palette", "skin", "color scheme"],
+			},
+			{
+				term: "Font",
+				kind: "Field",
+				meaning:
+					"The pairing of a heading face and a body face the app is set in, chosen from the account menu separately from the theme and saved in the user's browser.",
+				not: ["typeface", "type style", "typography"],
 			},
 		],
 	},

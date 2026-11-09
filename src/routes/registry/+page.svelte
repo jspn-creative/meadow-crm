@@ -766,36 +766,42 @@
 												menuColumn = id;
 												columnMenu?.show(event, event.currentTarget);
 											}}>
-											{#if id === "name"}
-												<input
-													type="checkbox"
-													class={["check mr-3 inline-block align-middle transition-opacity duration-120 pointer-coarse:opacity-100", selected.size || allLoadedSelected ? "opacity-100" : "opacity-0 group-hover/head:opacity-100 focus-visible:opacity-100"]}
-													data-shape="box"
-													aria-label={allLoadedSelected ? "Clear selection" : "Select all loaded clients"}
-													checked={allLoadedSelected}
-													{@attach (node) => {
-														node.indeterminate = !allLoadedSelected && clients.some((row) => selected.has(row.id));
-													}}
-													disabled={!ready}
-													onchange={toggleAllLoaded} />
-											{/if}
-											{#if sortId}
-												<button type="button" class={["group/sort hover:text-ink -mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 font-medium", meta.end && "flex-row-reverse"]} onclick={() => setSort(sortId)}>
-													{meta.header}
-													{#if active && params.sortDir === "asc"}<ArrowUp size={13} class="opacity-0 transition-opacity group-hover/sort:opacity-100 group-focus-visible/sort:opacity-100" aria-hidden="true" />
-													{:else if active}<ArrowDown size={13} class="opacity-0 transition-opacity group-hover/sort:opacity-100 group-focus-visible/sort:opacity-100" aria-hidden="true" />
-													{:else}<ArrowDown size={13} class="opacity-0 transition-opacity group-hover/sort:opacity-50 group-focus-visible/sort:opacity-50" aria-hidden="true" />{/if}
-												</button>
-											{:else}
-												<button
-													type="button"
-													class="rounded-md py-1"
-													aria-haspopup="menu"
-													onclick={(event) => {
-														menuColumn = id;
-														columnMenu?.show(event, event.currentTarget);
-													}}>{meta.header}</button>
-											{/if}
+											<div class="flex h-full items-center">
+												{#if id === "name"}
+													<input
+														type="checkbox"
+														class={["check mr-3 shrink-0 transition-opacity duration-120 pointer-coarse:opacity-100", selected.size || allLoadedSelected ? "opacity-100" : "opacity-0 group-hover/head:opacity-100 focus-visible:opacity-100"]}
+														data-shape="box"
+														aria-label={allLoadedSelected ? "Clear selection" : "Select all loaded clients"}
+														checked={allLoadedSelected}
+														{@attach (node) => {
+															node.indeterminate = !allLoadedSelected && clients.some((row) => selected.has(row.id));
+														}}
+														disabled={!ready}
+														onchange={toggleAllLoaded} />
+												{/if}
+												{#if sortId}
+													<button
+														type="button"
+														class={["group/sort hover:text-ink -mx-1.5 flex h-10 flex-1 cursor-pointer items-center gap-1 rounded-md px-1.5 text-left font-medium", meta.end && "flex-row-reverse"]}
+														aria-label={`${meta.header}: ${meta.sort![active && params.sortDir === "asc" ? 1 : 0]}`}
+														onclick={() => setSort(sortId)}>
+														{meta.header}
+														{#if active && params.sortDir === "asc"}<ArrowUp size={13} aria-hidden="true" />
+														{:else if active}<ArrowDown size={13} aria-hidden="true" />
+														{:else}<ArrowDown size={13} class="opacity-0 transition-opacity group-hover/sort:opacity-50 group-focus-visible/sort:opacity-50" aria-hidden="true" />{/if}
+													</button>
+												{:else}
+													<button
+														type="button"
+														class="rounded-md py-1"
+														aria-haspopup="menu"
+														onclick={(event) => {
+															menuColumn = id;
+															columnMenu?.show(event, event.currentTarget);
+														}}>{meta.header}</button>
+												{/if}
+											</div>
 										</th>
 									{/each}
 								</tr>

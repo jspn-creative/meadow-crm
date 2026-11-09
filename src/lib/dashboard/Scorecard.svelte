@@ -9,7 +9,7 @@
 		<p class="font-display text-4xl leading-8 tracking-tight tabular-nums">{value}</p>
 		<span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-(--item-hue) text-(--item-ink)"><ArrowUpRight size={14} aria-hidden="true" /></span>
 	</div>
-	<p class="text-muted mt-1 text-xs leading-5">{detail}</p>
+	<p class="text-muted mt-1 text-xs leading-none">{detail}</p>
 </a>
 
 <style>

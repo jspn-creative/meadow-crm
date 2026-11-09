@@ -97,8 +97,6 @@
 	}
 	[data-theme="pop"] {
 		color-scheme: light;
-		--font-sans: "Bricolage Grotesque", system-ui, sans-serif;
-		--font-display: "Bricolage Grotesque", system-ui, sans-serif;
 		--theme-canvas: #fff;
 		--theme-paper: #f6f6f2;
 		--theme-pill: #ebebe4;
@@ -130,8 +128,6 @@
 	:root:not([data-theme]),
 	[data-theme="cream"] {
 		color-scheme: light;
-		--font-display: "Newsreader", Georgia, serif;
-		--font-sans: "DM Sans", system-ui, sans-serif;
 		--theme-canvas: #fdfcf9;
 		--theme-paper: #f2efe3;
 		--theme-pill: #e6e0cd;
@@ -161,8 +157,6 @@
 		--theme-shade-k: 1;
 	}
 	[data-theme="evening"] {
-		--font-display: "Instrument Serif", Georgia, serif;
-		--font-sans: "Instrument Sans", system-ui, sans-serif;
 		color-scheme: dark;
 		--theme-canvas: #1b1e25;
 		--theme-paper: #121419;
@@ -195,8 +189,6 @@
 	}
 	[data-theme="sage"] {
 		color-scheme: light;
-		--font-display: "Young Serif", Georgia, serif;
-		--font-sans: "Work Sans", system-ui, sans-serif;
 		--theme-canvas: #f9faf5;
 		--theme-paper: #e6ebe0;
 		--theme-pill: #d6ddcc;
@@ -227,8 +219,6 @@
 	}
 	[data-theme="lilac"] {
 		color-scheme: light;
-		--font-display: "Fraunces", Georgia, serif;
-		--font-sans: "Figtree", system-ui, sans-serif;
 		--theme-canvas: #fcfcfe;
 		--theme-paper: #eeedf6;
 		--theme-pill: #e1dfee;
@@ -259,8 +249,6 @@
 	}
 	[data-theme="butter"] {
 		color-scheme: light;
-		--font-display: "Fredoka", system-ui, sans-serif;
-		--font-sans: "Nunito", system-ui, sans-serif;
 		--theme-canvas: #fdfcf6;
 		--theme-paper: #f5eac2;
 		--theme-pill: #ebdb9c;
@@ -288,5 +276,19 @@
 		--theme-selection: 24%;
 		--theme-tone-l: 0.4;
 		--theme-shade-k: 1;
+	}
+	/* A font pairs a display face with a body face and is chosen separately from the theme. */
+	:root:not([data-font]),
+	[data-font="bricolage"] {
+		--font-display: "Bricolage Grotesque", system-ui, sans-serif;
+		--font-sans: "Bricolage Grotesque", system-ui, sans-serif;
+	}
+	[data-font="fraunces"] {
+		--font-display: "Fraunces", Georgia, serif;
+		--font-sans: "Figtree", system-ui, sans-serif;
+	}
+	[data-font="young-serif"] {
+		--font-display: "Young Serif", Georgia, serif;
+		--font-sans: "Work Sans", system-ui, sans-serif;
 	}
 }

@@ -51,7 +51,7 @@
 	style:--card-ink={`var(--color-category-${style.tone}-ink)`}
 	class="group/card @container/card relative isolate rounded-2xl border border-(--card-hue)/45 bg-linear-160 from-(--card-wash) via-(--card-wash)/70 to-white/80 p-3.5 text-(--card-ink) transition-[translate,box-shadow,opacity] duration-300 ease-(--ease-shell) [--card-chip:light-dark(color-mix(in_oklab,var(--card-hue)_14%,var(--color-white)),color-mix(in_oklab,var(--card-wash)_90%,var(--color-ink)))] data-[dragging=true]:opacity-40 motion-reduce:transition-none pointer-fine:hover:-translate-y-0.5 pointer-fine:hover:shadow-[0_12px_24px_-16px_color-mix(in_srgb,var(--card-ink)_45%,transparent)] motion-reduce:pointer-fine:hover:translate-y-0">
 	<div class="flex items-center gap-2 pr-8">
-		<span class="inline-flex items-center gap-1.5 rounded-md bg-(--card-chip) px-2 py-0.5 text-xs leading-5 font-medium"><Icon size={12} strokeWidth={2.25} aria-hidden="true" />{typeLabels[opportunity.type]}</span>
+		<span class="inline-flex items-center gap-1.5 rounded-md bg-(--card-chip) px-2 py-0.5 text-xs leading-none font-medium"><Icon size={12} strokeWidth={2.25} aria-hidden="true" />{typeLabels[opportunity.type]}</span>
 		{#if opportunity.pinnedAt}
 			<span class="ml-auto flex size-6 items-center justify-center rounded-full bg-(--card-chip) shadow-[0_1px_2px_color-mix(in_srgb,var(--card-ink)_14%,transparent)]" title="Pinned to the top of this stage">
 				<Pin size={12} strokeWidth={2.25} class="rotate-45 fill-current" aria-hidden="true" /><span class="sr-only">Pinned</span>
@@ -61,13 +61,13 @@
 	<h3 id={titleId} class="mt-2.5 text-sm/5 font-semibold text-balance wrap-anywhere text-[color:color-mix(in_oklab,var(--card-hue)_35%,var(--color-ink))]">
 		<button type="button" data-open disabled={!ready} class="text-left after:absolute after:inset-0 after:rounded-2xl" onclick={open}>{opportunity.title}</button>
 	</h3>
-	{#if clients.length}<p class="mt-1 truncate text-xs leading-5 text-(--card-ink)/80">{clients.join(", ")}</p>{/if}
+	{#if clients.length}<p class="mt-1 truncate text-xs leading-none text-(--card-ink)/80">{clients.join(", ")}</p>{/if}
 	<div class="mt-3 flex items-center justify-between gap-3">
-		<span class={["inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs leading-5 font-medium tabular-nums", opportunity.timeline ? "bg-(--card-chip)" : "text-(--card-ink)/70"]}>
+		<span class={["inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs leading-none font-medium tabular-nums", opportunity.timeline ? "bg-(--card-chip)" : "text-(--card-ink)/70"]}>
 			<Clock3 size={12} strokeWidth={2.25} aria-hidden="true" />{opportunity.timeline ? timelineLabels[opportunity.timeline] : "No timeline"}
 		</span>
 		{#if progress && progress.total}
-			<span class="flex min-w-0 items-center gap-2 text-xs leading-5 font-medium tabular-nums">
+			<span class="flex min-w-0 items-center gap-2 text-xs leading-none font-medium tabular-nums">
 				<span class="sr-only">Checklist </span>
 				{#if progress.total <= 10}
 					<span class={["gap-0.75", progress.total > 6 ? "hidden @min-[15rem]/card:flex" : "flex"]} aria-hidden="true">

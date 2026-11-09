@@ -58,6 +58,9 @@
 	);
 	--color-urgent: var(--theme-urgent);
 	--text-2xs: 0.65rem;
+	--text-2xs--line-height: 1;
+	--text-xs--line-height: 1;
+	--text-sm--line-height: 1;
 	--shadow-shell: 0 4px 20px -8px
 		oklch(from var(--theme-shade) l c h / calc(0.12 * var(--theme-shade-k)));
 	--shadow-raised: 0 2px 6px -2px
@@ -233,18 +236,6 @@
 	}
 }
 
-/* Impersonation is a pending state the support admin must never lose sight of: a solid toned edge above the shell, which steps down to make room for it. */
-:root {
-	--impersonation-strip: 1.5rem;
-}
-.impersonation-strip {
-	background: color-mix(in oklab, var(--color-pending) 88%, var(--color-ink));
-	color: var(--color-white);
-}
-.workspace[data-impersonating="true"] {
-	padding-top: var(--impersonation-strip);
-}
-
 .workspace {
 	.nav-destination {
 		@apply overflow-hidden;
@@ -314,10 +305,9 @@
 .user-chip {
 	@apply relative;
 	.account-menu {
-		@apply invisible absolute bottom-full left-0 z-30 mb-2 min-w-44 opacity-0;
-		/* The chip is narrower than its menu on phones, so size the menu to its labels rather than its anchor. */
-		width: max-content;
-		max-width: min(18rem, calc(100vw - 2rem));
+		@apply invisible absolute bottom-full left-0 z-30 mb-2 grid overflow-x-hidden opacity-0;
+		/* The chip is narrower than its menu on phones, so the menu keeps its own width, which also holds steady as its panes change. */
+		width: min(16rem, calc(100vw - 2rem));
 		transform: translateY(4px);
 		transition:
 			opacity 160ms ease,
@@ -327,6 +317,23 @@
 			content: "";
 			position: absolute;
 			inset: 100% 0 -0.5rem;
+		}
+	}
+	/* The menu's items and an open theme or font list share one grid cell, so the menu is as tall as its items and grows only for a longer list. A closed list leaves the flow and is clipped to the menu, so it never adds height or scrolling. A list slides in from the end and the items slide aside toward the start. */
+	.menu-pane {
+		@apply min-w-0;
+		grid-area: 1 / 1;
+		transition:
+			opacity 180ms ease,
+			translate 320ms var(--ease-shell),
+			visibility 320ms;
+		&:not([data-active="true"]) {
+			@apply invisible opacity-0;
+			translate: -2rem 0;
+		}
+		&[data-side="end"]:not([data-active="true"]) {
+			@apply absolute inset-(--inset) overflow-hidden;
+			translate: 2rem 0;
 		}
 	}
 	&[data-open="true"] {
@@ -350,6 +357,9 @@
 		.account-menu {
 			transition: none;
 			transform: none;
+		}
+		.menu-pane {
+			transition: none;
 		}
 	}
 }
@@ -560,4 +570,35 @@
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	animation: none;
+}
+
+/* A theme change grows the new theme as a circle from the theme list over a still image of the old one; a font change fades in over it, softening the reflow. The whole page is one image, so surfaces named for route changes do not move on their own, and the pointer passes through to the lists so previews can follow it quickly. */
+:root:active-view-transition-type(theme, font) {
+	& * {
+		view-transition-name: none !important;
+	}
+	&::view-transition {
+		pointer-events: none;
+	}
+}
+:root:active-view-transition-type(theme)::view-transition-new(root) {
+	animation: theme-reveal 560ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+:root:active-view-transition-type(font)::view-transition-new(root) {
+	animation: font-fade 360ms ease-out;
+}
+
+@keyframes font-fade {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes theme-reveal {
+	from {
+		clip-path: circle(0 at var(--reveal-x) var(--reveal-y));
+	}
+	to {
+		clip-path: circle(var(--reveal-radius) at var(--reveal-x) var(--reveal-y));
+	}
 }

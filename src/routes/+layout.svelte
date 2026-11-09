@@ -8,7 +8,6 @@
 	import { destinations } from "#lib/shell/navigation.js";
 	import Motif from "#lib/shell/Motif.svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
-	import ImpersonationIndicator from "#lib/shell/ImpersonationIndicator.svelte";
 	import { identityChangeKey, loginEntryKey, replaceSession } from "#lib/shell/session-navigation.js";
 	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
 	import FeedbackTool from "#lib/feedback/FeedbackTool.svelte";
@@ -184,8 +183,7 @@
 	{@render children()}
 {:else}
 	<a href="#workspace-main" class="control fixed top-3 left-3 z-50 -translate-y-24 focus:translate-y-0">Skip to content</a>
-	{#if data.support?.effectiveUser && !isLogin}<ImpersonationIndicator role={data.support.effectiveUser} />{/if}
-	<div class="workspace" data-impersonating={!!data.support?.effectiveUser && !isLogin} data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed} data-login-entrance={loginEntrance}>
+	<div class="workspace" data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed} data-login-entrance={loginEntrance}>
 		<Motif />
 		<aside class="rail" aria-label={isLogin ? "Meadow Lane" : "Workspace navigation"}>
 			<div class="flex shrink-0 items-center justify-between gap-2">
@@ -208,7 +206,7 @@
 			{:else}
 				<MotionConfig reducedMotion="user" skipAnimations={reducedMotion.current}>
 					<motion.div initial={false} animate={{ height: greetingHidden ? 0 : "auto", opacity: greetingHidden ? 0 : 1 }} transition={{ type: "tween", duration: 0.36, ease: [0.23, 1, 0.32, 1] }} class="rail-greeting shrink-0 overflow-hidden" inert={greetingHidden}>
-						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight text-balance sm:mt-8 sm:text-3xl/[1.08] lg:mt-10 lg:w-52">Good morning,<br class="hidden lg:block" /> Meadow Lane.</p>
+						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight sm:mt-8 lg:mt-10 lg:w-52"><span class="whitespace-nowrap">Good morning,</span><br /> <span class="whitespace-nowrap">Meadow Lane.</span></p>
 					</motion.div>
 				</MotionConfig>
 				{#snippet navLink(href: string, label: string, Icon: (typeof destinations)[number]["icon"], state: "page" | "true" | undefined, onclick?: (event: MouseEvent) => void)}
