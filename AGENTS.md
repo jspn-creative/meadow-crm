@@ -51,7 +51,10 @@ Alchemy (`alchemy` and `@alchemy.run/*`, pinned exactly) owns provisioning, depl
 - Git integration comes after the first manual deploy.
 - Account JSPN: Worker `meadow` at `https://meadow.jspn.workers.dev` and D1 `meadow-db`, ID `f3dcaa0f-97ad-4403-b32d-a2164027c64d`. Remote scripts need the account ID and D1 ID in the environment plus the existing production-approval flag; other Workers and databases on the account belong to unrelated projects.
 - The business timezone is America/Los_Angeles.
-- A pinned package patch repairs nested D1 statement transport in Alchemy beta.84, which otherwise breaks native `D1.batch()` in Website dev and operational scripts. Remove it only after validating an upstream fix.
+- Alchemy stays on beta.84 with two patches in `patches/`. On any Alchemy upgrade, check each against the new release and drop or port it:
+  - `@alchemy.run/cloudflare-runtime` repairs nested D1 statement transport, which otherwise breaks native `D1.batch()` in Website dev and operational scripts. Still unfixed upstream in beta.86 (checked 2026-11-12), so port it.
+  - `@alchemy.run/cloudflare` makes D1 imports accept an ingest that already finished and an upload D1 already holds; the preview snapshot's `importFiles` fails without it. Fixed upstream in beta.85 by [alchemy#2509](https://github.com/alchemy-run/alchemy/pull/2509), so drop it.
+  - Beta.86 breaks `Drizzle.Schema`: `drizzle-kit up` gets an absolute temp path and fails with ENOENT on `.//var/.../snapshot.json`, which stops `alchemy dev` and deploys. Don't upgrade until a release fixes it.
 
 ### Deploying
 

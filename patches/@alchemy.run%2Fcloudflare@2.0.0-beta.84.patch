@@ -1,0 +1,169 @@
+diff --git a/lib/D1/ImportDatabase.js b/lib/D1/ImportDatabase.js
+index f35e825..ab6c6dc 100644
+--- a/lib/D1/ImportDatabase.js
++++ b/lib/D1/ImportDatabase.js
+@@ -37,10 +37,39 @@ export const importD1Database = (options) => Effect.gen(function* () {
+         action: "init",
+         etag,
+     });
++    const uploadFilename = options.filename ?? init.filename ?? "import.sql";
++    // D1 may finish a small import before answering, so every response, ingest included, is read as a poll result.
++    const settle = (data) => Effect.gen(function* () {
++        if (data.status === "complete") {
++            return {
++                filename: data.filename ?? uploadFilename,
++                numQueries: data.result?.num_queries ?? 0,
++            };
++        }
++        if (data.status === "error") {
++            return yield* Effect.die(data.error ?? "Error during D1 import");
++        }
++        if (!data.at_bookmark) {
++            return yield* Effect.die(data.error ?? "D1 import response is incomplete and has no bookmark to poll");
++        }
++        return yield* settle(yield* postJson({
++            action: "poll",
++            current_bookmark: data.at_bookmark,
++        }));
++    });
++    // A file D1 already holds skips the upload, and init starts the import itself.
+     if (!init.uploadUrl) {
+-        return yield* Effect.die(init.error ?? "Failed to get upload URL for D1 import");
++        if (!init.status && !init.atBookmark) {
++            return yield* Effect.die(init.error ?? "Failed to get upload URL for D1 import");
++        }
++        return yield* settle({
++            status: init.status,
++            at_bookmark: init.atBookmark,
++            error: init.error,
++            filename: init.filename,
++            result: init.result ? { num_queries: init.result.numQueries } : null,
++        });
+     }
+-    const uploadFilename = options.filename ?? init.filename ?? "import.sql";
+     // Step 2: PUT to the presigned upload URL
+     const bytes = typeof options.sqlData === "string"
+         ? new TextEncoder().encode(options.sqlData)
+@@ -57,30 +86,7 @@ export const importD1Database = (options) => Effect.gen(function* () {
+         etag,
+         filename: init.filename,
+     });
+-    if (!ingest.at_bookmark) {
+-        return yield* Effect.die(ingest.error ?? "Ingest response missing bookmark");
+-    }
+-    // Step 4: poll until complete
+-    const poll = (bookmark) => Effect.gen(function* () {
+-        const data = yield* postJson({
+-            action: "poll",
+-            current_bookmark: bookmark,
+-        });
+-        if (data.status === "complete" && data.result) {
+-            return {
+-                filename: data.filename ?? uploadFilename,
+-                numQueries: data.result.num_queries ?? 0,
+-            };
+-        }
+-        if (data.status === "error") {
+-            return yield* Effect.die(data.error ?? "Error during D1 import");
+-        }
+-        if (!data.at_bookmark) {
+-            return yield* Effect.die("D1 import poll missing bookmark");
+-        }
+-        return yield* poll(data.at_bookmark);
+-    });
+-    return yield* poll(ingest.at_bookmark);
++    return yield* settle(ingest);
+ });
+ const importEndpoint = (apiBaseUrl, accountId, databaseId) => `${apiBaseUrl}/accounts/${accountId}/d1/database/${databaseId}/import`;
+ //# sourceMappingURL=ImportDatabase.js.map
+\ No newline at end of file
+diff --git a/src/D1/ImportDatabase.ts b/src/D1/ImportDatabase.ts
+index ca4bc0e..b7fd249 100644
+--- a/src/D1/ImportDatabase.ts
++++ b/src/D1/ImportDatabase.ts
+@@ -73,10 +73,48 @@ export const importD1Database = (options: ImportDatabaseOptions) =>
+       etag,
+     });
+ 
++    const uploadFilename = options.filename ?? init.filename ?? "import.sql";
++
++    // D1 may finish a small import before answering, so every response, ingest included, is read as a poll result.
++    const settle = (
++      data: ImportPollingResponse,
++    ): Effect.Effect<ImportDatabaseResult, never, never> =>
++      Effect.gen(function* () {
++        if (data.status === "complete") {
++          return {
++            filename: data.filename ?? uploadFilename,
++            numQueries: data.result?.num_queries ?? 0,
++          };
++        }
++        if (data.status === "error") {
++          return yield* Effect.die(data.error ?? "Error during D1 import");
++        }
++        if (!data.at_bookmark) {
++          return yield* Effect.die(
++            data.error ?? "D1 import response is incomplete and has no bookmark to poll",
++          );
++        }
++        return yield* settle(
++          yield* postJson({
++            action: "poll",
++            current_bookmark: data.at_bookmark,
++          }),
++        );
++      });
++
++    // A file D1 already holds skips the upload, and init starts the import itself.
+     if (!init.uploadUrl) {
+-      return yield* Effect.die(init.error ?? "Failed to get upload URL for D1 import");
++      if (!init.status && !init.atBookmark) {
++        return yield* Effect.die(init.error ?? "Failed to get upload URL for D1 import");
++      }
++      return yield* settle({
++        status: init.status as ImportPollingResponse["status"],
++        at_bookmark: init.atBookmark,
++        error: init.error,
++        filename: init.filename,
++        result: init.result ? { num_queries: init.result.numQueries } : null,
++      });
+     }
+-    const uploadFilename = options.filename ?? init.filename ?? "import.sql";
+ 
+     // Step 2: PUT to the presigned upload URL
+     const bytes =
+@@ -98,33 +136,7 @@ export const importD1Database = (options: ImportDatabaseOptions) =>
+       etag,
+       filename: init.filename,
+     });
+-    if (!ingest.at_bookmark) {
+-      return yield* Effect.die(ingest.error ?? "Ingest response missing bookmark");
+-    }
+-
+-    // Step 4: poll until complete
+-    const poll = (bookmark: string): Effect.Effect<ImportDatabaseResult, never, never> =>
+-      Effect.gen(function* () {
+-        const data = yield* postJson({
+-          action: "poll",
+-          current_bookmark: bookmark,
+-        });
+-        if (data.status === "complete" && data.result) {
+-          return {
+-            filename: data.filename ?? uploadFilename,
+-            numQueries: data.result.num_queries ?? 0,
+-          };
+-        }
+-        if (data.status === "error") {
+-          return yield* Effect.die(data.error ?? "Error during D1 import");
+-        }
+-        if (!data.at_bookmark) {
+-          return yield* Effect.die("D1 import poll missing bookmark");
+-        }
+-        return yield* poll(data.at_bookmark);
+-      });
+-
+-    return yield* poll(ingest.at_bookmark);
++    return yield* settle(ingest);
+   });
+ 
+ const importEndpoint = (apiBaseUrl: string, accountId: string, databaseId: string) =>
