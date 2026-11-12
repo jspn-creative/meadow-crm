@@ -34,7 +34,7 @@ export function createAuth(env: Cloudflare.Env, development: boolean) {
 		],
 		baseURL: origin,
 		secret: env.BETTER_AUTH_SECRET,
-		trustedOrigins: [origin],
+		trustedOrigins: [origin, "https://*.jspn.workers.dev", "https://*.meadownw.com"],
 		database: drizzleAdapter(drizzle(env.DB), {
 			provider: "sqlite",
 			schema,
