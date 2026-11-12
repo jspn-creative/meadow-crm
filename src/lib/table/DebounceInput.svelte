@@ -15,25 +15,36 @@
 
 	let { value = $bindable(""), onChange, id, label, class: className, placeholder = "Search…", debounce = 0 }: Props = $props();
 
-	// Typing updates the field at once; `value` and `onChange` follow after the pause. An outside change to `value` resets the field.
-	let inputValue = $derived(value);
+	// The field owns its text: typing writes no reactive state, so keystrokes never wait on, or get replayed by, the async work a search starts. `value` and `onChange` follow after the pause.
+	let input: HTMLInputElement;
 	let timer: ReturnType<typeof setTimeout> | undefined;
+	let published = "";
 	onDestroy(() => clearTimeout(timer));
+	// Follow outside changes, such as clearing filters or going back, but never while the user is typing, when `value` may be an echo of an older search.
+	function follow(node: HTMLInputElement) {
+		const next = value;
+		if (document.activeElement === node || timer !== undefined || node.value === next) return;
+		node.value = next;
+		published = next;
+	}
 	function commit(next: string) {
 		clearTimeout(timer);
-		if (next === value) return;
-		value = next;
-		onChange?.(next);
+		timer = undefined;
+		if (next === published) return;
+		published = next;
+		if (onChange) onChange(next);
+		else value = next;
 	}
-	function input(next: string) {
-		inputValue = next;
+	function changed() {
 		clearTimeout(timer);
-		if (debounce > 0) timer = setTimeout(() => commit(next), debounce);
-		else commit(next);
+		timer = undefined;
+		if (debounce > 0) timer = setTimeout(() => commit(input.value), debounce);
+		else commit(input.value);
 	}
 	function clearValue() {
-		inputValue = "";
+		input.value = "";
 		commit("");
+		input.focus();
 	}
 </script>
 
@@ -42,19 +53,18 @@
 	<Search size={16} class="text-muted pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2" aria-hidden="true" />
 	<input
 		{id}
+		bind:this={input}
+		{@attach follow}
 		type="search"
-		class="field pr-12 pl-10 [&::-webkit-search-cancel-button]:hidden"
+		class="field peer pr-12 pl-10 [&::-webkit-search-cancel-button]:hidden"
 		{placeholder}
 		autocomplete="off"
-		value={inputValue}
-		oninput={(event) => input(event.currentTarget.value)}
+		oninput={changed}
 		onkeydown={(event) => {
-			if (event.key === "Escape" && inputValue) {
+			if (event.key === "Escape" && input.value) {
 				event.preventDefault();
 				clearValue();
 			}
 		}} />
-	{#if inputValue}
-		<button type="button" class="control absolute top-1/2 right-1 -translate-y-1/2" data-variant="ghost" data-size="sm" data-icon aria-label="Clear search" onclick={clearValue}><X size={15} aria-hidden="true" /></button>
-	{/if}
+	<button type="button" class="control absolute top-1/2 right-1 -translate-y-1/2 peer-placeholder-shown:hidden" data-variant="ghost" data-size="sm" data-icon aria-label="Clear search" onclick={clearValue}><X size={15} aria-hidden="true" /></button>
 </div>

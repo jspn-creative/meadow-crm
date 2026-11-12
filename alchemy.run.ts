@@ -66,7 +66,7 @@ export const Website = Cloudflare.Website.SvelteKit(
 				BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
 				BETTER_AUTH_URL:
 					stage === "prod"
-						? "https://meadow.jspn.workers.dev"
+						? "https://dash.meadownw.com"
 						: stage === "dev"
 							? (process.env.MEADOW_DEV_URL ?? "http://localhost:1337")
 							: Cloudflare.URL,

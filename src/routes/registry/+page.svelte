@@ -259,6 +259,7 @@
 
 	// --- TanStack Table, server-backed --------------------------------------
 	// Data is the loaded rows: the server filters and sorts, and the table tracks sorting for the header indicators plus column visibility and order.
+	let sorting = $derived([{ id: params.sort, desc: params.sortDir === "desc" }]);
 	const table = createTable({
 		features: tableFeatures({ columnOrderingFeature, columnVisibilityFeature, rowSortingFeature }),
 		columns,
@@ -268,7 +269,7 @@
 		getRowId: (row: ClientRow) => row.id,
 		state: {
 			get sorting() {
-				return [{ id: params.sort, desc: params.sortDir === "desc" }];
+				return sorting;
 			},
 			get columnVisibility() {
 				return columnVisibility;
@@ -364,7 +365,8 @@
 		tagMenu?.hidePopover();
 		try {
 			const requestId = crypto.randomUUID();
-			const result = (await bulkUpdateClients({ requestId, clientIds: ids, action, undoOf }).updates(getClients, getClientFacets, remote)) as BulkResult;
+			// This action returns to the first page; do not refresh cached pages from earlier searches in the mutation request.
+			const result = (await bulkUpdateClients({ requestId, clientIds: ids, action, undoOf }).updates(pageQueries[0]!, facetsQuery, remote)) as BulkResult;
 			loaded = { key: queryKey, pages: 1 };
 			tableBox?.scrollTo({ top: 0, behavior: "instant" });
 			// Archived or restored clients leave this view, so they leave the selection too.
@@ -1038,7 +1040,7 @@
 				{...createClient.enhance(async (form) => {
 					failure = "";
 					try {
-						if (await form.submit().updates(remote, getClients, getClientFacets)) {
+						if (await form.submit().updates(remote, ...pageQueries, facetsQuery)) {
 							draft = newClientDraft(clientId, newName.trim());
 							creating = false;
 							fresh = true;
@@ -1061,7 +1063,7 @@
 			</form>
 		{:else if draft}
 			{#key draft.id}
-				<ClientEditor bind:draft bind:pending {workspace} {remote} updates={[getClients, getClientFacets]} {fresh} saved={() => (saved = "Client saved.")}>
+				<ClientEditor bind:draft bind:pending {workspace} {remote} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")}>
 					{#snippet opportunities()}
 						<div class="mb-2 flex min-h-8 items-center justify-between gap-3">
 							<h3 class="font-display text-lg">Opportunities</h3>
