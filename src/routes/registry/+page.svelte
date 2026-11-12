@@ -7,7 +7,8 @@
 	import { columnOrderingFeature, columnVisibilityFeature, createTable, rowSortingFeature, tableFeatures } from "@tanstack/svelte-table";
 	import { bulkUpdateClients, createClient, getClientFacets, getClientIds, getClients, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
-	import { clientDraft, leadSources, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
+	import { leadSources } from "#lib/data/lead-sources.js";
+	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
 	import { formatPhone } from "#lib/registry/format.js";
 	import { builderField, builderFields, channelLabels, channels, filterSummary, needsValue, newFilter, parseFilter, serializeFilter, serverFilter, type BuilderField, type BuilderFilter, type Channel } from "#lib/registry/filters.js";
 	import BulkActionsBar from "#lib/table/BulkActionsBar.svelte";

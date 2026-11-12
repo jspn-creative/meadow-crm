@@ -85,16 +85,11 @@ const relay = (email: string) => /@(?:[^@.]+\.)*kvleads\.com$/i.test(email);
 const numericName = (name: string) => /^[\d\s()+.-]+$/.test(name);
 const phoneKey = (phone: string) => phone.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "");
 const canonicalSources: Record<string, string> = {
-	referral: "A referral",
-	"a referral": "A referral",
-	"open house": "An open house",
-	"an open house": "An open house",
-	sign: "A sign",
-	"a sign": "A sign",
-	website: "The website",
-	"the website": "The website",
-	"walk-in": "A walk-in",
-	"a walk-in": "A walk-in",
+	referral: "Referral",
+	"open house": "Open house",
+	sign: "Sign",
+	website: "Website",
+	"walk-in": "Walk-in",
 };
 const contactValues = (
 	rows: Record<string, string>[],
@@ -303,7 +298,7 @@ for (const [source, rows] of groups) {
 	}
 	if (sourceValue && !canonicalSources[sourceValue.toLowerCase()])
 		throw new Error(`Unmapped lead source at source_row ${source}.`);
-	const leadSource = referral ? "A referral" : canonicalSources[sourceValue.toLowerCase()] || null;
+	const leadSource = referral ? "Referral" : canonicalSources[sourceValue.toLowerCase()] || null;
 	clients.push({
 		source,
 		id: `import-client-${source}`,

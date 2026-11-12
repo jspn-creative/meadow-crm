@@ -1,5 +1,6 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import { drizzle } from "drizzle-orm/d1";
+import { legacyLeadSources, referralSource } from "../../data/lead-sources.ts";
 import { defaultChecklists, defaultItemId, templateId } from "./defaults.ts";
 import {
 	businessSettings,
@@ -32,6 +33,19 @@ export async function seedDefaults(db: D1Database, now = new Date().toISOString(
 				.values({ ...tag, createdAt: now, updatedAt: now })
 				.onConflictDoNothing(),
 		),
+	]);
+	// Renames the first phrase-style lead sources, and marks a client with a referrer as a referral, since only a referral keeps one. Both are no-ops once applied.
+	await db.batch([
+		db
+			.prepare(
+				"UPDATE clients SET lead_source = (SELECT value FROM json_each(?) WHERE key = clients.lead_source), revision = revision + 1, updated_at = ? WHERE lead_source IN (SELECT key FROM json_each(?))",
+			)
+			.bind(JSON.stringify(legacyLeadSources), now, JSON.stringify(legacyLeadSources)),
+		db
+			.prepare(
+				"UPDATE clients SET lead_source = ?, revision = revision + 1, updated_at = ? WHERE (referred_by_client_id IS NOT NULL OR referred_by_name <> '') AND lead_source IS NOT ?",
+			)
+			.bind(referralSource, now, referralSource),
 	]);
 	for (const type of opportunityTypes) {
 		for (const stage of stages) {

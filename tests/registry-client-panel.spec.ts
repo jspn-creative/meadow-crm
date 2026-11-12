@@ -10,7 +10,7 @@ test("client panel creates a client, saves every field and reopens it with the s
 	await dialog.getByLabel("Client name", { exact: true }).fill(name);
 	await dialog.getByRole("button", { name: "Create client", exact: true }).click();
 	await expect(dialog.getByRole("heading", { level: 2, name, exact: true })).toBeVisible();
-	await dialog.getByLabel("Lead source", { exact: true }).selectOption("A referral");
+	await dialog.getByLabel("Lead source", { exact: true }).selectOption("Zillow");
 	await dialog.getByRole("button", { name: "Add person", exact: true }).click();
 	await dialog.getByLabel("Person 1 name", { exact: true }).fill("Fictional Person");
 	await dialog.getByLabel("Person 1 birthday", { exact: true }).fill("1980-04-12");
@@ -39,7 +39,7 @@ test("client panel creates a client, saves every field and reopens it with the s
 	await expect(dialog).not.toBeVisible();
 	await page.reload();
 	await page.getByRole("button", { name, exact: true }).click();
-	await expect(dialog.getByLabel("Lead source", { exact: true })).toHaveValue("A referral");
+	await expect(dialog.getByLabel("Lead source", { exact: true })).toHaveValue("Zillow");
 	await expect(dialog.getByLabel("Person 1 name", { exact: true })).toHaveValue("Fictional Person");
 	await expect(dialog.getByLabel("Person 1 birthday", { exact: true })).toHaveValue("1980-04-12");
 	await expect(dialog.getByLabel("Person 1 phone 1 number", { exact: true })).toHaveValue(
