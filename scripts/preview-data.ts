@@ -5,7 +5,7 @@ import { projectCloudflareAccountId, requireProjectCloudflareCredentials } from 
 type Snapshot = { uuid: string; name: string; syncedAt?: number };
 type ApiResponse<T> = { success: boolean; result: T };
 
-const mode = process.argv[2];
+const mode = process.argv.slice(2).find((arg: string) => arg !== "--");
 if (!["reuse", "if-stale", "monthly", "lookup"].includes(mode ?? ""))
 	throw new Error("Usage: vp run preview:data -- reuse|if-stale|monthly|lookup");
 if (process.env.GITHUB_ACTIONS !== "true" || !process.env.GITHUB_OUTPUT)
