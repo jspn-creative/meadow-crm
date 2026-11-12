@@ -3,12 +3,12 @@
 	import favicon from "#lib/assets/favicon.svg";
 	import { page } from "$app/state";
 	import { onNavigate, afterNavigate } from "$app/navigation";
-	import { dev } from "$app/env";
+	import { browser, dev } from "$app/env";
 	import { PanelLeftClose, PanelLeftOpen } from "@lucide/svelte";
 	import { destinations } from "#lib/shell/navigation.js";
 	import Motif from "#lib/shell/Motif.svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
-	import { identityChangeKey, loginEntryKey, replaceSession } from "#lib/shell/session-navigation.js";
+	import { identityChangeKey, replaceSession } from "#lib/shell/session-navigation.js";
 	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
 	import FeedbackTool from "#lib/feedback/FeedbackTool.svelte";
 	import PipelineView from "#lib/pipeline/PipelineView.svelte";
@@ -18,66 +18,61 @@
 	import { overflowFade } from "#lib/attachments/overflow-fade.js";
 	import { motion, MotionConfig } from "@humanspeak/svelte-motion";
 	import { MediaQuery } from "svelte/reactivity";
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 
 	let { children, data } = $props();
 	// Capture request state during component initialization on the server, before asynchronous children render. On the client this remains reactive across full navigations.
-	let routeUrl = $derived(page.url);
+	const requestUrl = page.url;
+	let routeUrl = $derived(browser ? page.url : requestUrl);
 	async function verifySupportSession() {
 		const expected = data.support?.sessionId;
 		if (!expected) return;
 		try {
 			const response = await fetch("/api/auth/get-session", { cache: "no-store" });
-			const current = response.ok ? await response.json() : null;
-			if (data.support?.sessionId === expected && current?.session?.id !== expected) window.location.replace("/support");
+			// An unavailable server is not proof of an identity change. Only a verified session mismatch should replace the workspace.
+			if (!response.ok) {
+				if (response.status === 401 || response.status === 403) replaceSession("/login");
+				return;
+			}
+			const current = await response.json();
+			if (data.support?.sessionId === expected && current?.session?.id !== expected) window.location.replace("/login");
 		} catch {
-			window.location.replace("/support");
+			// Leave the current view intact on transient network failures; the server still verifies every read and write.
 		}
 	}
 	$effect(() => {
 		if (!data.support?.expiresAt) return;
-		const timeout = window.setTimeout(() => replaceSession("/support"), Math.max(0, data.support.expiresAt - Date.now()));
+		const timeout = window.setTimeout(() => replaceSession("/login"), Math.max(0, data.support.expiresAt - Date.now()));
 		return () => window.clearTimeout(timeout);
 	});
 	const material = variantSetting("material", ["Glass", "Tactile"], { label: "Material" });
 	$effect(() => {
 		if (dev) document.documentElement.dataset.material = material.value.toLowerCase();
 	});
-	// Cross-document view transitions are opt-in via the @view-transition CSS at-rule in layout.css; CSSViewTransitionRule (Exposed=Window) is the cross-document interface, so its presence is the correct signal to suppress the CSS entry fallback. document.startViewTransition only signals same-document support and is not used here.
-	const supportsCrossDocViewTransition = typeof window !== "undefined" && "CSSViewTransitionRule" in window;
 	let collapsed = $state(false);
 	let ready = $state(false);
-	let loginEntrance = $state(false);
 
-	/**
-	 * Reads the one-shot login-entry marker without consuming it; the new
-	 * document consumes and clears it in onMount. Safe when storage is absent.
-	 */
-	function readLoginEntryMarker(): string | null {
-		try {
-			return sessionStorage.getItem(loginEntryKey) ?? null;
-		} catch {
-			return null;
-		}
-	}
-
-	// Skip cross-document view-transition screenshots of cached CRM data unless this document is /login about to navigate to the validated marker target. PageswapEvent is not in the Svelte window attribute set, so listen natively with cleanup instead of an unsupported svelte:window property.
+	// Only explicit identity navigation may capture this document. Ordinary reloads and back/forward restores must not replay cached workspace screenshots.
 	function onPageSwap(event: Event) {
 		const swap = event as unknown as {
-			viewTransition?: { skipTransition(): void } | null;
+			viewTransition?: ViewTransition | null;
 			activation?: { entry?: { url?: string } | null } | null;
 		};
 		const vt = swap?.viewTransition;
 		if (!vt) return;
-		const authorized = routeUrl.pathname === "/login" && !!readLoginEntryMarker();
+		// Chrome rejects the outgoing transition's ready promise when that document is hidden, even when the incoming animation succeeds.
+		void vt.ready.catch(() => {});
+		void vt.updateCallbackDone.catch(() => {});
+		void vt.finished.catch(() => {});
+		const marker = document.documentElement.dataset.sessionDestination;
+		const authorized = !!marker;
 		let targetMatches = false;
 		if (authorized) {
 			const url = swap.activation?.entry?.url;
 			if (url) {
 				try {
 					const dest = new URL(url);
-					const marker = readLoginEntryMarker();
-					targetMatches = marker !== null && dest.pathname + dest.search + dest.hash === marker;
+					targetMatches = dest.origin === location.origin && dest.pathname + dest.search + dest.hash === marker;
 				} catch {
 					targetMatches = false;
 				}
@@ -90,21 +85,6 @@
 		ready = true;
 		// Catch identity changes that happened before this document finished hydrating and attached its storage listener.
 		void verifySupportSession();
-		// Always clear the one-shot login-entry marker so it never replays on a reload or identity-change refresh. Only play the CSS entry fallback when actually arriving from login, not reduced motion, and cross-document view transitions are not handling the morph.
-		let marker = "";
-		try {
-			marker = sessionStorage.getItem(loginEntryKey) ?? "";
-		} catch {
-			/* Without storage the dashboard plays its normal load motion. */
-		}
-		try {
-			sessionStorage.removeItem(loginEntryKey);
-		} catch {
-			/* The marker is one-shot; a failed clear is harmless. */
-		}
-		const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-		const current = `${routeUrl.pathname}${routeUrl.search}${routeUrl.hash}`;
-		if (marker && marker === current && !isLogin && !reduced && !supportsCrossDocViewTransition) loginEntrance = true;
 		window.addEventListener("pageswap", onPageSwap);
 		return () => window.removeEventListener("pageswap", onPageSwap);
 	});
@@ -138,25 +118,27 @@
 	});
 
 	onNavigate((navigation) => {
+		if (!navigation.shallow) delete document.documentElement.dataset.loginEntry;
 		if (navigation.shallow || !document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 		transition?.skipTransition();
 		return new Promise<void>((resolve) => {
-			let released = false;
-			const release = () => {
-				if (!released) {
-					released = true;
+			try {
+				const currentTransition = document.startViewTransition(async () => {
 					resolve();
-				}
-			};
-			const timeout = window.setTimeout(release, 180);
-			transition = document.startViewTransition(async () => {
-				window.clearTimeout(timeout);
-				release();
-				// Release Kit before waiting for readiness; bound slow or failed navigation.
-				await Promise.race([navigation.complete.catch(() => {}), new Promise<void>((done) => window.setTimeout(done, 700))]);
-			});
-			transition.ready.catch(release);
-			transition.finished.catch(release).finally(() => window.clearTimeout(timeout));
+					// Keep the old snapshot until Kit has committed the destination; a timer must not capture a half-rendered view.
+					try {
+						await navigation.complete;
+						await tick();
+					} catch {
+						currentTransition.skipTransition();
+					}
+				});
+				transition = currentTransition;
+				currentTransition.ready.catch(resolve);
+				currentTransition.finished.catch(resolve);
+			} catch {
+				resolve();
+			}
 		});
 	});
 </script>
@@ -175,7 +157,7 @@
 		if (event.persisted) window.location.reload();
 	}}
 	onfocus={() => {
-		if (data.support?.expiresAt && data.support.expiresAt <= Date.now()) replaceSession("/support");
+		if (data.support?.expiresAt && data.support.expiresAt <= Date.now()) replaceSession("/login");
 		else void verifySupportSession();
 	}} />
 
@@ -183,7 +165,7 @@
 	{@render children()}
 {:else}
 	<a href="#workspace-main" class="control fixed top-3 left-3 z-50 -translate-y-24 focus:translate-y-0">Skip to content</a>
-	<div class="workspace" data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed} data-login-entrance={loginEntrance}>
+	<div class="workspace" data-login={isLogin} data-collapsed={!isLogin && sidebarCollapsed}>
 		<Motif />
 		<aside class="rail" aria-label={isLogin ? "Meadow Lane" : "Workspace navigation"}>
 			<div class="flex shrink-0 items-center justify-between gap-2">
@@ -244,7 +226,7 @@
 						{/each}
 					{:else}
 						{#each destinations as destination (destination.href)}
-							{@render navLink(destination.href, destination.label, destination.icon, current === destination ? (page.url.pathname === destination.href ? "page" : "true") : undefined)}
+							{@render navLink(destination.href, destination.label, destination.icon, current === destination ? (routeUrl.pathname === destination.href ? "page" : "true") : undefined)}
 						{/each}
 					{/if}
 				</nav>
@@ -266,16 +248,29 @@
 				if (scrollTop > 24) mobileScrolled = true;
 				else if (scrollTop <= 0) mobileScrolled = false;
 			}}>
-			{#if !isLogin}
-				<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
-					<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
-						{title}{#if page.url.pathname === "/"}
-							<span class="text-muted ml-1">/ Overview</span>{:else if page.url.pathname === "/pipeline/archived"}
-							<span class="text-muted ml-1">/ Archived</span>{/if}
-					</h1>
-				</header>
-			{/if}
-			{@render children()}
+			<div class="workspace-content">
+				{#if !isLogin}
+					<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
+						<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
+							{title}{#if routeUrl.pathname === "/"}
+								<span class="text-muted ml-1">/ Overview</span>{:else if routeUrl.pathname === "/pipeline/archived"}
+								<span class="text-muted ml-1">/ Archived</span>{/if}
+						</h1>
+					</header>
+				{/if}
+				{#key routeUrl.pathname}
+					<svelte:boundary>
+						{@render children()}
+						{#snippet failed(_error, reset)}
+							<section class="surface-content" aria-labelledby="view-failure-heading">
+								<h2 id="view-failure-heading" class="font-display text-2xl">This view couldn’t load.</h2>
+								<p class="text-muted mt-2" role="alert">Please try again, or reload if the problem continues.</p>
+								<div class="mt-4 flex flex-wrap gap-3"><button type="button" class="control" onclick={reset}>Try again</button><button type="button" class="control" onclick={() => window.location.reload()}>Reload</button></div>
+							</section>
+						{/snippet}
+					</svelte:boundary>
+				{/key}
+			</div>
 		</main>
 	</div>
 	{#if bookmarkedOpportunity && !isLogin}

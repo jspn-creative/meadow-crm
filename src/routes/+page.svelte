@@ -15,7 +15,16 @@
 <svelte:head><title>Dashboard · Meadow Lane</title></svelte:head>
 
 <div class="surface-content dashboard-content @container/dashboard space-y-5 pt-2!" {@attach contentFade}>
-	<Scorecards />
+	<svelte:boundary>
+		<Scorecards />
+		{#snippet pending()}<p class="text-muted text-sm" role="status">Loading dashboard summary…</p>{/snippet}
+		{#snippet failed(_error, reset)}
+			<div class="surface p-5">
+				<p class="text-urgent" role="alert">The dashboard summary couldn’t load.</p>
+				<button type="button" class="control mt-3" onclick={reset}>Try again</button>
+			</div>
+		{/snippet}
+	</svelte:boundary>
 	<div class="grid min-w-0 items-start gap-5 @min-[52rem]/dashboard:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"><TasksCard order={1} /><UpcomingEvents order={2} /></div>
 	<RecentActivity order={3} />
 </div>

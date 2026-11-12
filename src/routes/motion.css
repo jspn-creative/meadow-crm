@@ -1,0 +1,104 @@
+/* One route timeline: the shell morphs while the live destination, including its staggered widgets, rides inside the surface. Interactive controls keep their own short, interruptible feedback. */
+:root {
+	--motion-shell: 900ms;
+	--motion-panel: 480ms;
+	--motion-content: 260ms;
+	--motion-widget: 780ms;
+	--motion-stagger: 110ms;
+
+	&[data-login-entry="fallback"] .workspace-content:not(:has(.dashboard-content)) {
+		animation: content-in var(--motion-content) ease-out both;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		--motion-shell: 0ms;
+		--motion-panel: 0ms;
+		--motion-content: 0ms;
+	}
+}
+
+/* Widgets enter as soon as they render. Holding them until the snapshot overlay finished painted an empty surface for the whole morph, which read as a full-page flash. */
+.dashboard-content {
+	[data-widget] {
+		@media (prefers-reduced-motion: no-preference) {
+			animation: widget-enter var(--motion-widget) var(--ease-shell) backwards;
+			animation-delay: calc(var(--widget-order, 0) * var(--motion-stagger));
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	@view-transition {
+		navigation: none;
+	}
+}
+
+::view-transition {
+	pointer-events: none;
+}
+::view-transition-group(cream-surface),
+::view-transition-group(white-surface) {
+	animation-duration: var(--motion-shell);
+	animation-timing-function: var(--ease-shell);
+}
+::view-transition-old(cream-surface),
+::view-transition-new(cream-surface) {
+	/* Keep the crossfade and geometry on the same clock; finishing the fade halfway through exposes a different full-page composition. */
+	animation-duration: var(--motion-shell);
+	animation-timing-function: var(--ease-shell);
+}
+/* The white surface is drawn on its own group, which resizes to the destination with steady corners. Its captured images hold nothing but the surface, since content has its own group, and they keep their own aspect ratios, which mid-morph left cream showing under a shorter, distorted surface. */
+::view-transition-group(white-surface) {
+	@apply shadow-shell overflow-clip rounded-l-2xl bg-white/70 lg:rounded-l-3xl;
+}
+::view-transition-old(white-surface),
+::view-transition-new(white-surface) {
+	animation: none;
+	opacity: 0;
+}
+::view-transition-group(login-panel),
+::view-transition-old(login-panel),
+::view-transition-new(login-panel) {
+	animation-duration: var(--motion-panel);
+	animation-timing-function: var(--ease-shell);
+}
+
+/* Content snapshots stay at final geometry inside the surface's group, never stretching with it, so they travel with its leading edge. */
+::view-transition-group(workspace-content) {
+	animation: none;
+}
+::view-transition-old(workspace-content) {
+	animation: content-out 120ms ease-out both;
+}
+::view-transition-new(workspace-content) {
+	animation: content-in var(--motion-content) ease-out both;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation: none;
+}
+
+@keyframes content-in {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes content-out {
+	to {
+		opacity: 0;
+	}
+}
+@keyframes widget-enter {
+	from {
+		opacity: 0;
+		translate: 0 18px;
+	}
+	to {
+		opacity: 1;
+		translate: 0 0;
+	}
+}

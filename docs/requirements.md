@@ -39,7 +39,7 @@ The developer confirmed every requirement here on 2026-11-05. A requirement mark
 - PPL-4 Login is managed by the app itself.
 - PPL-5 Login uses secure HTTP-only cookies, trusted origins, rate-limited attempts, and the same message for every failed login. Every response is private and never cached.
 - PPL-6 Logout and password change live in the account menu, apart from business Settings.
-- PPL-7 While impersonating, a persistent indicator shows who the support admin is acting as, with an explicit way to switch or exit. Impersonation expires after a short time. The support admin cannot change records without first choosing a business user, and exiting returns to that choice.
+- PPL-7 While impersonating, a persistent indicator shows who the support admin is acting as, with an explicit way to switch or exit. Impersonation expires after a short time. The support admin cannot change records without first choosing a business user. After support admin sign-in, the business-user choice replaces the form inside the login view; choosing enters the workspace with the login transition. Exiting or switching returns to that choice in the login view, not a separate support view.
 - PPL-8 Switching identity clears cached data and revokes the previous identity's access. Business users cannot impersonate, and a request that claims another identity without a valid impersonation is refused.
 
 ## Look (LOOK)
@@ -158,7 +158,7 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - SHELL-1 Collapsing the sidebar keeps the current location, focus, and unsaved edits. In the icon rail every destination stays identifiable and works by touch and keyboard.
 - SHELL-2 On phones the layout is composed for the phone rather than shrunk from desktop. Wide boards and tables scroll inside themselves, and nothing overflows the page at 375px.
 - SHELL-3 Fields are labeled, icon controls have accessible names, and focus is always visible. Overlays take focus, return it when closed, and close with Escape. No action depends on hover or drag alone.
-- SHELL-4 View transitions are short and can be interrupted, never trap navigation or focus, and fall back cleanly when the browser lacks support or reduced motion is set.
+- SHELL-4 View transitions can be interrupted, never trap navigation or focus, and fall back cleanly when the browser lacks support or reduced motion is set. Default pacing is deliberately perceptible rather than near-instant; slower presentation never delays starting an action.
 
 ## Settings (SET)
 

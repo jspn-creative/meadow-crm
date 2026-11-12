@@ -1,6 +1,5 @@
 import { redirect } from "@sveltejs/kit";
 
-export const load = ({ locals }: { locals: App.Locals }) => {
-	if (!locals.support) redirect(303, "/");
-	return {};
+export const load = ({ url }: { url: URL }) => {
+	redirect(303, `/login${url.search}`);
 };

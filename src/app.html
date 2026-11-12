@@ -4,6 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<link rel="expect" href="#workspace-ready" blocking="render" />
 		<link
 			rel="stylesheet"
 			id="theme-fonts"
@@ -31,11 +32,40 @@
 				window.addEventListener("storage", (event) => {
 					if (event.key === "meadow-theme" || event.key === "meadow-font") apply();
 				});
+				// Consume the login marker before first paint, not during hydration. API support alone does not mean a cross-document transition actually ran.
+				let loginEntry = null;
+				try {
+					loginEntry = sessionStorage.getItem("meadow:login-entry");
+					sessionStorage.removeItem("meadow:login-entry");
+				} catch {
+					// Storage is optional; navigation and native transitions still work.
+				}
+				if (
+					loginEntry === location.pathname + location.search + location.hash &&
+					!matchMedia("(prefers-reduced-motion: reduce)").matches
+				) {
+					root.dataset.loginEntry = "pending";
+					window.addEventListener(
+						"pagereveal",
+						(event) => {
+							const transition = event.viewTransition;
+							root.dataset.loginEntry = transition ? "native" : "fallback";
+							transition?.ready.catch(() => {
+								root.dataset.loginEntry = "fallback";
+							});
+							transition?.finished.catch(() => {});
+						},
+						{ once: true },
+					);
+					// Browsers without pagereveal use the same settled-surface fallback.
+					if (!("onpagereveal" in window)) root.dataset.loginEntry = "fallback";
+				}
 			})();
 		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
+		<span id="workspace-ready" hidden></span>
 	</body>
 </html>

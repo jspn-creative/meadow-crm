@@ -103,7 +103,9 @@ Every control is built from these classes. A component may add layout utilities,
 
 ## Motion
 
-`--ease-shell` (`cubic-bezier(0.23, 1, 0.32, 1)`) is the shared curve. Control color changes take about 120ms, overlays 140–200ms, and route and widget entrances 300–560ms, with widget order taken from explicit metadata. Hover effects require a fine pointer, and keyboard focus gets the same washes. Reduced motion removes movement, entrances, and lifts.
+Default motion is deliberately perceptible rather than near-instant. Use about 240ms with `ease` for hover/focus color washes, 140ms for press feedback, and 320ms entering / 220ms exiting for overlays; these are implementation starting points, not timings already applied throughout the app. Keep the slower 900ms shell and the 780ms widget entrances with 110ms stagger rather than speeding everything toward control timings. `--ease-shell` (`cubic-bezier(0.23, 1, 0.32, 1)`) remains the shared movement curve, not a reason to front-load every color fade. Hover effects require a fine pointer, and keyboard focus gets the same washes. Reduced motion removes movement, entrances, and lifts while preserving useful non-spatial feedback.
+
+Route motion lives in `src/routes/motion.css`. The visual baseline is a 900ms shell morph and crossfade in which the white surface resizes with steady corners and the destination content, at final geometry, travels inside it clipped to its leading edge; a 480ms login-panel morph; and 780ms widget entrances with 110ms stagger between semantic groups, starting as soon as the widgets render rather than after the morph, so the surface is never shown empty. Avoid additional title or surface mount animation over that sequence. The current content entrance is 260ms; the next timing pass starts around 360ms. Reduced motion skips spatial entrances. Lifecycle details for the login handoff are in `docs/notes/login-flash.md`.
 
 Choose motion for interaction feedback. Card lifts, animated names, and staggered entrances are not defaults for every new surface.
 

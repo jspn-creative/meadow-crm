@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Unable to open Meadow Lane</title>
+		<style>
+			@layer base {
+				html {
+					font-family: system-ui, sans-serif;
+					color: #282820;
+					background: #f6f4ed;
+				}
+				body {
+					margin: 0;
+				}
+				main {
+					max-width: 32rem;
+					margin: 12svh auto;
+					padding: 1.5rem;
+				}
+				h1 {
+					font-size: 2rem;
+					line-height: 1.15;
+				}
+				p {
+					line-height: 1.6;
+				}
+				a {
+					color: inherit;
+					text-underline-offset: 0.2em;
+				}
+				nav {
+					display: flex;
+					flex-wrap: wrap;
+					gap: 1.5rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<p>Meadow Lane · %sveltekit.status%</p>
+			<h1>We couldn’t open your workspace.</h1>
+			<p>
+				Please try again. If the problem continues, return to login. Avoid resubmitting a change until
+				you’ve checked whether it saved.
+			</p>
+			<nav aria-label="Recovery"><a href="">Try again</a><a href="/login">Return to login</a></nav>
+		</main>
+	</body>
+</html>

@@ -841,6 +841,7 @@
 			<label class="block space-y-1.5"
 				>{@render fieldLabel("Invalid")}<input class="field" aria-invalid="true" aria-describedby="sg-invalid-hint" value="ada.maple@" /><span id="sg-invalid-hint" class="text-urgent flex items-center gap-1.5 text-xs"><CircleAlert size={13} aria-hidden="true" />Enter a full email address.</span></label>
 			<label class="block space-y-1.5">{@render fieldLabel("Disabled")}<input class="field" disabled value="Saving…" /></label>
+			<label class="block space-y-1.5">{@render fieldLabel("Autofill")}<input class="field" data-sg-state="autofill" value="Ada Maple" autocomplete="name" /></label>
 		</div>
 		<div data-sg-panel class="border-hairline space-y-4 rounded-3xl border bg-white p-5">
 			{@render subheading("Field groups", "One boundary and one focus ring around a label, an addon or an icon.")}
@@ -848,6 +849,7 @@
 			<label class="field-group field-inset"><span>Birthday</span><input class="field-bare" type="date" value="1988-04-12" /></label>
 			<label class="field-group"><span class="field-addon"><DollarSign size={15} aria-hidden="true" /></span><input class="field-bare tabular-nums" inputmode="numeric" aria-label="Budget" value="485,000" /><span class="field-addon">USD</span></label>
 			<label class="field-group"><span class="field-addon"><Search size={15} aria-hidden="true" /></span><input class="field-bare" type="search" aria-label="Search clients" placeholder="Search clients" /></label>
+			<label class="field-group field-inset"><span>Name · Autofill</span><input class="field-bare" data-sg-state="autofill" value="Ada Maple" autocomplete="name" /></label>
 		</div>
 		<div data-sg-panel class="border-hairline space-y-4 rounded-3xl border bg-white p-5">
 			{@render subheading("Select, date and text area", "Native selects use the shared indicator and the browser’s picker.")}

@@ -81,7 +81,7 @@
 	let changingPassword = $state(false);
 	let pending = $state(false);
 	let message = $state("");
-	// While impersonating, the chip shows who the support admin is acting as, in the impersonation tone, and its menu carries switching and exiting.
+	// While impersonating, the chip shows who the support admin is acting as and offers an explicit exit.
 	let impersonating = $derived(page.data.support?.effectiveUser as "realtor" | "assistant" | null | undefined);
 	let roleLabel = $derived(impersonating === "realtor" ? "Realtor" : "Assistant");
 	async function leaveImpersonation() {
@@ -181,7 +181,6 @@
 			{#if impersonating}
 				<div class="mt-2">
 					{@render heading("Impersonation")}
-					<button type="button" class="menu-item" disabled={pending} onclick={leaveImpersonation}><UserRoundCog size={16} aria-hidden="true" />Switch business user</button>
 					<button type="button" class="menu-item" disabled={pending} onclick={leaveImpersonation}><UserRoundX size={16} aria-hidden="true" />Exit impersonation</button>
 				</div>
 			{/if}

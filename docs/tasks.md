@@ -1,191 +1,269 @@
 # Tasks
 
-## Milestone: Registry and motion polish
+## Milestone: Reliability, deliberate motion, and maintainable CRM views
 
-Goal: the Registry's new table controls work as specified, and motion is consistent across the app.
+Goal: eliminate the Chrome login flash first, keep save/error feedback truthful, make motion deliberately perceptible and consistent, finish Registry hardening, then reduce structural coupling without changing product behavior. File order is execution order; later preference controls are not part of this implementation slice.
 
-- [x] 2. Ship the Registry table, login transition, and dashboard scorecards
-  - [x] 2.1 Registry table: server filters and facets, URL state, sorting, incremental loading, column controls, bulk tag/archive/restore with Undo
-  - [x] 2.2 Login transition restored
-  - [x] 2.3 Four dashboard scorecards
-- [ ] 3. Make the Registry's URL state survive bad input and history
-  - [ ] 3.1 Fall back to defaults for malformed sort and mode values
+- [ ] 1. Eliminate the remaining full-page flash in Chrome
+  - [x] 1.1 Fix the login-to-workspace paint discontinuity
+    > Flash is still there. Please add it as the next task to fix, and document what you've tried.
+    - Accepted by the developer in Chrome on 2026-11-11; cause and fix are in [the flash note](./notes/login-flash.md). A flash still appears in Arc and has not been examined.
+    - Start with [the unresolved flash and attempted fixes](./notes/login-flash.md); the earlier checked “Login transition restored” claim is withdrawn, not carried forward as evidence.
+    - Locate the flash frame during the actual Chrome interaction and correct its lifecycle/paint owner in `src/app.html:35` (marker/reveal script), `src/routes/+layout.svelte:56` (`onPageSwap`), or `src/routes/motion.css:38` (snapshot rules), according to that evidence; do not add another compensating timer or fade.
+    - Done when: normal-motion sign-in enters the workspace without a blank or incorrectly painted full-page frame, and the cause is explained against the observed sequence.
+    - _Requirements: SHELL-4, PPL-8_
+  - [ ] 1.2 Preserve the same handoff through support-admin choice and impersonation exit
+    - Apply the corrected lifecycle to `src/routes/login/+page.svelte:27` (`showBusinessUsers`), `src/routes/login/+page.svelte:68` (`choose`), and `src/lib/shell/session-navigation.ts:5` (`exitImpersonation`); keep full-document identity replacement and only the Exit impersonation menu action.
+    - Preserve the same-origin destination guard and cache isolation in `src/lib/shell/session-navigation.ts:28` (`replaceSession`); no SPA shortcut that retains another identity's workspace queries.
+    - Done when: form → choice → workspace and workspace → choice remain continuous, correctly authenticated, and free of stale cross-identity content.
+    - _Requirements: PPL-7, PPL-8, SHELL-4_
+  - [ ] 1.3 Keep cancelled and unsupported transitions visible and usable
+    - Clear only the owning sequence's motion gate in `src/routes/+layout.svelte:120` (`onNavigate`) and `src/app.html:46` (`pagereveal`); retain working fallback and reduced-motion paths.
+    - Use focused manual interaction on the affected paths, including an interrupted route change; do not substitute settled screenshots for observing motion or add automated specs without approval.
+    - Done when: cancellation, native rejection, and reduced motion never leave paused invisible widgets or blocked navigation.
+    - _Requirements: SHELL-4_
+- [ ] 2. Keep mutation results and recovery feedback truthful
+  - [ ] 2.1 Limit query refreshes to the domains each mutation changes
+    - Replace the unconditional refresh fan-out in `src/lib/crm.remote.ts:63` (`save`) with explicit operation scopes, reconciling `src/lib/crm.remote.ts:130` (`pinOpportunity`) and `src/lib/data/workspace.ts` optimistic updates; preserve the existing request-scoped services and command/form APIs.
+    - Task-only edits must refresh task/workspace and recent-activity consumers without refreshing unrelated Registry pages/facets; client changes must still refresh affected Registry pages, facets, workspace, and recent activity. Include linked/promoted checklist effects where applicable rather than assuming every task mutation is isolated.
+    - Done when: affected views update after each mutation family without unrelated client refreshes or stale linked records.
+    - _Requirements: none_
+  - [ ] 2.2 Distinguish a committed save from a failed follow-up refresh
+    - Separate the mutation and refresh failure paths in `src/lib/crm.remote.ts:63` (`save`); carry the distinction through `src/lib/tasks/TaskManager.svelte:48` (`toggle`), `src/lib/tasks/TaskEditor.svelte`, `src/lib/registry/ClientEditor.svelte`, and opportunity save callers. Retain confirmed save results and report that displayed data could not refresh, without reporting the write as failed or automatically issuing it again.
+    - Keep a refresh-only recovery action, stable request IDs, revision conflicts, and drafts; do not show success before the write is confirmed. Use the existing inline feedback primitives, not a new notification framework.
+    - Done when: a refresh failure after a confirmed write cannot cause misleading failed-save feedback or a duplicate write on recovery.
+    - _Requirements: none_
+  - [ ] 2.3 Finish graceful error recovery at the request, view, and widget boundaries
+    - Continue from the error handling already listed in [the flash note](./notes/login-flash.md#evidence-and-limits); inspect `src/hooks.server.ts` (`handle`/`handleError`), `src/hooks.client.ts` (`handleError`), `src/routes/+error.svelte`, and `src/error.html` for remaining document/API mismatches.
+    - Keep safe generic messages for unknown failures, usable retry/login links for fatal views, and local recovery for failed widgets. Handle asynchronous event/request failures at their call sites; rendering boundaries do not catch all of them. Preserve drafts and never expose raw SQL, credentials, or client data.
+    - Done when: document failures render recovery UI, recoverable view/widget failures leave the shell usable, and failed actions retain truthful inline feedback.
+    - _Requirements: PPL-5_
+- [ ] 3. Establish perceptible default motion and clear CSS ownership
+  - [ ] 3.1 Give all timing roles one source in the existing motion stylesheet
+    - Apply `emil-design-eng` within the existing visual direction. Extend `src/routes/motion.css:2` (`:root`) rather than creating the old competing `--duration-*` family in `layout.css`: start `--motion-feedback` at 240ms, `--motion-press` at 140ms, `--motion-overlay` at 320ms, and `--motion-exit` at 220ms; start content entry around 360ms and preserve the 900ms shell / 480ms panel / 780ms widget / 110ms stagger baseline.
+    - Treat these as reversible starting values for the slower default, not a user preference implementation or a blanket speed multiplier; leave spring physics and drag thresholds distinct from durations.
+    - Done when: timing roles have one documented source and default feedback is not normalized back to the old 120ms control target.
+    - _Requirements: SHELL-4_
+  - [ ] 3.2 Apply semantic timings instead of rounding nearby literal values
+    - Replace control, field, overlay, and entrance literals in `src/routes/layout.css`, `src/routes/components.css`, and affected components according to their role; give bare Tailwind color/opacity transitions an explicit feedback duration. Keep style-guide experiments isolated.
+    - Make CSS-driven feedback retarget from its current state; any JavaScript animation that shares a role must resolve the same CSS timing at its call site, using a small client-only duration reader if needed, rather than introducing a second animation engine or runtime settings system.
+    - Done when: each affected animation has one property owner and a semantic timing or an intentional documented exception.
+    - _Requirements: SHELL-4_
+  - [ ] 3.3 Keep shared primitives in components.css and route sequencing in motion.css
+    - Keep tokens/resets/shell geometry in `src/routes/layout.css`, shared controls/surfaces/fields in `src/routes/components.css`, and route/widget timelines in `src/routes/motion.css`; remove duplicated overrides and obsolete selectors instead of moving all component CSS into another giant file.
+    - Retain the composed field/autofill shadow variables already introduced; inspect changed controls in `/style-guide` and their affected view, preserving material, focus, invalid, disabled, and autofill states. Do not claim a runtime performance gain without evidence.
+    - Done when: changed primitives have one clear styling owner and no later unlayered override silently replaces their transitions or shadows.
+    - _Requirements: none_
+- [ ] 4. Finish the single route and dashboard entrance sequence
+  - [x] 4.1 Document the existing shell and dashboard motion baseline
+    - Keep the visual baseline in the Motion section of `DESIGN.md` and lifecycle/identity constraints in task 1 and [the flash note](./notes/login-flash.md); this checkbox does not certify that the flash is fixed.
+    - Done when: the intended order and pacing are documented separately from the unresolved rendering bug.
+    - _Requirements: SHELL-4_
+  - [ ] 4.2 Keep slow widget entrances staggered and free of competing mount animations
+    - Finish `src/routes/motion.css:22` (`.dashboard-content`) and `src/routes/+layout.svelte:120` (`onNavigate`) after task 1; keep the widget order markers in `DashboardCard` and `Scorecards` and avoid adding title/surface entrances over the same property.
+    - Route arrivals may play the sequence; routine query refreshes, task edits, sidebar changes, and shallow filter changes must not restart it. Handle widgets that resolve asynchronously without hiding an already usable dashboard behind a second full-view entrance.
+    - Done when: actual dashboard entry visibly stages semantic groups once, and ordinary work does not replay the entrance.
+    - _Requirements: SHELL-4_
+- [ ] 5. Give overlays a coherent, deliberate entrance and exit
+  - [ ] 5.1 Apply the shared overlay treatment without breaking native dismissal
+    - In `src/routes/components.css:99` (`.surface-floating`), use opacity plus a restrained 4px lift and 0.98 scale with the overlay/exit roles from task 3, `@starting-style`, and discrete display/overlay transitions where the native element supports them.
+    - Preserve anchored popover origins and centered dialog origins; keep side dialogs on their directional slide instead of stacking the shared transform over it.
+    - Done when: overlays enter and leave visibly, with one transform owner and no abrupt removal replacing the intended exit.
+    - _Requirements: SHELL-3, SHELL-4_
+  - [ ] 5.2 Carry the treatment through each existing overlay implementation
+    - Apply the shared treatment to Columns, Select, Combobox, the column context menu, account menu, and new-task dialog; reconcile any local animation that competes with it rather than adding a second wrapper animation.
+    - Keep the interaction and styling boundaries of native Meadow primitives; do not introduce a new component framework.
+    - Done when: the listed overlays use the same pacing family, with their placement and dismissal semantics intact.
+    - _Requirements: SHELL-3, SHELL-4_
+  - [ ] 5.3 Preserve placement and focus while overlays move
+    - Correct any measurement/transition conflict in `src/lib/ui/ContextMenu.svelte:15` (`show`) near the right edge; keep Escape dismissal and focus restoration working for centered and anchored overlays.
+    - Done when: menus do not jump, overlays remain within the affected viewport, and dismissal restores useful focus.
+    - _Requirements: SHELL-3_
+- [ ] 6. Make interactive feedback perceptible without delaying actions
+  - [ ] 6.1 Slow button and field washes enough to see their interpolation
+    > I mean I can't even tell if hovering a button has an animation, it looks practically instant to me.
+    - Apply the feedback timing and gentle color easing from `DESIGN.md` to `src/routes/components.css:176` (`.control`), `src/routes/components.css:359` (`.field`), menu items, and `src/routes/layout.css:259` (`.nav-destination`); keep press feedback separate and disabled controls still.
+    - Gate pointer hover to fine pointers, keep keyboard focus equally clear, and begin actions immediately rather than waiting for animation completion.
+    - Done when: a real hover/focus change visibly interpolates instead of appearing instant, and pointer reversal smoothly retargets it.
+    - _Requirements: SHELL-3, SHELL-4_
+  - [ ] 6.2 Retain the bookmark fan's spatial clarity with the shared pacing
+    - Tune `src/lib/bookmarks/BookmarkStack.svelte` (fan/open-close motion) only where it conflicts with the established pacing; preserve interrupted open/close behavior and keyboard/touch access.
+    - Done when: the fan responds coherently without restarting a long entrance on each option change.
+    - _Requirements: SHELL-3, SHELL-4_
+  - [ ] 6.3 Keep board collapse readable and drag feedback immediate
+    - Tune `src/lib/pipeline/BoardColumn.svelte` (collapse) and `src/lib/pipeline/OpportunityCard.svelte` / `src/lib/pipeline/PipelineView.svelte` (card/drag feedback) against the shared roles; do not slow pointer tracking, delay drop commits, or apply hover lifts while dragging.
+    - Done when: collapse is legible, and drag/drop remains directly connected to the pointer with one transform owner.
+    - _Requirements: SHELL-4_
+  - [ ] 6.4 Refine the scorecard lift and due-badge reveal
+    - Keep `src/lib/dashboard/Scorecard.svelte:17` (`.score`) and `src/lib/ui/DueBadge.svelte` (reveal) aligned with the slower default without making lifts universal; preserve keyboard-visible content and avoid entrance/hover transform competition.
+    - Done when: both interactions visibly communicate their state without delaying access to their information.
+    - _Requirements: SHELL-3, SHELL-4_
+  - [ ] 6.5 Keep sidebar transitions coherent through content reflow
+    - Tune `src/routes/layout.css:212` (`.workspace .rail`) and greeting motion in `src/routes/+layout.svelte` as one shell response, without cloning route entrance animation onto collapse.
+    - Done when: the affected breakpoint/sidebar states reflow smoothly while preserving current view, focus, and unsaved work.
+    - _Requirements: SHELL-1, SHELL-2, SHELL-4_
+  - [ ] 6.6 Give tabs and toasts clear motion without extending their work
+    - Use the shared timing roles for `src/routes/components.css:145` (`.tabs`), `src/routes/components.css:323` (`.toast`), and `src/routes/layout.css:395` (`@keyframes toast`); keep toast dwell time, Undo availability, and tab state changes separate from presentation durations.
+    - Done when: state changes are readable and interruptible, without delaying selection or shortening the usable Undo window.
+    - _Requirements: SHELL-4_
+- [ ] 7. Consolidate reduced-motion ownership without a global animation hammer
+  - [ ] 7.1 Resolve shared motion roles for reduced motion
+    - Extend the existing reduced-motion token scope in `src/routes/motion.css:15`; remove spatial entrances, lifts, and morphs while retaining useful color/opacity feedback. Keep native cross-document opt-out and existing JavaScript motion-library reduced-motion support aligned.
+    - Do not zero every animation/transition globally: discrete overlay exits, gesture state, and non-spatial feedback have different responsibilities.
+    - Done when: affected views remain fully usable with reduced motion and never wait for a removed animation to finish.
+    - _Requirements: SHELL-4_
+  - [ ] 7.2 Remove only the reduced-motion rules actually superseded by shared roles
+    - Reconcile CSS and Svelte `prefers-reduced-motion` / `motion-reduce` branches after the shared roles land; retain exceptions for transforms or JavaScript behavior that tokens do not cover.
+    - Done when: remaining exceptions have a specific owner, with no movement restored by removing a superficially duplicated rule.
+    - _Requirements: SHELL-4_
+- [ ] 8. Make the Registry's URL state survive bad input and history
+  - [ ] 8.1 Fall back to defaults for malformed sort and mode values
     - Open `/registry?sort=bogus&sortDir=up&tagMode=x&sourceMode=y&archived=maybe`.
     - If the page errors or shows anything else, fix the parsing in `src/routes/registry/+page.svelte:101` (`readParams`).
     - Done when: the page shows current clients sorted Client A to Z, with no error.
     - _Requirements: REG-4_
-  - [ ] 3.2 Ignore unknown tags in the URL
+  - [ ] 8.2 Ignore unknown tags in the URL
     - Open `/registry?tag=%3Cbad%3E`.
     - If a tag is selected or the page errors, fix the tag parsing in `src/routes/registry/+page.svelte:101` (`readParams`).
     - Done when: all clients show, and no tag is selected in the Tags filter.
     - _Requirements: REG-4_
-  - [ ] 3.3 Ignore malformed filter-builder values in the URL
+  - [ ] 8.3 Ignore malformed filter-builder values in the URL
     - Open `/registry?consent=bogus&created=bogus&opportunities=bogus&referredBy=bogus`.
     - If a filter chip appears or the page errors, fix `src/lib/registry/filters.ts:127` (`parseFilter`) so an invalid value returns `null`.
     - Done when: all clients show, with no filter chips.
     - _Requirements: REG-4_
-  - [ ] 3.4 Keep URL sorting when its column is hidden
+  - [ ] 8.4 Keep URL sorting when its column is hidden
     - Make sure the Created column is hidden, then open `/registry?sort=created&sortDir=desc`.
     - If the clients aren't sorted newest first, fix `src/routes/registry/+page.svelte:101` (`readParams`) so sorting doesn't depend on column visibility.
     - Done when: clients are sorted newest first while Created stays hidden.
     - _Requirements: REG-4_
-  - [ ] 3.5 Add one history entry per filter or archived change
+  - [ ] 8.5 Add one history entry per filter or archived change
     - Select a tag in the Tags filter, go Back, then go Forward. Repeat with the archived toggle.
     - If either fails, make those changes call `src/routes/registry/+page.svelte:135` (`updateUrl`) with `"push"`.
     - Done when: Back clears the tag and removes `tag` from the URL, Forward restores it, and the archived toggle behaves the same way.
     - _Requirements: REG-4_
-  - [ ] 3.6 Keep search typing to one history entry
+  - [ ] 8.6 Keep search typing to one history entry
     - Type three letters into Search clients, then go Back once.
     - If Back steps back one letter, make `src/routes/registry/+page.svelte:144` (`setSearch`) replace the current history entry instead of adding one.
     - Done when: one Back leaves the search entirely.
     - _Requirements: REG-4_
-- [ ] 4. Make the Registry's column controls work by keyboard and persist
-  - [ ] 4.1 Open the column menu from the keyboard
+- [ ] 9. Make the Registry's column controls work by keyboard and persist
+  - [ ] 9.1 Open the column menu from the keyboard
     - Tab to the Address header's sort button and press Shift+F10.
     - If the menu doesn't open, fix the key handler at `src/routes/registry/+page.svelte:765`. If focus isn't on the first item, fix the open handler at `src/lib/ui/ContextMenu.svelte:57`.
     - Done when: the column menu opens with focus on its first item.
     - _Requirements: REG-6, SHELL-3_
-  - [ ] 4.2 Move focus through the column menu with the arrow keys
+  - [ ] 9.2 Move focus through the column menu with the arrow keys
     - With the menu open, press ArrowDown, ArrowUp, Home, and End, including past the first and last items.
     - If focus doesn't move or wrap, fix the key map at `src/lib/ui/ContextMenu.svelte:35`.
     - Done when: each key moves focus as named, wrapping at both ends.
     - _Requirements: REG-6, SHELL-3_
-  - [ ] 4.3 Close the column menu with Escape and Tab
+  - [ ] 9.3 Close the column menu with Escape and Tab
     - Press Escape, then reopen the menu and press Tab.
     - If either fails, fix the close handling in `src/lib/ui/ContextMenu.svelte`, where Tab is handled at line 37.
     - Done when: Escape closes the menu and returns focus to the sort button, and Tab closes it.
     - _Requirements: REG-6, SHELL-3_
-  - [ ] 4.4 Persist moved and hidden columns across reloads
+  - [ ] 9.4 Persist moved and hidden columns across reloads
     - From the column menu, choose Move right on Address, then Hide column on Lead source, then reload.
     - If either change is lost, fix saving and `src/routes/registry/+page.svelte:49` (`loadColumns`), which use the `meadow:registry:columns` key in localStorage.
     - Done when: after a reload, Address is still moved and Lead source is still hidden.
     - _Requirements: REG-6_
-  - [ ] 4.5 Keep the Client column fixed
+  - [ ] 9.5 Keep the Client column fixed
     - Open the Client header's column menu.
     - If it offers to move or hide the column, fix `src/routes/registry/+page.svelte:41` (`movableIds`) or the `enableHiding` setting on line 43.
     - Done when: the Client column's menu has no move or hide items.
     - _Requirements: REG-6_
-  - [ ] 4.6 Restore the default columns with Reset
+  - [ ] 9.6 Restore the default columns with Reset
     - In the Columns button's popover, re-check Lead source, then choose Reset columns.
     - If the result is wrong, fix `src/routes/registry/+page.svelte:89` (`resetColumns`) or `defaultHidden` on line 42.
     - Done when: the default column order returns, with Referred by and Created hidden.
     - _Requirements: REG-6_
-- [ ] 5. Make Registry selection and bulk actions reliable
-  - [ ] 5.1 Extend a selection to every matching client
+- [ ] 10. Make Registry selection and bulk actions reliable
+  - [ ] 10.1 Extend a selection to every matching client
     - Tick one row, then choose "Select all matching clients".
     - If the bar or the count is wrong, fix `src/routes/registry/+page.svelte:319` (`selectAllMatching`).
     - Done when: one tick shows "1 selected" with the link, and the link makes the count equal the total shown under the table.
     - _Requirements: REG-7, REG-8_
-  - [ ] 5.2 Clear the selection when the view changes
+  - [ ] 10.2 Clear the selection when the view changes
     - From a selection, change the search. Repeat by changing the sort, then by toggling archived.
     - If a selection survives, fix how it's keyed to `queryKey` in `src/routes/registry/+page.svelte:201` and read on line 288.
     - Done when: each of the three changes clears the selection.
     - _Requirements: REG-8_
-  - [ ] 5.3 Select rows with Space and shift-click
+  - [ ] 10.3 Select rows with Space and shift-click
     - Focus a row's checkbox and press Space, then shift-click a row further down.
     - If either fails, fix `src/routes/registry/+page.svelte:296` (`toggleRow`).
     - Done when: Space toggles the focused row, and shift-click selects every row between.
     - _Requirements: REG-7, SHELL-3_
-  - [ ] 5.4 Undo a bulk tag change
+  - [ ] 10.4 Undo a bulk tag change
     - Add a tag to a selection, then choose Undo in the toast.
     - If a count is wrong or rows need a reload, fix `src/routes/registry/+page.svelte:361` (`runBulk`).
     - Done when: the change and its Undo both report the right count, and the rows update without a reload.
     - _Requirements: REG-9_
-  - [ ] 5.5 Undo a bulk archive, including one that empties the view
+  - [ ] 10.5 Undo a bulk archive, including one that empties the view
     - Archive a selection and Undo it. Then select every client in a filtered view, archive them all, and Undo.
     - If a count is wrong or the view doesn't refill, fix `src/routes/registry/+page.svelte:361` (`runBulk`).
     - Done when: both archives and Undos report the right count, and the emptied view refills after Undo without a reload.
     - _Requirements: REG-9_
-  - [ ] 5.6 Report already-tagged clients as skipped
+  - [ ] 10.6 Report already-tagged clients as skipped
     - Select a client that already has a tag and one that doesn't, then add that tag to both.
     - If the toast shows an error, fix the skipped handling in `src/routes/registry/+page.svelte:361` (`runBulk`) and the notice on line 934.
     - Done when: the toast reports the already-tagged client as unchanged or skipped, not as an error.
     - _Requirements: REG-9_
-- [ ] 6. Use shared durations for motion
-  - [ ] 6.1 Add the duration tokens
-    - Add `--duration-control: 120ms`, `--duration-overlay: 180ms`, and `--duration-enter: 360ms` beside `--ease-shell` at `src/routes/layout.css:68`.
-    - Done when: the three tokens are defined next to `--ease-shell`.
+- [ ] 11. Split the data service behind its existing facade
+  - [ ] 11.1 Extract a request-scoped mutation context without changing its contract
+    - Extract `src/lib/server/data.ts:160` (`replayMutation`), `src/lib/server/data.ts:182` (`mutation`), and the history/reference helpers at lines 241/264 into `src/lib/server/data/context.ts`; inject the database and frozen identity through `createDataService`, never a mutable singleton.
+    - Preserve receipt hashing, identity checks, guard-conditioned D1 batches, stable request IDs, revisions, error classes, and history attribution; do not change schema or migrations.
+    - Done when: the existing facade uses one request-owned context and its mutation semantics are unchanged.
+    - _Requirements: PPL-8_
+  - [ ] 11.2 Extract task operations as the first small domain
+    - Move `src/lib/server/data.ts:771` (`createTask` through `deleteTask`) into `src/lib/server/data/tasks.ts`, composed behind the existing facade and shared context from task 11.1.
+    - Keep promoted checklist synchronization and date semantics intact; do not change `src/lib/crm.remote.ts` or draft APIs just to accommodate the extraction.
+    - Done when: task operations have one domain owner and unchanged public inputs, results, and effects.
     - _Requirements: none_
-  - [ ] 6.2 Replace literal durations with the tokens
-    - Find literal durations with `grep -rnE "[0-9]+ms|duration-[0-9]+" src --include="*.svelte" --include="*.css" --exclude-dir=style-guide`.
-    - Replace each one within about 40ms of a token with that token, across `src/routes/layout.css`, `src/routes/components.css`, and components.
-    - Leave the keyframe entrances for task 9 and the bookmark fan in `src/lib/bookmarks/BookmarkStack.svelte` for task 10.
-    - Done when: the grep finds only those exceptions, and `vp run check` passes.
-    - _Requirements: none_
-  - [ ] 6.3 Give bare Tailwind transitions the control duration
-    - Add `duration-(--duration-control)` to every `transition-colors` and `transition-opacity` class without a duration, since Tailwind defaults them to 150ms. Examples are `src/lib/pipeline/ChecklistItem.svelte:150`, `src/lib/pipeline/ReferenceList.svelte:24`, and `src/lib/glossary/KindBadge.svelte:20`.
-    - Done when: every `transition-colors` and `transition-opacity` in `src/` has a duration, and `vp run check` passes.
-    - _Requirements: none_
-- [ ] 7. Handle reduced motion in one place
-  - [ ] 7.1 Add a base reduced-motion rule
-    - In `src/routes/layout.css`, add one base-layer `@media (prefers-reduced-motion: reduce)` rule that removes transition time from transforms and turns off entrance animations.
-    - Keep color transitions, since they don't move anything.
-    - Done when: with reduced motion set, Dashboard, Pipeline, and Registry show no movement.
-    - _Requirements: SHELL-4_
-  - [ ] 7.2 Remove the reduced-motion rules the base rule covers
-    - Find them with `grep -rn "prefers-reduced-motion\|motion-reduce" src`.
-    - Delete each one that only repeats what the base rule from 7.1 does.
-    - Done when: each remaining rule does something the base rule doesn't, and reduced motion still shows no movement.
-    - _Requirements: SHELL-4_
-- [ ] 8. Give every overlay the same entrance and exit
-  - [ ] 8.1 Add the shared overlay transition
-    - In `src/routes/components.css`, add one rule for popovers and centered dialogs on `.surface-floating` (line 86): opacity plus `translateY(4px)` and `scale(0.98)`, entering over `--duration-overlay` and exiting over `--duration-control`.
-    - Use `@starting-style` and `allow-discrete`, as `src/lib/bookmarks/BookmarkStack.svelte:473` and line 534 do.
-    - Keep side dialogs on their slide, `side-enter` at `src/routes/components.css:120`.
-    - Done when: a centered dialog fades and lifts in and out, and side dialogs still slide.
-    - _Requirements: none_
-  - [ ] 8.2 Apply it to every overlay
-    - Open and close the Columns popover, a Select, a Combobox listbox, the column context menu, the account menu, and the new-task dialog.
-    - Fix any that doesn't pick up the rule from 8.1.
-    - Done when: all of them enter and exit alike, and reduced motion shows no movement.
-    - _Requirements: none_
-  - [ ] 8.3 Keep overlay positioning and focus working
-    - Open the column context menu near the right edge of the table, then open a centered dialog and press Escape.
-    - If the menu jumps, fix its measurement in `src/lib/ui/ContextMenu.svelte`. If the dialog keeps focus or doesn't close, fix its Escape handling.
-    - Done when: the menu opens without jumping, and Escape closes the dialog and returns focus to the control that opened it.
+  - [ ] 11.3 Extract client queries and mutations without changing filtering or bulk semantics
+    - Move `src/lib/server/data.ts:293` (`clientWhere`), client queries at line 471, and client create/save/bulk operations into `src/lib/server/data/clients.ts`; keep common workspace/activity reads separate from client-only query construction.
+    - Preserve filtering, facets, counts, pagination, revision guards, bulk skips, Undo results, and history; compose through `createDataService` rather than exposing new endpoint or repository APIs.
+    - Done when: the Registry consumes the same facade with no client SQL or mutation implementation left duplicated across modules.
+    - _Requirements: REG-4, REG-9_
+  - [ ] 11.4 Extract opportunity and checklist operations while preserving their shared atomic changes
+    - Move `src/lib/server/data.ts:919` (`createOpportunity` through opportunity/checklist operations) into `src/lib/server/data/opportunities.ts`; keep task/checklist coupling in shared conditioned batches rather than introducing cross-module interactive transactions.
+    - Leave `createDataService` as composition plus workspace/activity reads and keep the existing remote and optimistic-overlay APIs stable. Do not edit `schema.ts`, `data.ts`, or `crm.remote.ts` concurrently with another item.
+    - Done when: domain ownership is clear without duplicated guards, changed API contracts, or new schema ownership.
+    - _Requirements: PPL-8_
+- [ ] 12. Extract Registry URL and column state after its behavior is hardened
+  - [ ] 12.1 Move URL normalization into a focused Registry module
+    - Extract `src/routes/registry/+page.svelte:101` (`readParams`), filter normalization, and URL construction into `src/lib/registry/params.ts`; keep browser navigation at the route boundary and preserve the search/filter history behavior established in task 8.
+    - Keep selection keyed to the same normalized query identity; do not remount the route or clear a draft merely because filters change.
+    - Done when: the route delegates URL logic without changing malformed-input, Back/Forward, selection, or filter behavior.
+    - _Requirements: REG-4, REG-8_
+  - [ ] 12.2 Move column configuration and persistence out of the route
+    - Extract `src/routes/registry/+page.svelte:49` (`loadColumns`), save/move/visibility/reset helpers, and normalization into `src/lib/registry/columns.ts`; retain `meadow:registry:columns`, defaults, unknown-column handling, and the fixed Client column.
+    - Leave table rendering, menu focus, and route-owned drafts in the route; do not build a generic table-state framework.
+    - Done when: column persistence has one owner and task 9's behavior remains unchanged.
+    - _Requirements: REG-6_
+- [ ] 13. Extract Pipeline interaction state without changing optimistic ownership
+  - [ ] 13.1 Isolate per-view board and checklist drag state
+    - Extract state and handlers around `src/lib/pipeline/PipelineView.svelte:47` (`dragId`), line 96 (`collapsedStages`), and line 232 (`checklistDragStart`) into a per-instance `src/lib/pipeline/interaction.svelte.ts` factory; keep DOM focus/measurement adapters and markup in the component.
+    - Retain separate board/checklist drag identities, pointer/drop semantics, collapse state, and cancellation; no module-global reactive state or client-side replacement for confirmed remote queries.
+    - Done when: two view instances do not share interaction state and existing drag/collapse behavior is unchanged.
     - _Requirements: SHELL-3_
-- [ ] 9. Play one entrance sequence per route change
-  - [ ] 9.1 Choose the route entrance sequence (use the designated design model and the `emil-design-eng` skill)
-    - Navigate between Dashboard, Pipeline, Registry, and Glossary, and through login, and watch the animations that currently all run: view transitions from `onNavigate` at `src/routes/+layout.svelte:141`, the named surfaces at 400ms in `src/routes/layout.css:551`, `surface-enter` at `src/routes/layout.css:410`, `title-enter` at line 389, `widget-enter` at line 367, and `login-surface-enter` at line 492.
-    - Choose what moves, in what order, and for how long, and write that sequence in the Motion section of `DESIGN.md`.
-    - Done when: the Motion section of `DESIGN.md` describes one sequence for route changes and login.
-    - _Requirements: SHELL-4_
-  - [ ] 9.2 Remove the entrance animations that compete with it
-    - Remove or retime each animation listed in 9.1 that the sequence doesn't use.
-    - Keep `onPageSwap` at `src/routes/+layout.svelte:66` skipping view-transition screenshots at login, so cached CRM data can't flash between identities.
-    - Done when: each route change plays the one sequence, and nothing animates twice.
-    - _Requirements: SHELL-4_
-- [ ] 10. Tune the remaining component motion (use the designated design model and the `emil-design-eng` skill)
-  - [ ] 10.1 Tune the bookmark fan
-    - Review the fan's motion in `src/lib/bookmarks/BookmarkStack.svelte` and change it only where it's worthwhile, keeping changes small.
-    - Done when: it's changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: none_
-  - [ ] 10.2 Tune the board column collapse
-    - Review the collapse timing (`delay-100 duration-200`) at `src/lib/pipeline/BoardColumn.svelte:59`, keeping changes small.
-    - Done when: it's changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: none_
-  - [ ] 10.3 Tune opportunity card and drag feedback
-    - Review card motion in `src/lib/pipeline/OpportunityCard.svelte` and drag feedback in `src/lib/pipeline/PipelineView.svelte`, keeping changes small.
-    - Done when: each is changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: none_
-  - [ ] 10.4 Tune the scorecard lift
-    - Review the lift at `src/lib/dashboard/Scorecard.svelte:21`. Card lifts aren't a default for every surface, per `DESIGN.md`.
-    - Done when: it's changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: none_
-  - [ ] 10.5 Tune the due badge reveal
-    - Review the reveal in `src/lib/ui/DueBadge.svelte`, keeping changes small.
-    - Done when: it's changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: none_
-  - [ ] 10.6 Tune the sidebar collapse
-    - Review the sidebar transitions at `src/routes/layout.css:205` and line 251 at each breakpoint, keeping changes small.
-    - Done when: they're changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: SHELL-1_
-  - [ ] 10.7 Tune tabs and toasts
-    - Review the tab transition in `src/routes/components.css:165` and the toast at `src/routes/components.css:310`, with its keyframes at `src/routes/layout.css:429`.
-    - Done when: each is changed or deliberately left, and any new rule is in the Motion section of `DESIGN.md`.
-    - _Requirements: none_
+  - [ ] 13.2 Keep mutation and draft orchestration explicit at the component boundary
+    - Simplify `src/lib/pipeline/PipelineView.svelte:171` (`run`) and line 189 (`moveCard`) around the extracted interaction state while retaining `src/lib/data/workspace.ts` as the optimistic-overlay owner and existing opportunity/client draft APIs.
+    - Preserve conditioned server changes, pending saves, errors, cancel/retry, and dialog focus; do not add another client collection or universal form/mutation framework.
+    - Done when: the component owns composition and wiring rather than duplicated state machinery, with no changed save or draft behavior.
+    - _Requirements: SHELL-3_
+- [x] 14. Retain the shipped Registry and dashboard baseline
+  - [x] 14.1 Registry table: server filters and facets, URL state, sorting, incremental loading, column controls, bulk tag/archive/restore with Undo
+  - [x] 14.2 Four dashboard scorecards
 
 ## Later
+
+### Per-user experience controls, after the current motion polish
+
+- Add User preferences for animation pacing/snappiness, with a more responsive option alongside the deliberately slower default. This is future scope, not a checkbox or permission to build Settings now. Keep the current timing roles adaptable without building a settings abstraction in advance.
+  > I would like to eventually have some user preference settings for stuff like animation snappiness (for users that prefer more responsiveness) so I would default to having animations be a little slower (relatively) than they are now wherever you think that makes sense to fit into the plan. I mean I can't even tell if hovering a button has an animation, it looks practically instant to me.
+  - Settle presets versus a continuous control, per-browser versus signed-in cross-device persistence, which timing roles it affects, and interaction with the operating system's reduced-motion preference before implementation. Preserve reduced-motion accessibility rather than equating it with a faster preset.
+  - Animation snappiness is the first example of user-adjustable experience preferences, not the entire feature boundary. Discover other useful controls with the developer rather than inventing a catalog or silently limiting User preferences to animation speed.
 
 ### After the first release
 
@@ -200,7 +278,7 @@ In rough dependency order.
 - Role-specific dashboards: the realtor's Key dates; the assistant's Inbox, Realtor's day, and Pipeline summary.
 - Uploaded files as references (R2), after the rules in Open questions.
 - Delete a client from the Registry, with the notice for its opportunities and tasks.
-- Settings panels: User preferences, Business settings, the tag vocabulary, relationship and address labels.
+- Settings panels: User preferences, including the per-user experience controls above once their open decisions are settled; Business settings; the tag vocabulary; relationship and address labels.
 - Checklist template editor, chosen from prototypes reviewed with the developer.
   - Empty templates work, progress survives renaming and reordering, a failed save keeps the draft, and it's usable on a phone.
 - Board view options, settled over review rounds with the developer.

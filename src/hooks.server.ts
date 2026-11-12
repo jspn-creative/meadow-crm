@@ -1,5 +1,6 @@
 import { dev } from "$app/env";
-import type { Handle } from "@sveltejs/kit/hooks";
+import { error } from "@sveltejs/kit";
+import type { Handle, HandleServerError } from "@sveltejs/kit/hooks";
 import { createDataService } from "#lib/server/data.js";
 import { resolveLocalIdentity } from "#lib/server/identity.js";
 import { createAuth, loginFailure, sessionIdentity } from "#lib/server/auth.js";
@@ -45,6 +46,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 			: null;
 	} catch {
 		// Do not let adapter errors expose session tokens or bound parameters in server logs.
+		if (event.request.headers.get("accept")?.includes("text/html"))
+			error(503, "Workspace access is temporarily unavailable. Please try again.");
 		return noStore(Response.json({ message: loginFailure }, { status: 503 }));
 	}
 	const identity = support
@@ -166,7 +169,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			clearSupportCookie(event.cookies, response);
 		return noStore(response);
 	}
-	if (path === "/support" && support) return noStore(await resolve(event));
 	if (!identity && path !== "/login") {
 		if (
 			event.request.method !== "GET" ||
@@ -183,10 +185,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 			new Response(null, {
 				status: 303,
 				headers: {
-					location: support ? "/support" : `/login?next=${encodeURIComponent(path + event.url.search)}`,
+					location: `/login?next=${encodeURIComponent(path + event.url.search)}`,
 				},
 			}),
 		);
 	}
 	return noStore(await resolve(event));
+};
+
+export const handleError: HandleServerError = ({ kind, error }) => {
+	// Unknown errors may contain SQL parameters or client data; never expose or log the raw exception.
+	if (kind === "unknown") return { message: "Something went wrong. Please try again." };
+	return error;
 };

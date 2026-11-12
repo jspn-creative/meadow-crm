@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./themes.css";
 @import "./components.css";
+@import "./motion.css";
 
 @theme static {
 	--font-sans: "Bricolage Grotesque", system-ui, sans-serif;
@@ -191,9 +192,6 @@
 		&::before {
 			transition: none;
 		}
-		&[data-interactive="score"]:hover {
-			transform: none;
-		}
 	}
 }
 
@@ -225,15 +223,27 @@
 		@apply shadow-shell relative mb-3 ml-3 min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-none rounded-l-2xl bg-white/70;
 		view-transition-name: white-surface;
 		/* A view marked data-fill takes the height left under the title, so it can scroll a region of its own, such as a table under a sticky heading. */
-		&:has(> [data-fill]) {
+		&:has(> .workspace-content > [data-fill]) {
 			@apply flex flex-col;
-			> [data-fill] {
-				@apply min-h-0 flex-1;
+			> .workspace-content {
+				@apply flex min-h-0 flex-1 flex-col;
+				> [data-fill] {
+					@apply min-h-0 flex-1;
+				}
 			}
 		}
 		@media (min-width: 64rem) {
 			@apply mt-3 rounded-l-3xl;
 		}
+	}
+	.workspace-content {
+		@apply min-w-0;
+		view-transition-name: workspace-content;
+		/* Content travels inside the white surface's group, clipped to it, instead of appearing over the cream before the surface arrives. */
+		view-transition-group: nearest;
+	}
+	&[data-login="true"] .workspace-content {
+		view-transition-name: none;
 	}
 	&[data-collapsed="true"] .rail {
 		@media (min-width: 64rem) {
@@ -368,7 +378,6 @@
 }
 
 .dashboard-content {
-	animation: none;
 	--card-pad: calc(var(--spacing) * 4);
 	--card-gap: calc(var(--spacing) * 2.5);
 	--row-pad: calc(var(--spacing) * 3);
@@ -376,66 +385,12 @@
 	@container dashboard (min-width: 38rem) {
 		--card-pad: calc(var(--spacing) * 5);
 	}
-	[data-widget] {
-		animation: widget-enter 560ms var(--ease-shell) backwards;
-		animation-delay: calc(var(--widget-order, 0) * 60ms);
-	}
-	@media (prefers-reduced-motion: reduce) {
-		[data-widget] {
-			animation: none;
-		}
-	}
-}
-
-@keyframes widget-enter {
-	from {
-		opacity: 0.6;
-		translate: 0 14px;
-	}
-	to {
-		opacity: 1;
-		translate: 0 0;
-	}
-}
-
-.workspace-title {
-	animation: title-enter 480ms var(--ease-shell);
-	@media (prefers-reduced-motion: reduce) {
-		animation: none;
-	}
-}
-
-@keyframes title-enter {
-	from {
-		opacity: 0.6;
-		filter: blur(2px);
-		translate: 0 5px;
-	}
-	to {
-		opacity: 1;
-		filter: blur(0);
-		translate: 0 0;
-	}
 }
 
 .surface-content {
 	@apply px-5 py-8 sm:px-8 lg:px-10;
-	animation: surface-enter 300ms var(--ease-shell);
 	&[data-tight] {
 		@apply pt-1;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		animation: none;
-	}
-}
-
-.field {
-	transition: background-color 160ms ease;
-	@starting-style {
-		background-color: var(--color-paper);
-	}
-	@media (prefers-reduced-motion: reduce) {
-		transition: none;
 	}
 }
 
@@ -468,72 +423,6 @@
 	}
 }
 
-@keyframes surface-enter {
-	from {
-		opacity: 0.6;
-		transform: translateY(6px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-/* Login exit — plays on the sign-in form before the full navigation replaces the document. */
-.login-form-exit {
-	animation: login-exit 300ms var(--ease-shell) forwards;
-	@media (prefers-reduced-motion: reduce) {
-		animation: none;
-	}
-}
-
-@keyframes login-exit {
-	from {
-		opacity: 1;
-		transform: scale(1) translateY(0);
-	}
-	to {
-		opacity: 0;
-		transform: scale(0.94) translateY(10px);
-	}
-}
-
-/* Login entrance — CSS fallback for browsers without cross-document view transitions. The dashboard consumes and clears the marker on mount so a reload never replays this motion. */
-.workspace {
-	&[data-login-entrance="true"] {
-		.main-surface {
-			animation: login-surface-enter 400ms var(--ease-shell);
-			@media (prefers-reduced-motion: reduce) {
-				animation: none;
-			}
-		}
-	}
-}
-
-@keyframes login-surface-enter {
-	from {
-		opacity: 0;
-		transform: translateY(8px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-/* Modern cross-document view-transition opt-in (replaces the obsolete meta tag). Both the login and dashboard documents opt in via this shared stylesheet; existing view-transition-name values (cream-surface, white-surface) drive the shell morph. Reduced motion opts out. */
-@media (prefers-reduced-motion: no-preference) {
-	@view-transition {
-		navigation: auto;
-	}
-}
-
-@media (prefers-reduced-motion: reduce) {
-	@view-transition {
-		navigation: none;
-	}
-}
-
 .motif {
 	&.motif-rings {
 		@apply hidden;
@@ -559,20 +448,6 @@
 		radial-gradient(100% 100% at 50% 50%, black 0%, rgb(0 0 0 / 0.55) 55%, transparent 92%),
 		linear-gradient(to bottom, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.1) 90%, rgb(0 0 0 / 0.8));
 	mask-composite: intersect;
-}
-
-::view-transition-group(cream-surface),
-::view-transition-group(white-surface) {
-	animation-duration: 400ms;
-	animation-timing-function: var(--ease-shell);
-	@media (prefers-reduced-motion: reduce) {
-		animation-duration: 0s;
-	}
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-	animation: none;
 }
 
 /* A theme change grows the new theme as a circle from the theme list over a still image of the old one; a font change fades in over it, softening the reflow. The whole page is one image, so surfaces named for route changes do not move on their own, and the pointer passes through to the lists so previews can follow it quickly. */

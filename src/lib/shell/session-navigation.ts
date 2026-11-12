@@ -13,21 +13,28 @@ export async function exitImpersonation() {
 	} catch {
 		return false;
 	}
-	replaceSession("/support");
+	replaceSession("/login");
 	return true;
 }
 
-export function replaceSession(destination: string) {
+export function notifyIdentityChange() {
 	try {
 		localStorage.setItem(identityChangeKey, crypto.randomUUID());
 	} catch {
 		/* Navigation still clears this document's caches when storage is unavailable. */
 	}
+}
+
+export function replaceSession(destination: string) {
+	// Keep the outgoing authorization on this document; the destination consumes sessionStorage before its first paint.
+	document.documentElement.dataset.sessionDestination = destination;
+	markLoginEntry(destination);
+	notifyIdentityChange();
 	window.location.replace(destination);
 }
 
 /**
- * Marks the next document as a login entrance so the dashboard plays the coordinated login entry motion instead of a plain load. Kept in sessionStorage so it survives the full navigation but never leaves the tab; the dashboard consumes and clears it on mount, so a reload or identity-change refresh never replays the entrance or flashes stale cross-account data.
+ * Marks an explicit identity navigation, including returning to the support admin's choice. app.html consumes it before first paint; reloads and unrelated navigations never replay it.
  */
 export function markLoginEntry(destination: string) {
 	try {

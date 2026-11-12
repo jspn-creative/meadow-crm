@@ -203,7 +203,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				saved.effective_user_id !== user.effectiveUserId ||
 				saved.payload_hash !== hash
 			)
-				throw new Error("This request ID is already used by a different operation or identity.");
+				throw new DataInvalid("This request ID is already used by a different operation or identity.");
 			return JSON.parse(saved.result) as T;
 		};
 		const existing = await receipt();
