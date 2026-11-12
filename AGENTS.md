@@ -53,7 +53,7 @@ Alchemy (`alchemy` and `@alchemy.run/*`, pinned exactly) owns provisioning, depl
 - The business timezone is America/Los_Angeles.
 - Alchemy stays on beta.84 with two patches in `patches/`. On any Alchemy upgrade, check each against the new release and drop or port it:
   - `@alchemy.run/cloudflare-runtime` repairs nested D1 statement transport, which otherwise breaks native `D1.batch()` in Website dev and operational scripts. Still unfixed upstream in beta.86 (checked 2026-11-12), so port it.
-  - `@alchemy.run/cloudflare` makes D1 imports accept an ingest that already finished and an upload D1 already holds; the preview snapshot's `importFiles` fails without it. Fixed upstream in beta.85 by [alchemy#2509](https://github.com/alchemy-run/alchemy/pull/2509), so drop it.
+  - `@alchemy.run/cloudflare` fixes two D1 problems behind the preview snapshot. Imports accept an ingest that already finished and an upload D1 already holds, which upstream fixed in beta.85 by [alchemy#2509](https://github.com/alchemy-run/alchemy/pull/2509), so drop that part. `clone` exports the schema and the data separately and creates every table before inserting rows, because production created `checklist_items` before `stage_checklists` and a single dump fails with "no such table". Still unfixed upstream (checked 2026-11-12), so port that part.
   - Beta.86 breaks `Drizzle.Schema`: `drizzle-kit up` gets an absolute temp path and fails with ENOENT on `.//var/.../snapshot.json`, which stops `alchemy dev` and deploys. Don't upgrade until a release fixes it.
 
 ### Deploying

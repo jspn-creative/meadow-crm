@@ -1,3 +1,51 @@
+diff --git a/lib/D1/CloneDatabase.js b/lib/D1/CloneDatabase.js
+index 1987c04..c2686d3 100644
+--- a/lib/D1/CloneDatabase.js
++++ b/lib/D1/CloneDatabase.js
+@@ -9,23 +9,29 @@ import { importD1Database } from "./ImportDatabase.js";
+  * payload through the import flow.
+  */
+ export const cloneDatabase = (options) => Effect.gen(function* () {
+-    const exportResult = yield* exportDatabase({
+-        accountId: options.accountId,
+-        databaseId: options.sourceDatabaseId,
+-    });
+     const client = yield* HttpClient.HttpClient;
+-    const dumpRes = yield* client
+-        .execute(HttpClientRequest.get(exportResult.signedUrl))
+-        .pipe(Effect.orDie);
+-    if (dumpRes.status < 200 || dumpRes.status >= 300) {
+-        return yield* Effect.die(`Failed to fetch D1 export dump (${dumpRes.status})`);
+-    }
+-    const sqlData = yield* dumpRes.text.pipe(Effect.orDie);
++    const dump = (dumpOptions) => Effect.gen(function* () {
++        const exportResult = yield* exportDatabase({
++            accountId: options.accountId,
++            databaseId: options.sourceDatabaseId,
++            dumpOptions,
++        });
++        const dumpRes = yield* client
++            .execute(HttpClientRequest.get(exportResult.signedUrl))
++            .pipe(Effect.orDie);
++        if (dumpRes.status < 200 || dumpRes.status >= 300) {
++            return yield* Effect.die(`Failed to fetch D1 export dump (${dumpRes.status})`);
++        }
++        return { filename: exportResult.filename, sql: yield* dumpRes.text.pipe(Effect.orDie) };
++    });
++    // A full dump writes each table's rows straight after its CREATE TABLE, so a child created before its parent fails with "no such table". Create every table first, then insert rows with foreign keys checked at the end.
++    const schema = yield* dump({ noData: true });
++    const data = yield* dump({ noSchema: true });
+     return yield* importD1Database({
+         accountId: options.accountId,
+         databaseId: options.targetDatabaseId,
+-        sqlData,
+-        filename: exportResult.filename,
++        sqlData: `${schema.sql}\nPRAGMA defer_foreign_keys = on;\n${data.sql}`,
++        filename: data.filename,
+     });
+ });
+ //# sourceMappingURL=CloneDatabase.js.map
+\ No newline at end of file
 diff --git a/lib/D1/ImportDatabase.js b/lib/D1/ImportDatabase.js
 index f35e825..ab6c6dc 100644
 --- a/lib/D1/ImportDatabase.js
@@ -77,6 +125,56 @@ index f35e825..ab6c6dc 100644
  const importEndpoint = (apiBaseUrl, accountId, databaseId) => `${apiBaseUrl}/accounts/${accountId}/d1/database/${databaseId}/import`;
  //# sourceMappingURL=ImportDatabase.js.map
 \ No newline at end of file
+diff --git a/src/D1/CloneDatabase.ts b/src/D1/CloneDatabase.ts
+index 43d226c..adbba76 100644
+--- a/src/D1/CloneDatabase.ts
++++ b/src/D1/CloneDatabase.ts
+@@ -17,24 +17,31 @@ export interface CloneDatabaseOptions {
+  */
+ export const cloneDatabase = (options: CloneDatabaseOptions) =>
+   Effect.gen(function* () {
+-    const exportResult = yield* exportDatabase({
+-      accountId: options.accountId,
+-      databaseId: options.sourceDatabaseId,
+-    });
+-
+     const client = yield* HttpClient.HttpClient;
+-    const dumpRes = yield* client
+-      .execute(HttpClientRequest.get(exportResult.signedUrl))
+-      .pipe(Effect.orDie);
+-    if (dumpRes.status < 200 || dumpRes.status >= 300) {
+-      return yield* Effect.die(`Failed to fetch D1 export dump (${dumpRes.status})`);
+-    }
+-    const sqlData = yield* dumpRes.text.pipe(Effect.orDie);
++    const dump = (dumpOptions: { noSchema?: boolean; noData?: boolean }) =>
++      Effect.gen(function* () {
++        const exportResult = yield* exportDatabase({
++          accountId: options.accountId,
++          databaseId: options.sourceDatabaseId,
++          dumpOptions,
++        });
++        const dumpRes = yield* client
++          .execute(HttpClientRequest.get(exportResult.signedUrl))
++          .pipe(Effect.orDie);
++        if (dumpRes.status < 200 || dumpRes.status >= 300) {
++          return yield* Effect.die(`Failed to fetch D1 export dump (${dumpRes.status})`);
++        }
++        return { filename: exportResult.filename, sql: yield* dumpRes.text.pipe(Effect.orDie) };
++      });
++
++    // A full dump writes each table's rows straight after its CREATE TABLE, so a child created before its parent fails with "no such table". Create every table first, then insert rows with foreign keys checked at the end.
++    const schema = yield* dump({ noData: true });
++    const data = yield* dump({ noSchema: true });
+ 
+     return yield* importD1Database({
+       accountId: options.accountId,
+       databaseId: options.targetDatabaseId,
+-      sqlData,
+-      filename: exportResult.filename,
++      sqlData: `${schema.sql}\nPRAGMA defer_foreign_keys = on;\n${data.sql}`,
++      filename: data.filename,
+     });
+   });
 diff --git a/src/D1/ImportDatabase.ts b/src/D1/ImportDatabase.ts
 index ca4bc0e..b7fd249 100644
 --- a/src/D1/ImportDatabase.ts
