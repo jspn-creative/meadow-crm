@@ -1,8 +1,37 @@
 diff --git a/lib/D1/CloneDatabase.js b/lib/D1/CloneDatabase.js
-index 1987c04..c2686d3 100644
+index 1987c04..33113b3 100644
 --- a/lib/D1/CloneDatabase.js
 +++ b/lib/D1/CloneDatabase.js
-@@ -9,23 +9,29 @@ import { importD1Database } from "./ImportDatabase.js";
+@@ -3,29 +3,61 @@ import * as HttpClient from "effect/http/HttpClient";
+ import * as HttpClientRequest from "effect/http/HttpClientRequest";
+ import { exportDatabase } from "./ExportDatabase.js";
+ import { importD1Database } from "./ImportDatabase.js";
++/**
++ * Order a schema dump's tables so every table follows the tables its foreign keys reference. Self-references and cycles keep dump order.
++ */
++export const tablesInDependencyOrder = (schemaSql) => {
++    const tables = new Map();
++    for (const chunk of schemaSql.split(/CREATE TABLE (?:IF NOT EXISTS )?/i).slice(1)) {
++        const name = chunk.match(/^[`"[]?([^`"\]\s(]+)/)?.[1];
++        if (!name) continue;
++        const body = chunk.split(/;\s*\n(?=CREATE|PRAGMA|$)/)[0];
++        tables.set(name, [...body.matchAll(/REFERENCES\s+[`"[]?([^`"\]\s(]+)/gi)].map((match) => match[1]));
++    }
++    const ordered = [];
++    const state = new Map();
++    const visit = (name) => {
++        if (state.get(name)) return;
++        state.set(name, "visiting");
++        for (const parent of tables.get(name) ?? []) if (tables.has(parent) && !state.has(parent)) visit(parent);
++        state.set(name, "done");
++        ordered.push(name);
++    };
++    for (const name of tables.keys()) visit(name);
++    return ordered;
++};
+ /**
+  * Clone a D1 database by exporting from the source and importing into the
+  * target. Fetches the SQL dump from the export's signed URL and streams the
   * payload through the import flow.
   */
  export const cloneDatabase = (options) => Effect.gen(function* () {
@@ -16,8 +45,6 @@ index 1987c04..c2686d3 100644
 -        .pipe(Effect.orDie);
 -    if (dumpRes.status < 200 || dumpRes.status >= 300) {
 -        return yield* Effect.die(`Failed to fetch D1 export dump (${dumpRes.status})`);
--    }
--    const sqlData = yield* dumpRes.text.pipe(Effect.orDie);
 +    const dump = (dumpOptions) => Effect.gen(function* () {
 +        const exportResult = yield* exportDatabase({
 +            accountId: options.accountId,
@@ -32,16 +59,20 @@ index 1987c04..c2686d3 100644
 +        }
 +        return { filename: exportResult.filename, sql: yield* dumpRes.text.pipe(Effect.orDie) };
 +    });
-+    // A full dump writes each table's rows straight after its CREATE TABLE, so a child created before its parent fails with "no such table". Create every table first, then insert rows with foreign keys checked at the end.
++    // D1 imports check each foreign key as its row goes in and ignore the dump's defer_foreign_keys, while a full dump writes tables and rows in creation order. Create every table first, then insert each table's rows after the tables it references; rows within a table keep their insertion order.
 +    const schema = yield* dump({ noData: true });
-+    const data = yield* dump({ noSchema: true });
++    const data = [];
++    for (const table of tablesInDependencyOrder(schema.sql)) {
++        data.push((yield* dump({ noSchema: true, tables: [table] })).sql);
+     }
+-    const sqlData = yield* dumpRes.text.pipe(Effect.orDie);
      return yield* importD1Database({
          accountId: options.accountId,
          databaseId: options.targetDatabaseId,
 -        sqlData,
 -        filename: exportResult.filename,
-+        sqlData: `${schema.sql}\nPRAGMA defer_foreign_keys = on;\n${data.sql}`,
-+        filename: data.filename,
++        sqlData: [schema.sql, ...data].join("\n"),
++        filename: schema.filename,
      });
  });
  //# sourceMappingURL=CloneDatabase.js.map
@@ -126,10 +157,45 @@ index f35e825..ab6c6dc 100644
  //# sourceMappingURL=ImportDatabase.js.map
 \ No newline at end of file
 diff --git a/src/D1/CloneDatabase.ts b/src/D1/CloneDatabase.ts
-index 43d226c..adbba76 100644
+index 43d226c..8563669 100644
 --- a/src/D1/CloneDatabase.ts
 +++ b/src/D1/CloneDatabase.ts
-@@ -17,24 +17,31 @@ export interface CloneDatabaseOptions {
+@@ -10,6 +10,34 @@ export interface CloneDatabaseOptions {
+   targetDatabaseId: string;
+ }
+ 
++/**
++ * Order a schema dump's tables so every table follows the tables its foreign keys reference. Self-references and cycles keep dump order.
++ */
++export const tablesInDependencyOrder = (schemaSql: string): string[] => {
++  const tables = new Map<string, string[]>();
++  for (const chunk of schemaSql.split(/CREATE TABLE (?:IF NOT EXISTS )?/i).slice(1)) {
++    const name = chunk.match(/^[`"[]?([^`"\]\s(]+)/)?.[1];
++    if (!name) continue;
++    const body = chunk.split(/;\s*\n(?=CREATE|PRAGMA|$)/)[0] ?? chunk;
++    tables.set(
++      name,
++      [...body.matchAll(/REFERENCES\s+[`"[]?([^`"\]\s(]+)/gi)].map((match) => match[1]!),
++    );
++  }
++  const ordered: string[] = [];
++  const state = new Map<string, "visiting" | "done">();
++  const visit = (name: string) => {
++    if (state.get(name)) return;
++    state.set(name, "visiting");
++    for (const parent of tables.get(name) ?? [])
++      if (tables.has(parent) && !state.has(parent)) visit(parent);
++    state.set(name, "done");
++    ordered.push(name);
++  };
++  for (const name of tables.keys()) visit(name);
++  return ordered;
++};
++
+ /**
+  * Clone a D1 database by exporting from the source and importing into the
+  * target. Fetches the SQL dump from the export's signed URL and streams the
+@@ -17,24 +45,34 @@ export interface CloneDatabaseOptions {
   */
  export const cloneDatabase = (options: CloneDatabaseOptions) =>
    Effect.gen(function* () {
@@ -144,9 +210,7 @@ index 43d226c..adbba76 100644
 -      .pipe(Effect.orDie);
 -    if (dumpRes.status < 200 || dumpRes.status >= 300) {
 -      return yield* Effect.die(`Failed to fetch D1 export dump (${dumpRes.status})`);
--    }
--    const sqlData = yield* dumpRes.text.pipe(Effect.orDie);
-+    const dump = (dumpOptions: { noSchema?: boolean; noData?: boolean }) =>
++    const dump = (dumpOptions: { tables?: string[]; noSchema?: boolean; noData?: boolean }) =>
 +      Effect.gen(function* () {
 +        const exportResult = yield* exportDatabase({
 +          accountId: options.accountId,
@@ -162,17 +226,21 @@ index 43d226c..adbba76 100644
 +        return { filename: exportResult.filename, sql: yield* dumpRes.text.pipe(Effect.orDie) };
 +      });
 +
-+    // A full dump writes each table's rows straight after its CREATE TABLE, so a child created before its parent fails with "no such table". Create every table first, then insert rows with foreign keys checked at the end.
++    // D1 imports check each foreign key as its row goes in and ignore the dump's defer_foreign_keys, while a full dump writes tables and rows in creation order. Create every table first, then insert each table's rows after the tables it references; rows within a table keep their insertion order.
 +    const schema = yield* dump({ noData: true });
-+    const data = yield* dump({ noSchema: true });
++    const data: string[] = [];
++    for (const table of tablesInDependencyOrder(schema.sql)) {
++      data.push((yield* dump({ noSchema: true, tables: [table] })).sql);
+     }
+-    const sqlData = yield* dumpRes.text.pipe(Effect.orDie);
  
      return yield* importD1Database({
        accountId: options.accountId,
        databaseId: options.targetDatabaseId,
 -      sqlData,
 -      filename: exportResult.filename,
-+      sqlData: `${schema.sql}\nPRAGMA defer_foreign_keys = on;\n${data.sql}`,
-+      filename: data.filename,
++      sqlData: [schema.sql, ...data].join("\n"),
++      filename: schema.filename,
      });
    });
 diff --git a/src/D1/ImportDatabase.ts b/src/D1/ImportDatabase.ts
