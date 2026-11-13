@@ -57,8 +57,13 @@ export const Website = Cloudflare.Website.SvelteKit(
 		const stage = yield* Stage;
 		const database = yield* Database;
 		const feedback = yield* Feedback;
+		const parent = /^pr-[1-9]\d*$/.test(stage)
+			? yield* Cloudflare.Worker.ref("Website", { stage: "prod" })
+			: undefined;
 		return {
-			name: stage === "prod" ? "meadow" : `meadow-${stage}`,
+			...(parent
+				? { preview: { of: parent, name: stage } }
+				: { name: stage === "prod" ? "meadow" : `meadow-${stage}` }),
 			dev: { host: process.env.MEADOW_DEV_HOST ?? "localhost", port: 1337, strictPort: true },
 			env: {
 				DB: database,
