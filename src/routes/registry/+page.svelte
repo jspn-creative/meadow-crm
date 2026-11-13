@@ -20,6 +20,8 @@
 	import Select from "#lib/ui/Select.svelte";
 	import { overflowFade } from "#lib/attachments/overflow-fade.js";
 	import { stageLabels, stageTones } from "#lib/pipeline/labels.js";
+	import CreateOpportunityDialog from "#lib/pipeline/CreateOpportunityDialog.svelte";
+	import { opportunityDraft, type OpportunityDraft } from "#lib/pipeline/opportunity-draft.js";
 
 	type ClientRow = Awaited<ReturnType<typeof getClients>>["clients"][number];
 	type SortId = "name" | "address" | "leadSource" | "tags" | "opportunities" | "referredBy" | "created";
@@ -421,6 +423,7 @@
 	let requestId = $state("");
 	let newName = $state("");
 	let draft = $state<ClientDraft | null>(null);
+	let creatingOpportunity = $state<OpportunityDraft | null>(null);
 	let fresh = $state(false);
 	let pending = $state(false);
 	let failure = $state("");
@@ -483,6 +486,10 @@
 		creating = false;
 		draft = clientDraft(found);
 		openPanel();
+	}
+	function newOpportunity() {
+		if (!draft) return;
+		creatingOpportunity = opportunityDraft(workspace, crypto.randomUUID(), draft.id);
 	}
 	function onclose() {
 		creating = false;
@@ -1068,7 +1075,7 @@
 					{#snippet opportunities()}
 						<div class="mb-2 flex min-h-8 items-center justify-between gap-3">
 							<h3 class="font-display text-lg">Opportunities</h3>
-							<a class="text-action" href={`/pipeline?client=${draft?.id}`}><Plus size={14} aria-hidden="true" />New</a>
+							<button type="button" class="text-action" aria-label="New opportunity" disabled={pending} onclick={newOpportunity}><Plus size={14} aria-hidden="true" />New</button>
 						</div>
 						<ul class="space-y-1">
 							{#each linked as link (link.opportunityId)}
@@ -1106,3 +1113,15 @@
 		{/if}
 	</div>
 </dialog>
+
+{#if creatingOpportunity}
+	<CreateOpportunityDialog
+		bind:draft={creatingOpportunity}
+		{workspace}
+		{remote}
+		cancel={() => (creatingOpportunity = null)}
+		saved={() => {
+			creatingOpportunity = null;
+			saved = "Opportunity created.";
+		}} />
+{/if}

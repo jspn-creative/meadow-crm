@@ -7,6 +7,7 @@
 	import { getWorkspace, saveOpportunity } from "#lib/crm.remote.js";
 	import { bookmarks } from "#lib/bookmarks/bookmarks.svelte.js";
 	import OpportunityEditor from "#lib/pipeline/OpportunityEditor.svelte";
+	import CreateOpportunityDialog from "#lib/pipeline/CreateOpportunityDialog.svelte";
 	import OpportunityCard from "#lib/pipeline/OpportunityCard.svelte";
 	import OpportunityNotes from "#lib/pipeline/OpportunityNotes.svelte";
 	import OpportunityHistory from "#lib/pipeline/OpportunityHistory.svelte";
@@ -439,36 +440,18 @@
 {/snippet}
 
 {#if creating}
-	<dialog
-		{@attach showDialog}
-		aria-labelledby="create-heading"
-		class="dialog"
-		data-size="md"
-		oncancel={(event) => {
-			if (pending) event.preventDefault();
-			else creating = false;
-		}}
-		onclose={() => (creating = false)}>
-		<header class="bg-canvas/95 border-hairline sticky top-0 z-10 flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
-			{@render dialogHeader("New opportunity", null)}
-			<button type="button" class="control ml-auto" data-variant="ghost" data-size="sm" data-icon data-autofocus aria-label="Close" disabled={pending} onclick={() => (creating = false)}><X size={17} aria-hidden="true" /></button>
-		</header>
-		<div class="@container/opportunity px-4 pt-5 pb-5 sm:px-8 sm:pt-6 sm:pb-7">
-			<h2 id="create-heading" class="font-display mb-6 text-3xl tracking-tight">New opportunity</h2>
-			<OpportunityEditor
-				bind:draft={drafts[opportunityId]!}
-				{workspace}
-				{remote}
-				bind:pending
-				cancel={() => (creating = false)}
-				saved={() => {
-					creating = false;
-					open(opportunityId);
-					delete drafts[opportunityId];
-					opportunityId = "";
-				}} />
-		</div>
-	</dialog>
+	<CreateOpportunityDialog
+		bind:draft={drafts[opportunityId]!}
+		{workspace}
+		{remote}
+		bind:pending
+		cancel={() => (creating = false)}
+		saved={() => {
+			creating = false;
+			open(opportunityId);
+			delete drafts[opportunityId];
+			opportunityId = "";
+		}} />
 {/if}
 
 {#if selected}

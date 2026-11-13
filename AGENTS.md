@@ -9,7 +9,7 @@ Work from [docs/tasks.md](docs/tasks.md), against [docs/requirements.md](docs/re
 
 Never commit unless explicitly asked. Leave changes in the working tree so the human can review them first. This covers `git commit`, `git commit -a`, and anything that commits implicitly (`git stash pop` after a conflict is fine, but do not resolve-and-commit). `git add`, `git status`, `git diff`, `git log`, and `git stash` are fine to use freely.
 
-When the user does ask for a commit, ask what to include if the tree has unrelated changes — do not sweep up work you did not make. Do not push, create branches, amend, or rewrite history unless that request was explicit too.
+When the user does ask for a commit, ask what to include if the tree has unrelated changes. Do not push, create branches, amend, or rewrite history unless that request was explicit too.
 
 Commit messages use a simplified Conventional Commits form: a type, a colon, and a single lowercase imperative sentence describing the change. No scope parentheses, no `!` markers, no trailing period, no body unless the user asks for one. `chore: drop the unused pipeline options doc`, `fix: stop the timeline overlapping on mobile`, `docs: explain how the archive rules work`. Stick to the obvious types — `feat`, `fix`, `chore`, `docs`, `refactor`, `test` — and do not invent new ones. So not `fix(ui): ...`, not `Fixed the thing.`, not a bulleted changelog.
 
@@ -85,10 +85,6 @@ How the app is built so far; change it only with a reason the developer agrees t
 - Route changes use native View Transitions and ordinary feedback uses CSS, with one animation owner per property.
 - The Registry adapts SV Table patterns into native Meadow primitives, with no shadcn configuration or tokens; keep `THIRD_PARTY_NOTICES.md` current.
 
-## Delegation
-
-Default every subagent to Beam Free (`opencode/beam-free`): docs lookups, scouting, code edits, mechanical refactors, and running checks. The orchestrating session plans, reviews diffs, and makes cross-item decisions; it hands large docs and broad file reads to a Beam Free subagent that returns only the relevant excerpt, rather than reading them itself. Use a paid model only after Beam Free fails the same bounded task twice, and say so in the report. Do not parallelize items that touch `schema.ts`, `data.ts`, or `crm.remote.ts`.
-
 ## Styling
 
 `src/routes/layout.css` is the Tailwind entry that imports `themes.css` (themes and semantic tokens) and `components.css` (shared primitives); follow whatever Tailwind guidance is already loaded in your context, in full, before editing any styling.
@@ -118,13 +114,11 @@ Each question has one home:
 
 If the work contradicts `docs/requirements.md`, say so before implementing it. If it contradicts the [Vocabulary](#vocabulary) below, fix the vocabulary first.
 
-## Decisions and assumptions
+## Decisions
 
 `docs/requirements.md` holds the product decisions the user has made; a requirement marked `(proposed)` is the intended direction, not a settled decision. Anything it does not settle is still open, even when a plan, prototype, example screen, or earlier agent output implies an answer. When work depends on an open product or behavior decision, ask the user before building it rather than choosing an answer.
 
 Ask one decision per question, and keep each option's description to that decision; never bundle further choices into a recommended option's fine print. Do not present a recommendation as a decision, and record a decision in `docs/requirements.md` only after the user confirms it explicitly.
-
-For small implementation choices that do not change what users see or how the product behaves, pick a sensible default and keep going, then list every such choice under an **Assumptions** heading in the final reply so the user can catch preference mismatches early.
 
 ## Vocabulary
 
