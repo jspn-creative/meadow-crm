@@ -346,6 +346,12 @@
 		--autofill-shadow: 0 0 transparent;
 		--autofill-fill: var(--color-white);
 		@apply border-hairline text-ink min-h-11 w-full rounded-xl border bg-white;
+		transition-property: background-color, border-color, box-shadow, filter;
+		transition-duration: 300ms;
+		transition-timing-function: ease;
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
 		box-shadow: var(--field-shadow), var(--autofill-shadow);
 		&[aria-invalid="true"],
 		&:has([aria-invalid="true"]) {
@@ -358,7 +364,6 @@
 	}
 	.field {
 		@apply px-3 py-2;
-		transition: background-color 160ms ease;
 		&::placeholder {
 			@apply text-muted;
 		}

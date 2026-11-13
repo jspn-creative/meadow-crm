@@ -1097,17 +1097,17 @@
 			{/key}
 			<details class="border-hairline mt-1 border-t pt-4 text-sm">
 				<summary class="text-muted cursor-pointer">History <span>· {changes.length} {changes.length === 1 ? "change" : "changes"}</span></summary>
-				<ol class="mt-3 space-y-2.5">
+				<ol class="mt-3 space-y-2.5 pl-4">
 					{#each changes as change (change.id)}
 						<li class="min-w-0">
 							<details>
-								<summary class="cursor-pointer"
+								<summary class="text-muted cursor-pointer"
 									><span class="font-medium capitalize">{change.action}</span>
 									<span class="text-muted text-xs"
 										><time datetime={change.createdAt}>{timeFormat.format(new Date(change.createdAt))}</time> · {person(change.actorUserId)}{#if change.actorUserId !== change.effectiveUserId}
 											(acting as {person(change.effectiveUserId)}){/if}</span
 									></summary>
-								<pre class="bg-paper text-muted mt-1.5 rounded-lg p-3 text-xs wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>
+								<pre class="text-muted border-hairline mt-1.5 rounded-lg border p-3 text-xs wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>
 							</details>
 						</li>
 					{:else}<li class="text-muted">No changes recorded.</li>{/each}

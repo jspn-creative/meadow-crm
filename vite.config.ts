@@ -5,6 +5,7 @@ import { defineConfig, lazyPlugins } from "vite-plus";
 import { liveDevShortcut } from "./scripts/vite-dev.ts";
 
 export default defineConfig({
+	server: { watch: { ignored: ["**/.worktrees/**"] } },
 	plugins: lazyPlugins(() => [
 		liveDevShortcut(),
 		tailwindcss(),
