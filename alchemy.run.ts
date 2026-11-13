@@ -65,6 +65,12 @@ export const Website = Cloudflare.Website.SvelteKit(
 				? { preview: { of: parent, name: stage } }
 				: { name: stage === "prod" ? "meadow" : `meadow-${stage}` }),
 			dev: { host: process.env.MEADOW_DEV_HOST ?? "localhost", port: 1337, strictPort: true },
+			observability: {
+				enabled: true,
+				logs: { enabled: true, invocationLogs: true },
+				traces: { enabled: true, headSamplingRate: 1, persist: true },
+				issues: { enabled: true },
+			},
 			env: {
 				DB: database,
 				FEEDBACK: feedback,
