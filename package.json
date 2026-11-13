@@ -69,7 +69,7 @@
 		"effect": "4.0.5",
 		"esbuild": "^0.28.2",
 		"miniflare": "^4.20260730.0",
-		"svelte": "^5.57.3",
+		"svelte": "https://pkg.svelte.dev/svelte/c/7fbce7d8719e9b3a2909e32555ff4c1e16f2637a",
 		"svelte-check": "^4.7.5",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.3",
