@@ -1,10 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const url = `http://localhost:${process.env.MEADOW_DEV_PORT ?? 1337}`;
+
 export default defineConfig({
 	testDir: "./tests",
 	globalSetup: "./scripts/playwright-setup.ts",
 	fullyParallel: true,
-	use: { baseURL: "http://localhost:1337", trace: "retain-on-failure" },
+	use: { baseURL: url, trace: "retain-on-failure" },
 	projects: [
 		{
 			name: "desktop",
@@ -23,7 +25,7 @@ export default defineConfig({
 	webServer: {
 		command: "vp exec -- alchemy dev --stage dev --env-file .dev.vars",
 		env: { LOCAL_IDENTITY_STUB: "true" },
-		url: "http://localhost:1337",
+		url,
 		reuseExistingServer: false,
 	},
 });

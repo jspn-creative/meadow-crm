@@ -423,7 +423,6 @@ try {
 			.first<{ id: string }>();
 		if (clients.some((client) => client.tags.length) && !tag)
 			throw new Error("The existing Sphere tag is missing; run the targeted default seed first.");
-		const realtor = "business-realtor";
 		type Row = Record<string, string | number | null>;
 		const tables: Record<string, Row[]> = {
 			clients: [],
@@ -495,8 +494,8 @@ try {
 				id: `${client.id}-history`,
 				record_kind: "client",
 				record_id: client.id,
-				actor_user_id: realtor,
-				effective_user_id: realtor,
+				actor_user_id: "support-admin",
+				effective_user_id: "support-admin",
 				action: "create",
 				data: JSON.stringify({
 					source: "import",
