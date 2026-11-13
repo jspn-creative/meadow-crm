@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { Archive, ArchiveRestore, ArrowRightLeft, CircleCheck, ListChecks, PencilLine, Pin, PinOff, Sparkles } from "@lucide/svelte";
 	import type { Workspace } from "#lib/data/workspace.js";
+	import { userFirstName as person } from "#lib/data/users.js";
 	import { stageLabels } from "./labels.js";
 	type Change = Workspace["history"][number];
 	let { workspace, changes }: { workspace: Workspace; changes: Change[] } = $props();
 
 	const fieldNames: Record<string, string> = { title: "title", timeline: "timeline", address: "property address", budgetCents: "budget", notes: "notes", clientIds: "clients", references: "references" };
-	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 	const list = (words: string[]) => (words.length < 2 ? words.join("") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`);
 	const comparable = (key: string, value: unknown) => (key === "references" && Array.isArray(value) ? value.map((reference) => reference?.label).join("|") : key === "clientIds" && Array.isArray(value) ? [...value].sort().join("|") : JSON.stringify(value ?? null));
 	let itemTitles = $derived(new Map(workspace.checklists.flatMap((checklist) => checklist.items.map((item) => [item.id, item.title]))));
@@ -50,8 +50,8 @@
 				<span class="border-hairline text-muted relative flex size-6 shrink-0 items-center justify-center rounded-full border bg-white"><Icon size={13} aria-hidden="true" /></span>
 				<div class="min-w-0 flex-1 text-sm/6">
 					<p class="wrap-anywhere">
-						<span class="font-medium">{person(change.effectiveUserId)}</span>{#if change.actorUserId !== change.effectiveUserId}<span class="text-muted"> (acting user: {person(change.actorUserId)})</span>{/if}
-						{text}
+						<span class="font-medium">{person(change.actorUserId)}</span>
+						{text}{#if change.actorUserId !== change.effectiveUserId}<span class="text-muted"> (acting as {person(change.effectiveUserId)})</span>{/if}
 					</p>
 					<div class="text-muted flex flex-wrap items-center gap-x-3 text-xs leading-5">
 						<time datetime={change.createdAt}>{format.format(new Date(change.createdAt))}</time>

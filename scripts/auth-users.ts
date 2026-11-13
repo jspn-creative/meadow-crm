@@ -3,6 +3,7 @@ import { hashPassword } from "better-auth/crypto";
 import { loadProjectEnv } from "./project-env.ts";
 import { remoteD1Database } from "./remote-d1.ts";
 import { localD1Database } from "./local-d1.ts";
+import { userName } from "../src/lib/data/users.ts";
 
 loadProjectEnv();
 
@@ -43,18 +44,7 @@ if (command === "create") {
 	statements.push(
 		{
 			sql: "INSERT INTO auth_user (id, name, email, email_verified, created_at, updated_at, role) VALUES (?, ?, ?, 0, ?, ?, ?)",
-			params: [
-				id,
-				data.role === "support-admin"
-					? "Support admin"
-					: data.role === "realtor"
-						? "Realtor"
-						: "Assistant",
-				email,
-				now,
-				now,
-				data.role === "support-admin" ? "admin" : "user",
-			],
+			params: [id, userName(id), email, now, now, data.role === "support-admin" ? "admin" : "user"],
 		},
 		{
 			sql: "INSERT INTO auth_account (id, account_id, provider_id, user_id, password, created_at, updated_at) VALUES (?, ?, 'credential', ?, ?, ?, ?)",

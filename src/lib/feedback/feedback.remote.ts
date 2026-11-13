@@ -2,6 +2,7 @@ import { command, getRequestEvent, query } from "$app/server";
 import { dev } from "$app/env";
 import { error } from "@sveltejs/kit";
 import { supportAdminId } from "#lib/server/auth.js";
+import { userName } from "#lib/data/users.js";
 import {
 	clearFeedbackNote as clearNote,
 	FeedbackInvalid,
@@ -31,9 +32,11 @@ export const getFeedbackNotes = query(async () => {
 
 export const saveFeedbackNote = command(saveFeedbackNoteInput, async (input) => {
 	const { kv, identity } = feedback();
-	const role = identity.role === "realtor" ? "Realtor" : "Assistant";
+	const name = userName(identity.effectiveUserId);
 	const author =
-		identity.actorUserId === identity.effectiveUserId ? role : `Support admin as ${role}`;
+		identity.actorUserId === identity.effectiveUserId
+			? name
+			: `${userName(identity.actorUserId)} (acting as ${name})`;
 	try {
 		return await saveNote(kv, input, author);
 	} catch (cause) {

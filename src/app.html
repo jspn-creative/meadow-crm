@@ -28,7 +28,7 @@
 					root.dataset.font = fonts.includes(font) ? font : "bricolage";
 				}
 				apply();
-				root.dataset.material = "glass";
+				root.dataset.material = "tactile";
 				window.addEventListener("storage", (event) => {
 					if (event.key === "meadow-theme" || event.key === "meadow-font") apply();
 				});

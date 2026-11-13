@@ -2,6 +2,7 @@
 	import { afterNavigate } from "$app/navigation";
 	import { onMount, tick } from "svelte";
 	import { page } from "$app/state";
+	import { userName } from "#lib/data/users.js";
 	import { exitImpersonation, replaceSession } from "./session-navigation.js";
 	import { BookOpen, Check, ChevronLeft, ChevronRight, LogOut, KeyRound, Settings2, UserRoundCog, UserRoundX } from "@lucide/svelte";
 	import { chooseFont, chooseTheme, endPreview, fonts, preview, themes, type FontId, type ThemeId } from "./themes.js";
@@ -83,7 +84,13 @@
 	let message = $state("");
 	// While impersonating, the chip shows who the support admin is acting as and offers an explicit exit.
 	let impersonating = $derived(page.data.support?.effectiveUser as "realtor" | "assistant" | null | undefined);
-	let roleLabel = $derived(impersonating === "realtor" ? "Realtor" : "Assistant");
+	let name = $derived(page.data.identity ? userName(page.data.identity.effectiveUserId) : accountOnly ? userName("support-admin") : "Meadow Lane");
+	let initials = $derived(
+		name
+			.split(" ")
+			.map((part) => part[0])
+			.join(""),
+	);
 	async function leaveImpersonation() {
 		if (pending) return;
 		pending = true;
@@ -165,10 +172,10 @@
 	<button type="button" class="control w-full justify-start text-left" disabled={!ready} aria-label="Workspace account" aria-expanded={open} onclick={() => (open ? closeMenu() : (open = true))}>
 		{#if impersonating}
 			<span class="bg-pending-soft text-pending ring-pending flex size-8 shrink-0 items-center justify-center rounded-full ring-2"><UserRoundCog size={16} aria-hidden="true" /></span>
-			<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{roleLabel}</span><span class="text-2xs text-pending block truncate">via Support admin</span></span>
+			<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{name}</span><span class="text-2xs text-pending block truncate">via Support admin</span></span>
 		{:else}
-			<span class="bg-success-soft text-success flex size-8 shrink-0 items-center justify-center rounded-full"><span class="text-xs font-semibold" aria-hidden="true">ML</span></span>
-			<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{accountOnly ? "Support admin" : "Meadow Lane"}</span><span class="text-2xs text-muted block">{accountOnly ? "Choose a business user" : "Shared workspace"}</span></span>
+			<span class="bg-success-soft text-success flex size-8 shrink-0 items-center justify-center rounded-full"><span class="text-xs font-semibold" aria-hidden="true">{initials}</span></span>
+			<span class="account-label min-w-0"><span class="block truncate text-xs font-medium">{name}</span><span class="text-2xs text-muted block">{accountOnly ? "Choose a business user" : "Shared workspace"}</span></span>
 		{/if}
 	</button>
 	<div bind:this={menu} class="account-menu surface surface-floating menu max-h-[70dvh] overflow-y-auto" inert={!open}>

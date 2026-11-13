@@ -3,6 +3,7 @@
 	import { X } from "@lucide/svelte";
 	import { createTask, saveTask, completeTask, deleteTask, getWorkspace } from "#lib/crm.remote.js";
 	import type { Workspace } from "#lib/data/workspace.js";
+	import { userFirstName as person } from "#lib/data/users.js";
 	import Select from "#lib/ui/Select.svelte";
 	type Task = Workspace["tasks"][number];
 	let { task, workspace, remote, close }: { task?: Task; workspace: Workspace; remote: ReturnType<typeof getWorkspace>; close: () => void } = $props();
@@ -26,7 +27,6 @@
 		...workspace.referenceOpportunities.filter((row) => !row.archivedAt || row.id === task?.opportunityId).map((row) => ({ value: `opportunity:${row.id}`, label: `Opportunity · ${row.title}${row.archivedAt ? " (archived)" : ""}` })),
 	]);
 	let format = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: workspace.settings?.timezone ?? "America/Los_Angeles" }));
-	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 
 	function loadCurrent() {
 		if (!task) return;
@@ -133,8 +133,8 @@
 				<ol class="space-y-3">
 					{#each changes as change (change.id)}<li class="text-sm">
 							<p>
-								{person(change.effectiveUserId)} · {change.action}{#if change.actorUserId !== change.effectiveUserId}
-									(acting user: {person(change.actorUserId)}){/if}
+								{person(change.actorUserId)} · {change.action}{#if change.actorUserId !== change.effectiveUserId}
+									(acting as {person(change.effectiveUserId)}){/if}
 							</p>
 							<time class="text-muted text-xs" datetime={change.createdAt}>{format.format(new Date(change.createdAt))}</time>
 							<details>

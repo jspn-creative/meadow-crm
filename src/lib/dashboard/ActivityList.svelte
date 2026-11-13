@@ -2,10 +2,10 @@
 	import { Sparkles, Orbit, Sprout, Coffee, History } from "@lucide/svelte";
 	import { getRecentActivity } from "#lib/crm.remote.js";
 	import { stageLabels } from "#lib/pipeline/labels.js";
+	import { userFirstName as person } from "#lib/data/users.js";
 	const remote = getRecentActivity();
 	let activity = $derived(await remote);
 	let format = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: activity.timezone }));
-	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 	const illustration = [
 		{ id: "universe", title: "The universe opens for business.", detail: "Big expansion. No paperwork.", date: "13.8 billion years ago", icon: Sparkles, color: "tour" },
 		{ id: "earth", title: "Earth finds its forever home.", detail: "Great light. Excellent orbital location.", date: "4.5 billion years ago", icon: Orbit, color: "info" },
@@ -61,8 +61,8 @@
 				<div class="min-w-0 flex-1">
 					<a class="item-title text-action wrap-anywhere" href={recordLink(change)}>{change.title}</a>
 					<p class="text-muted mt-1 text-xs leading-5 wrap-anywhere">
-						{person(change.effectiveUserId)}
-						{describe(change)}{#if change.actorUserId !== change.effectiveUserId}{" "}(acting user: {person(change.actorUserId)}){/if}.
+						{person(change.actorUserId)}
+						{describe(change)}{#if change.actorUserId !== change.effectiveUserId}{" "}(acting as {person(change.effectiveUserId)}){/if}.
 					</p>
 					<time class="text-muted mt-1 block text-xs" datetime={change.createdAt}>{format.format(new Date(change.createdAt))}</time>
 				</div>

@@ -4,6 +4,7 @@
 	import { ArrowRight } from "@lucide/svelte";
 	import { onMount, tick } from "svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
+	import { userName } from "#lib/data/users.js";
 	import { notifyIdentityChange, replaceSession } from "#lib/shell/session-navigation.js";
 	let ready = $state(false);
 	onMount(() => {
@@ -91,8 +92,10 @@
 				<h2 id="login-heading" tabindex="-1" class="font-display text-4xl tracking-tight">Who are you helping?</h2>
 				<p class="text-muted mt-3">Choose a business user to impersonate.</p>
 				<div class="mt-8 grid gap-3">
-					<button type="button" class="control w-full" data-variant="primary" disabled={!ready || pending} aria-busy={opening === "business-realtor"} onclick={() => choose("business-realtor")}>{opening === "business-realtor" ? "Opening workspace…" : "Impersonate Realtor"}<ArrowRight size={17} aria-hidden="true" /></button>
-					<button type="button" class="control w-full" disabled={!ready || pending} aria-busy={opening === "business-assistant"} onclick={() => choose("business-assistant")}>{opening === "business-assistant" ? "Opening workspace…" : "Impersonate Assistant"}<ArrowRight size={17} aria-hidden="true" /></button>
+					<button type="button" class="control w-full" data-variant="primary" disabled={!ready || pending} aria-busy={opening === "business-realtor"} onclick={() => choose("business-realtor")}
+						>{opening === "business-realtor" ? "Opening workspace…" : `Impersonate ${userName("business-realtor")}`}<ArrowRight size={17} aria-hidden="true" /></button>
+					<button type="button" class="control w-full" disabled={!ready || pending} aria-busy={opening === "business-assistant"} onclick={() => choose("business-assistant")}
+						>{opening === "business-assistant" ? "Opening workspace…" : `Impersonate ${userName("business-assistant")}`}<ArrowRight size={17} aria-hidden="true" /></button>
 				</div>
 				<div class="mt-8"><UserChip accountOnly /></div>
 			</section>

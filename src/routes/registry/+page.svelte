@@ -8,6 +8,7 @@
 	import { bulkUpdateClients, createClient, getClientFacets, getClientIds, getClients, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
 	import { leadSources } from "#lib/data/lead-sources.js";
+	import { userFirstName as person } from "#lib/data/users.js";
 	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
 	import { formatPhone } from "#lib/registry/format.js";
 	import { builderField, builderFields, channelLabels, channels, filterSummary, needsValue, newFilter, parseFilter, serializeFilter, serverFilter, type BuilderField, type BuilderFilter, type Channel } from "#lib/registry/filters.js";
@@ -429,7 +430,6 @@
 	let failure = $state("");
 	let saved = $state("");
 	let ready = $state(false);
-	const person = (id: string) => ({ "business-realtor": "Realtor", "business-assistant": "Assistant", "support-admin": "Support admin" })[id] ?? id;
 	let lastHandledClientId = $state<string | null>(null);
 	onMount(() => {
 		loadColumns();
@@ -1103,7 +1103,10 @@
 							<details>
 								<summary class="cursor-pointer"
 									><span class="font-medium capitalize">{change.action}</span>
-									<span class="text-muted text-xs"><time datetime={change.createdAt}>{timeFormat.format(new Date(change.createdAt))}</time> · {change.actorUserId !== change.effectiveUserId ? `${person(change.actorUserId)} as ${person(change.effectiveUserId)}` : person(change.effectiveUserId)}</span></summary>
+									<span class="text-muted text-xs"
+										><time datetime={change.createdAt}>{timeFormat.format(new Date(change.createdAt))}</time> · {person(change.actorUserId)}{#if change.actorUserId !== change.effectiveUserId}
+											(acting as {person(change.effectiveUserId)}){/if}</span
+									></summary>
 								<pre class="bg-paper text-muted mt-1.5 rounded-lg p-3 text-xs wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>
 							</details>
 						</li>
