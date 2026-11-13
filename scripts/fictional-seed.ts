@@ -76,11 +76,12 @@ export async function seedFictional(db: D1Database, today: string) {
 		statements.push(
 			db
 				.prepare(
-					"INSERT INTO clients (id, name, lead_source, notes, preferences, preferred_contact_method, referred_by_client_id, referred_by_name, archived_at, fictional, created_at, updated_at) VALUES (?, ?, 'Fictional referral', 'Fictional local scenario', ?, ?, ?, ?, ?, 1, ?, ?)",
+					"INSERT INTO clients (id, name, lead_source, notes, preferences, preferred_contact_method, referred_by_client_id, referred_by_name, archived_at, fictional, created_at, updated_at) VALUES (?, ?, ?, 'Fictional local scenario', ?, ?, ?, ?, ?, 1, ?, ?)",
 				)
 				.bind(
 					`fictional-client-${client.id}`,
 					client.name,
+					client.referredByClient || client.referredByName ? "Referral" : "Website",
 					client.preferences,
 					client.contact,
 					client.referredByClient ? `fictional-client-${client.referredByClient}` : null,

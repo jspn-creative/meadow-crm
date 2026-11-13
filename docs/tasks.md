@@ -278,7 +278,7 @@ In rough dependency order.
 - Role-specific dashboards: the realtor's Key dates; the assistant's Inbox, Realtor's day, and Pipeline summary.
 - Uploaded files as references (R2), after the rules in Open questions.
 - Delete a client from the Registry, with the notice for its opportunities and tasks.
-- Settings panels: User preferences, including the per-user experience controls above once their open decisions are settled; Business settings; the tag vocabulary; relationship and address labels.
+- Settings panels: User preferences, including the per-user experience controls above once their open decisions are settled; Business settings; the tag vocabulary; relationship and address labels; the lead source list, now fixed in code.
 - Checklist template editor, chosen from prototypes reviewed with the developer.
   - Empty templates work, progress survives renaming and reordering, a failed save keeps the draft, and it's usable on a phone.
 - Board view options, settled over review rounds with the developer.

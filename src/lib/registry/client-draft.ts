@@ -1,7 +1,8 @@
+import { referralSource } from "#lib/data/lead-sources.js";
 import type { Workspace } from "#lib/data/workspace.js";
 
 export type ClientRecord = Workspace["clients"][number];
-export type ReferredByMode = "none" | "client" | "name";
+export type ReferredByMode = "client" | "name";
 export type LabeledValue = { id: string; label: string; value: string };
 export type PersonDraft = {
 	id: string;
@@ -35,15 +36,13 @@ export type ClientDraft = {
 	tagIds: string[];
 };
 
-export const leadSources = ["A referral", "An open house", "A sign", "The website", "A walk-in"];
-
 export function newClientDraft(id: string, name = "", revision = 1): ClientDraft {
 	return {
 		id,
 		revision,
 		name,
 		leadSource: "",
-		referredByMode: "none",
+		referredByMode: "client",
 		referredByClientId: "",
 		referredByName: "",
 		preferences: "",
@@ -62,11 +61,7 @@ export function newClientDraft(id: string, name = "", revision = 1): ClientDraft
 }
 
 export function clientDraft(record: ClientRecord): ClientDraft {
-	const referredByMode: ReferredByMode = record.referredByClientId
-		? "client"
-		: record.referredByName
-			? "name"
-			: "none";
+	const referredByMode: ReferredByMode = record.referredByName ? "name" : "client";
 	return {
 		id: record.id,
 		revision: record.revision,
@@ -121,12 +116,13 @@ function labeled(rows: LabeledValue[]) {
 }
 
 export function clientSaveInput(draft: ClientDraft, requestId: string) {
+	// Only a referral keeps who referred the client.
 	const referredBy =
-		draft.referredByMode === "client"
-			? { referredByClientId: draft.referredByClientId || null, referredByName: null }
-			: draft.referredByMode === "name"
-				? { referredByClientId: null, referredByName: draft.referredByName.trim() || null }
-				: { referredByClientId: null, referredByName: null };
+		draft.leadSource !== referralSource
+			? { referredByClientId: null, referredByName: null }
+			: draft.referredByMode === "client"
+				? { referredByClientId: draft.referredByClientId || null, referredByName: null }
+				: { referredByClientId: null, referredByName: draft.referredByName.trim() || null };
 	return {
 		requestId,
 		id: draft.id,

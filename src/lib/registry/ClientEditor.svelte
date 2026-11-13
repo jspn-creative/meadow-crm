@@ -6,7 +6,8 @@
 	import type { Workspace } from "#lib/data/workspace.js";
 	import { notToBeContacted } from "#lib/data/consent.js";
 	import Select from "#lib/ui/Select.svelte";
-	import { clientDraft, clientSaveInput, leadSources, type ClientDraft } from "./client-draft.js";
+	import { leadSources, referralSource } from "#lib/data/lead-sources.js";
+	import { clientDraft, clientSaveInput, type ClientDraft } from "./client-draft.js";
 	import { formatCalendarDate, formatPhone } from "./format.js";
 	let {
 		draft = $bindable(),
@@ -46,7 +47,6 @@
 		["mail", "Mail"],
 	] as const;
 	const referredByModes: { value: ClientDraft["referredByMode"]; label: string }[] = [
-		{ value: "none", label: "Not referred" },
 		{ value: "client", label: "An existing client" },
 		{ value: "name", label: "A typed name" },
 	];
@@ -58,6 +58,9 @@
 	] as const;
 	let linkable = $derived(workspace.referenceClients.filter((client) => client.id !== draft.id && (!client.archivedAt || client.id === draft.referredByClientId)));
 	let leadSourceChoices = $derived(draft.leadSource && !leadSources.includes(draft.leadSource) ? [...leadSources, draft.leadSource] : leadSources);
+	let referral = $derived(draft.leadSource === referralSource);
+	// Imported referrals arrived without a referrer; they can still be saved until someone fills it in.
+	let referrerRequired = $derived(!(clientRecord?.leadSource === referralSource && !clientRecord.referredByClientId && !clientRecord.referredByName));
 	let tagChoices = $derived(workspace.tags.filter((tag) => !tag.retiredAt || draft.tagIds.includes(tag.id)));
 	let appliedTags = $derived(workspace.tags.filter((tag) => draft.tagIds.includes(tag.id)));
 	let clientName = (id: string) => workspace.referenceClients.find((client) => client.id === id)?.name ?? "Unknown client";
@@ -77,7 +80,7 @@
 					.join(" & "),
 	);
 	let since = $derived(clientRecord ? new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(new Date(clientRecord.createdAt)) : "");
-	let referredBy = $derived(draft.referredByMode === "client" && draft.referredByClientId ? clientName(draft.referredByClientId) : draft.referredByMode === "name" ? draft.referredByName : "");
+	let referredBy = $derived(!referral ? "" : draft.referredByMode === "client" ? (draft.referredByClientId ? clientName(draft.referredByClientId) : "") : draft.referredByName);
 	let preferredMethod = $derived(methods.find(([value]) => value === draft.preferredContactMethod)?.[1] ?? "");
 
 	// Only the panel's first render decides this; later prop changes never reopen sections.
@@ -243,12 +246,17 @@
 					<div class="grid min-w-0 gap-3 @min-[26rem]/client:grid-cols-2">
 						<label class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Lead source</span><Select bind:value={draft.leadSource} options={[{ value: "", label: "Not set" }, ...leadSourceChoices.map((source) => ({ value: source, label: source }))]} /></label>
 						<label class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Preferred contact</span><Select bind:value={draft.preferredContactMethod} options={[{ value: "", label: "Not set" }, ...methods.map(([value, label]) => ({ value, label }))]} /></label>
-						<label class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Referred by</span><Select bind:value={draft.referredByMode} options={referredByModes} /></label>
-						{#if draft.referredByMode === "client"}
-							<label class="block min-w-0 space-y-1.5"
-								><span class="text-muted text-xs font-medium">Referring client</span><Select bind:value={draft.referredByClientId} required options={[{ value: "", label: "Choose a client" }, ...linkable.map((client) => ({ value: client.id, label: `${client.name}${client.archivedAt ? " (archived)" : ""}` }))]} /></label>
-						{:else if draft.referredByMode === "name"}
-							<label class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Referrer's name</span><input class="field" bind:value={draft.referredByName} required maxlength="200" placeholder="A lender or another agent" /></label>
+						{#if referral}
+							<label class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Referred by</span><Select bind:value={draft.referredByMode} options={referredByModes} /></label>
+							{#if draft.referredByMode === "client"}
+								<label class="block min-w-0 space-y-1.5"
+									><span class="text-muted text-xs font-medium">Referring client</span><Select
+										bind:value={draft.referredByClientId}
+										required={referrerRequired}
+										options={[{ value: "", label: "Choose a client" }, ...linkable.map((client) => ({ value: client.id, label: `${client.name}${client.archivedAt ? " (archived)" : ""}` }))]} /></label>
+							{:else}
+								<label class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Referrer's name</span><input class="field" bind:value={draft.referredByName} required={referrerRequired} maxlength="200" placeholder="A lender or another agent" /></label>
+							{/if}
 						{/if}
 					</div>
 					<div role="group" aria-label="Tags" class="space-y-1.5">

@@ -19,10 +19,11 @@ test("search keeps the path to a matching term and lives in the URL", async ({ p
 	await page.goto("/glossary");
 	await expect(page.getByRole("button", { name: "Collapse all" })).toBeEnabled();
 	await page.getByLabel("Search terms").fill("lead source");
-	await expect(page.getByRole("status")).toHaveText("4 matching terms");
-	await expect(page.locator("[data-outline-item]")).toHaveCount(4);
+	await expect(page.getByRole("status")).toHaveText("5 matching terms");
+	await expect(page.locator("[data-outline-item]")).toHaveCount(5);
 	await expect(outlineItem(page, "Registry")).toBeVisible();
 	await expect(outlineItem(page, "Client")).toBeVisible();
+	await expect(outlineItem(page, "Referred by")).toBeVisible();
 	await expect(outlineItem(page, "Lead source")).toBeVisible();
 	await expect(outlineItem(page, "Tag")).toBeVisible();
 	await expect(page).toHaveURL(/\?q=lead\+source$/);

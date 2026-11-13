@@ -196,6 +196,7 @@ test("Referred by is either a linked client or a typed name, never both", async 
 		id,
 		revision: 1,
 		name: "Fictional referred",
+		leadSource: "Referral",
 		referredByClientId,
 	});
 	let client = await clientRow(id);

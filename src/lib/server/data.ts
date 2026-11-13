@@ -4,6 +4,7 @@ import { eq, inArray, isNull, isNotNull } from "drizzle-orm";
 import * as v from "valibot";
 import type { BusinessIdentity } from "./identity.ts";
 import { businessDate } from "../data/attention.ts";
+import { leadSources, referralSource } from "../data/lead-sources.ts";
 import {
 	businessSettings,
 	clients,
@@ -1726,6 +1727,18 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			} else if (nameProvided) {
 				referredByName = null;
 			}
+			if (leadSource && leadSource !== before.leadSource && !leadSources.includes(leadSource))
+				throw new DataInvalid("Choose a lead source from the list.");
+			// Only a referral says who referred the client. Imported referrals arrived without a referrer, so only a new referral must name one.
+			if (leadSource !== referralSource) {
+				referredByClientId = null;
+				referredByName = null;
+			} else if (
+				!referredByClientId &&
+				!referredByName &&
+				!(before.leadSource === referralSource && !before.referredByClientId && !before.referredByName)
+			)
+				throw new DataInvalid("A referral needs who referred the client.");
 			const consentCall = value.consentCall !== undefined ? value.consentCall : before.consentCall;
 			const consentText = value.consentText !== undefined ? value.consentText : before.consentText;
 			const consentEmail = value.consentEmail !== undefined ? value.consentEmail : before.consentEmail;

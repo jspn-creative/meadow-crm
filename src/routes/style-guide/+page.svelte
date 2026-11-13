@@ -164,7 +164,7 @@
 	let emailInvalid = $state(false);
 	let sampleStage = $state<Stage>("active-lead");
 	let typeFilter = $state("buyer");
-	const leadSources = ["Referral", "Open house", "Sign", "Website", "Walk-in"];
+	const leadSources = ["Referral", "Zillow", "Website", "Open house", "Social media"];
 
 	function announce(text: string) {
 		toast = { id: Date.now(), text };

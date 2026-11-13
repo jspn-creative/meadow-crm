@@ -355,7 +355,7 @@ export const vocabulary: Term[] = [
 						term: "Referred by",
 						kind: "Field",
 						meaning:
-							"Who referred the client: another client, linked, or a typed name when the referrer is not a client, such as a lender or another agent.",
+							"Who referred a client whose lead source is Referral: another client, linked, or a typed name when the referrer is not a client, such as a lender or another agent. Only a referral has one.",
 						not: ["referrer", "referral source"],
 					},
 					{
@@ -389,7 +389,7 @@ export const vocabulary: Term[] = [
 						term: "Lead source",
 						kind: "Field",
 						meaning:
-							"Where a client came from: a referral, an open house, a sign, the website, a walk-in.",
+							"Where a client came from: Referral, Zillow, Website (the business's own site), Open house, or Social media. Choosing Referral asks who, as Referred by. Retired sources, such as Sign and Walk-in, stay on the clients that have them but can't be chosen again.",
 						not: ["source tag", "channel"],
 					},
 					{
