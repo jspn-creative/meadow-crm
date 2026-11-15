@@ -193,7 +193,7 @@
 			background-color: var(--color-primary);
 			color: var(--color-on-primary);
 		}
-		/* Ghost is the quiet button family: a secondary action beside a primary, an inline edit icon, or danger, which is ghost fixed to urgent. A context, such as a toned alert, tints it through --action-color. Inline actions in running content use .text-action instead. */
+		/* Ghost is a secondary text button beside a primary action, never an icon-only button, control, or trigger. Inline link-like actions use .text-action; compact native icon buttons use .icon-action. A toned context supplies --action-color; danger fixes it to urgent. */
 		&[data-variant="ghost"],
 		&[data-variant="danger"] {
 			@apply border-transparent bg-transparent;
@@ -291,6 +291,25 @@
 			}
 			.control-label {
 				transition: none;
+			}
+		}
+	}
+	/* Intrinsic icon sizing keeps compact headers short; the invisible target grows without changing layout. */
+	.icon-action {
+		@apply text-muted relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-0 align-middle leading-none;
+		&::after {
+			content: "";
+			@apply absolute top-1/2 left-1/2 size-6 -translate-1/2;
+			@media (pointer: coarse) {
+				@apply size-11;
+			}
+		}
+		&:disabled {
+			@apply cursor-not-allowed opacity-50;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover:not(:disabled) {
+				@apply text-field;
 			}
 		}
 	}

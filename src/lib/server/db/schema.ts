@@ -72,6 +72,8 @@ export const clients = sqliteTable(
 		consentEmail: integer("consent_email", { mode: "boolean" }).notNull().default(true),
 		consentMail: integer("consent_mail", { mode: "boolean" }).notNull().default(true),
 		archivedAt: text("archived_at"),
+		flagged: integer("flagged", { mode: "boolean" }).notNull().default(false),
+		flagNote: text("flag_note").notNull().default(""),
 		fictional: fixture(),
 		revision: revision(),
 		...timestamps(),

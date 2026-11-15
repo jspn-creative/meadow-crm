@@ -3,6 +3,7 @@
 	import { getRecentActivity } from "#lib/crm.remote.js";
 	import { stageLabels } from "#lib/pipeline/labels.js";
 	import { userFirstName as person } from "#lib/data/users.js";
+	import { flagChangeLabel } from "#lib/registry/flag-history.js";
 	const remote = getRecentActivity();
 	let activity = $derived(await remote);
 	let format = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: activity.timezone }));
@@ -14,6 +15,8 @@
 	] as const;
 	function describe(change: (typeof activity.changes)[number]) {
 		const kind = change.recordKind;
+		const flag = kind === "client" && flagChangeLabel(change.action, change.data);
+		if (flag) return `${flag} on this client${change.action === "edit" ? " and saved the client" : ""}`;
 		switch (change.action) {
 			case "create":
 				return `created this ${kind}`;

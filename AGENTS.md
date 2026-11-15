@@ -219,6 +219,7 @@ The tables below are generated from `src/lib/glossary/vocabulary.ts`, which also
 | --- | --- | --- | --- | --- |
 | Registry | Module |  | The module listing every client. "Client registry" is fine where it reads more clearly. | client list, contacts, directory |
 | Client | Record | Registry | A person, or several people such as a married couple, whom the business treats as one relationship. A client exists on its own and can take part in several opportunities. | contact, customer, lead, prospect |
+| Flag | Field | Client | A shared review marker on a client with an optional plain-text note, independent of tags, Consent, archive state, and historical Imported data hints. Clearing it clears the current note while retaining its previous value in History. |  |
 | Person | Field | Client | One of the people a client holds, with their own name, birthday, and labeled phone numbers and email addresses. "The Millers" is one client holding two people. | contact, individual, member |
 | Address | Field | Client | One of a client's addresses, of any kind, with a label from Registry settings and a marker for whether the client owns it. Distinct from an opportunity's property address. | owned property, holding |
 | Referred by | Field | Client | Who referred a client whose lead source is Referral: another client, linked, or a typed name when the referrer is not a client, such as a lender or another agent. Only a referral has one. | referrer, referral source |

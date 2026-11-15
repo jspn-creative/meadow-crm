@@ -60,15 +60,20 @@ export const deleteTask = command(deleteTaskInput, (input) => {
 	return save(() => data.deleteTask(input));
 });
 
-async function save(action: () => Promise<Record<string, unknown>>) {
+async function save(action: () => Promise<Record<string, unknown>>, retainCommitted = false) {
 	try {
 		const result = await action();
-		await Promise.all([
-			requested(getWorkspace, 2).refreshAll(),
-			requested(getClients, 40).refreshAll(),
-			requested(getClientFacets, 2).refreshAll(),
-			getRecentActivity().refresh(),
-		]);
+		try {
+			await Promise.all([
+				requested(getWorkspace, 2).refreshAll(),
+				requested(getClients, 40).refreshAll(),
+				requested(getClientFacets, 2).refreshAll(),
+				getRecentActivity().refresh(),
+			]);
+		} catch (cause) {
+			if (retainCommitted) return { ...result, refreshFailed: true };
+			throw cause;
+		}
 		return result;
 	} catch (cause) {
 		if (cause instanceof DataConflict) error(409, cause.message);
@@ -89,7 +94,7 @@ export const bulkUpdateClients = command(bulkUpdateClientsInput, (input) => {
 
 export const saveClient = command(saveClientInput, (input) => {
 	const data = services();
-	return save(() => data.saveClient(input));
+	return save(() => data.saveClient(input), true);
 });
 
 export const createOpportunity = form(createOpportunityFormInput, (input) => {

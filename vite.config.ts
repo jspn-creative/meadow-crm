@@ -28,7 +28,14 @@ export default defineConfig({
 	fmt: {
 		svelte: true,
 		ignorePatterns: ["**/*.md"],
-		overrides: [{ files: ["static/**/*.html", "src/**/*.svelte"], options: { printWidth: 320 } }],
+		overrides: [
+			{ files: ["static/**/*.html", "src/**/*.svelte"], options: { printWidth: 320 } },
+			// Keep the frozen migration input byte-identical to the reviewed generator output.
+			{
+				files: ["docs/misc/client-sources/client-review-active.json"],
+				options: { useTabs: false, tabWidth: 2 },
+			},
+		],
 		sortTailwindcss: true,
 		bracketSameLine: true,
 		tabWidth: 1,

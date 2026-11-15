@@ -108,6 +108,7 @@ const clientFilters = {
 };
 export const clientFiltersInput = v.strictObject(clientFilters);
 export const clientSortIds = [
+	"default",
 	"name",
 	"address",
 	"leadSource",
@@ -118,7 +119,7 @@ export const clientSortIds = [
 ] as const;
 export const clientsQueryInput = v.strictObject({
 	...clientFilters,
-	sort: v.optional(v.picklist(clientSortIds), "name"),
+	sort: v.optional(v.picklist(clientSortIds), "default"),
 	sortDir: v.optional(v.picklist(["asc", "desc"]), "asc"),
 	page: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1)), 1),
 	pageSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(100)), 50),
@@ -231,6 +232,8 @@ export const saveClientInput = v.strictObject({
 	consentEmail: v.optional(v.boolean()),
 	consentMail: v.optional(v.boolean()),
 	notes: v.optional(v.pipe(v.string(), v.maxLength(20000))),
+	flagged: v.optional(v.boolean()),
+	flagNote: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(2000))),
 	people: v.optional(v.array(personInput)),
 	addresses: v.optional(v.array(addressInput)),
 	relationships: v.optional(v.array(relationshipInput)),

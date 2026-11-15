@@ -1,218 +1,218 @@
 {
-	"as_of": "2026-11-14",
-	"cutoff": "2025-11-14",
-	"decision_source": "Developer instruction on 2026-11-14: all 27 outlined cases, covering 30 distinct clients, are Active and need a review flag.",
-	"expected_clients": 30,
-	"clients": [
-		{
-			"client_id": "import-client-743",
-			"case_id": "note-743",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The August buying note needs an outcome check: verify the pre-approval status and whether the inquiry progressed."
-		},
-		{
-			"client_id": "import-client-615",
-			"case_id": "outbound-introductions",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
-		},
-		{
-			"client_id": "import-client-690",
-			"case_id": "outbound-introductions",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
-		},
-		{
-			"client_id": "import-client-798",
-			"case_id": "outbound-introductions",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
-		},
-		{
-			"client_id": "import-client-750",
-			"case_id": "note-750",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Clarify which application the note refers to, its current status, and whether assistance is still needed."
-		},
-		{
-			"client_id": "import-client-673",
-			"case_id": "note-673",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current timing and financing, and whether the proposed appointment was ever confirmed."
-		},
-		{
-			"client_id": "import-client-224",
-			"case_id": "note-224",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The imported note flags a suspected scam. Verify identity and legitimacy before treating this as genuine business."
-		},
-		{
-			"client_id": "import-client-746",
-			"case_id": "note-746",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm whether the browsing inquiry became current buying work and fill in the missing qualification details."
-		},
-		{
-			"client_id": "import-client-833",
-			"case_id": "note-833",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm whether the requested showing happened, the inquiry outcome, and current agent representation."
-		},
-		{
-			"client_id": "import-client-209",
-			"case_id": "invalid-email-notices",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
-		},
-		{
-			"client_id": "import-client-463",
-			"case_id": "invalid-email-notices",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
-		},
-		{
-			"client_id": "import-client-205",
-			"case_id": "note-205",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current buying interest, financing status, and whether the lender introduction happened."
-		},
-		{
-			"client_id": "import-client-738",
-			"case_id": "note-738",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current buying interest, financing, and whether the unresolved qualification questions were answered."
-		},
-		{
-			"client_id": "import-client-736",
-			"case_id": "note-736",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Detailed search notes exist but no personal engagement was detected by the classifier. Verify communication history and the search outcome."
-		},
-		{
-			"client_id": "import-client-484",
-			"case_id": "note-484",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current interest and whether the client is represented by another agent before further outreach."
-		},
-		{
-			"client_id": "import-client-650",
-			"case_id": "note-650",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The latest note puts plans on hold. Confirm whether they resumed before treating this as current work."
-		},
-		{
-			"client_id": "import-client-440",
-			"case_id": "note-440",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm the current sale and purchase status, the offer outcome, and whether another agent is involved."
-		},
-		{
-			"client_id": "import-client-481",
-			"case_id": "note-481",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Reconcile the changing inquiry and showing notes; confirm current interest, agent representation, and the follow-up outcome."
-		},
-		{
-			"client_id": "import-client-715",
-			"case_id": "note-715",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Two near-duplicate notes describe the same inquiry. Confirm financing and the follow-up outcome without treating the duplicate as additional evidence."
-		},
-		{
-			"client_id": "import-client-702",
-			"case_id": "note-702",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm who the intended buyer is, whether the client record represents them correctly, and current agent representation."
-		},
-		{
-			"client_id": "import-client-824",
-			"case_id": "note-824",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm who participated in the recorded conversation and whether the record identifies the intended buyer correctly."
-		},
-		{
-			"client_id": "import-client-820",
-			"case_id": "note-820",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current buying interest, financing, and whether the requested callback happened."
-		},
-		{
-			"client_id": "import-client-818",
-			"case_id": "note-818",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm the current sale and purchase status and whether the requested callback was completed."
-		},
-		{
-			"client_id": "import-client-458",
-			"case_id": "note-458",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current buying interest, financing status, and whether the requested callback happened."
-		},
-		{
-			"client_id": "import-client-809",
-			"case_id": "note-809",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current buying interest, agent representation, and whether the planned follow-up happened."
-		},
-		{
-			"client_id": "import-client-401",
-			"case_id": "note-401",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm whether the recorded buying interest is still current and whether any later work or outcome is missing."
-		},
-		{
-			"client_id": "import-client-808",
-			"case_id": "note-808",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "The January notes deferred a decision until spring. Confirm whether that decision was made and whether the sale-and-purchase plans are still current."
-		},
-		{
-			"client_id": "import-client-648",
-			"case_id": "note-648",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm the current buying and selling status, financing, and outcome of the recorded follow-up."
-		},
-		{
-			"client_id": "import-client-437",
-			"case_id": "note-437",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm current buying interest, financing status, and whether the disconnected transfer was followed up."
-		},
-		{
-			"client_id": "import-client-137",
-			"case_id": "note-137",
-			"decision": "active",
-			"flagged": true,
-			"flag_note": "Confirm the current selling timeline and whether the recorded follow-up led to further work."
-		}
-	]
+  "as_of": "2026-11-14",
+  "cutoff": "2025-11-14",
+  "decision_source": "Developer instruction on 2026-11-14: all 27 outlined cases, covering 30 distinct clients, are Active and need a review flag.",
+  "expected_clients": 30,
+  "clients": [
+    {
+      "client_id": "import-client-743",
+      "case_id": "note-743",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The August buying note needs an outcome check: verify the pre-approval status and whether the inquiry progressed."
+    },
+    {
+      "client_id": "import-client-615",
+      "case_id": "outbound-introductions",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+    },
+    {
+      "client_id": "import-client-690",
+      "case_id": "outbound-introductions",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+    },
+    {
+      "client_id": "import-client-798",
+      "case_id": "outbound-introductions",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+    },
+    {
+      "client_id": "import-client-750",
+      "case_id": "note-750",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Clarify which application the note refers to, its current status, and whether assistance is still needed."
+    },
+    {
+      "client_id": "import-client-673",
+      "case_id": "note-673",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current timing and financing, and whether the proposed appointment was ever confirmed."
+    },
+    {
+      "client_id": "import-client-224",
+      "case_id": "note-224",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The imported note flags a suspected scam. Verify identity and legitimacy before treating this as genuine business."
+    },
+    {
+      "client_id": "import-client-746",
+      "case_id": "note-746",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm whether the browsing inquiry became current buying work and fill in the missing qualification details."
+    },
+    {
+      "client_id": "import-client-833",
+      "case_id": "note-833",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm whether the requested showing happened, the inquiry outcome, and current agent representation."
+    },
+    {
+      "client_id": "import-client-209",
+      "case_id": "invalid-email-notices",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
+    },
+    {
+      "client_id": "import-client-463",
+      "case_id": "invalid-email-notices",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
+    },
+    {
+      "client_id": "import-client-205",
+      "case_id": "note-205",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current buying interest, financing status, and whether the lender introduction happened."
+    },
+    {
+      "client_id": "import-client-738",
+      "case_id": "note-738",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current buying interest, financing, and whether the unresolved qualification questions were answered."
+    },
+    {
+      "client_id": "import-client-736",
+      "case_id": "note-736",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Detailed search notes exist but no personal engagement was detected by the classifier. Verify communication history and the search outcome."
+    },
+    {
+      "client_id": "import-client-484",
+      "case_id": "note-484",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current interest and whether the client is represented by another agent before further outreach."
+    },
+    {
+      "client_id": "import-client-650",
+      "case_id": "note-650",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The latest note puts plans on hold. Confirm whether they resumed before treating this as current work."
+    },
+    {
+      "client_id": "import-client-440",
+      "case_id": "note-440",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm the current sale and purchase status, the offer outcome, and whether another agent is involved."
+    },
+    {
+      "client_id": "import-client-481",
+      "case_id": "note-481",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Reconcile the changing inquiry and showing notes; confirm current interest, agent representation, and the follow-up outcome."
+    },
+    {
+      "client_id": "import-client-715",
+      "case_id": "note-715",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Two near-duplicate notes describe the same inquiry. Confirm financing and the follow-up outcome without treating the duplicate as additional evidence."
+    },
+    {
+      "client_id": "import-client-702",
+      "case_id": "note-702",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm who the intended buyer is, whether the client record represents them correctly, and current agent representation."
+    },
+    {
+      "client_id": "import-client-824",
+      "case_id": "note-824",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm who participated in the recorded conversation and whether the record identifies the intended buyer correctly."
+    },
+    {
+      "client_id": "import-client-820",
+      "case_id": "note-820",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current buying interest, financing, and whether the requested callback happened."
+    },
+    {
+      "client_id": "import-client-818",
+      "case_id": "note-818",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm the current sale and purchase status and whether the requested callback was completed."
+    },
+    {
+      "client_id": "import-client-458",
+      "case_id": "note-458",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current buying interest, financing status, and whether the requested callback happened."
+    },
+    {
+      "client_id": "import-client-809",
+      "case_id": "note-809",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current buying interest, agent representation, and whether the planned follow-up happened."
+    },
+    {
+      "client_id": "import-client-401",
+      "case_id": "note-401",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm whether the recorded buying interest is still current and whether any later work or outcome is missing."
+    },
+    {
+      "client_id": "import-client-808",
+      "case_id": "note-808",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "The January notes deferred a decision until spring. Confirm whether that decision was made and whether the sale-and-purchase plans are still current."
+    },
+    {
+      "client_id": "import-client-648",
+      "case_id": "note-648",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm the current buying and selling status, financing, and outcome of the recorded follow-up."
+    },
+    {
+      "client_id": "import-client-437",
+      "case_id": "note-437",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm current buying interest, financing status, and whether the disconnected transfer was followed up."
+    },
+    {
+      "client_id": "import-client-137",
+      "case_id": "note-137",
+      "decision": "active",
+      "flagged": true,
+      "flag_note": "Confirm the current selling timeline and whether the recorded follow-up led to further work."
+    }
+  ]
 }

@@ -133,6 +133,8 @@ interface Receipt {
 interface ClientRow {
 	id: string;
 	name: string;
+	flagged: number;
+	flagNote: string;
 	leadSource: string | null;
 	archivedAt: string | null;
 	createdAt: string;
@@ -483,6 +485,9 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 
 			let orderBy: string;
 			switch (value.sort) {
+				case "default":
+					orderBy = "c.flagged DESC";
+					break;
 				case "name":
 					orderBy = `c.name COLLATE NOCASE ${sortDir}`;
 					break;
@@ -509,7 +514,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 
 			const [pageResult, countResult] = await Promise.all([
 				stmt(
-					`SELECT c.id, c.name, c.lead_source AS leadSource, c.archived_at AS archivedAt, c.created_at AS createdAt,
+					`SELECT c.id, c.name, c.flagged, c.flag_note AS flagNote, c.lead_source AS leadSource, c.archived_at AS archivedAt, c.created_at AS createdAt,
 					${currentCount} AS opportunity_count,
 					${allCount} AS all_opportunity_count,
 					c.consent_call AS consentCall, c.consent_text AS consentText, c.consent_email AS consentEmail, c.consent_mail AS consentMail,
@@ -545,6 +550,8 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			const clients = pageResult.results.map((row) => ({
 				id: row.id,
 				name: row.name,
+				flagged: row.flagged === 1,
+				flagNote: row.flagNote,
 				archivedAt: row.archivedAt,
 				leadSource: row.leadSource,
 				peopleNames: list(row.people_names_json),
@@ -1744,6 +1751,10 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			const consentEmail = value.consentEmail !== undefined ? value.consentEmail : before.consentEmail;
 			const consentMail = value.consentMail !== undefined ? value.consentMail : before.consentMail;
 			const notes = value.notes !== undefined ? value.notes : before.notes;
+			const flagged = value.flagged ?? before.flagged;
+			const flagNote = flagged ? (value.flagNote ?? before.flagNote).trim() : "";
+			if (typeof flagged !== "boolean" || flagNote.length > 2000)
+				throw new DataInvalid("A flag note must be at most 2,000 characters.");
 			const people = value.people;
 			const addresses = value.addresses;
 			const relationships = value.relationships;
@@ -1800,7 +1811,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					const stmts: D1PreparedStatement[] = [];
 					stmts.push(
 						stmt(
-							"UPDATE clients SET name = ?, lead_source = ?, preferences = ?, preferred_contact_method = ?, referred_by_client_id = ?, referred_by_name = ?, consent_call = ?, consent_text = ?, consent_email = ?, consent_mail = ?, notes = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?",
+							"UPDATE clients SET name = ?, lead_source = ?, preferences = ?, preferred_contact_method = ?, referred_by_client_id = ?, referred_by_name = ?, consent_call = ?, consent_text = ?, consent_email = ?, consent_mail = ?, notes = ?, flagged = ?, flag_note = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?",
 							value.name,
 							leadSource,
 							preferences,
@@ -1812,6 +1823,8 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 							consentEmail ? 1 : 0,
 							consentMail ? 1 : 0,
 							notes,
+							flagged ? 1 : 0,
+							flagNote,
 							now,
 							value.id,
 							value.revision,
@@ -1973,6 +1986,8 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 								consentEmail,
 								consentMail,
 								notes,
+								flagged,
+								flagNote,
 								people: people ?? beforePeople,
 								addresses: addresses ?? beforeAddresses,
 								relationships: relationships ?? beforeRelationships,
