@@ -981,7 +981,7 @@
 {#snippet opportunityBody()}
 	<div>
 		<div class="mb-4 flex flex-wrap items-center gap-2">
-			<p class="text-muted max-w-2xl text-xs/5">Compare Original, Record first, and Work first in the variant toolbar. Each uses the same opportunity and checklist; changes are local to this demo.</p>
+			<p class="text-muted max-w-2xl text-xs/5">Compare Original, Record first, and Work first in the segmented choice above the panel. Each uses the same opportunity and checklist; changes are local to this demo.</p>
 			<button type="button" class="control sm:ml-auto" data-size="sm" data-variant="primary" onclick={() => (dialogOpen = true)}>Open as dialog</button>
 		</div>
 		{#if !dialogOpen}
@@ -1065,8 +1065,8 @@
 <div class="surface-content @container/guide pb-24 [--gutter:--spacing(5)] sm:[--gutter:--spacing(8)] lg:[--gutter:--spacing(10)]" data-tight {@attach spy} {@attach contentFade}>
 	<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-8">
 		<div class="max-w-2xl space-y-2">
-			<p class="text-muted text-sm/6 text-pretty">The app’s shared classes and components, shown with fictional records. The variant toolbar restyles the whole workspace while this view is open. Records are never saved; local file selection and clipboard actions are identified where they occur.</p>
-			<p class="text-muted text-xs/5">Themes and fonts come from the account menu or Foundations. The development-only Material setting compares Glass and Tactile across every view. All specimens use production primitives.</p>
+			<p class="text-muted text-sm/6 text-pretty">The app’s shared classes and components, shown with fictional records. Records are never saved; local file selection and clipboard actions are identified where they occur.</p>
+			<p class="text-muted text-xs/5">Themes and fonts come from the account menu or Foundations. All specimens use production primitives.</p>
 		</div>
 		<div class="flex gap-2">
 			<button type="button" class="control" data-size="sm" onclick={() => guide.setAll(true)}><ChevronsUpDown size={15} aria-hidden="true" />Expand all</button>

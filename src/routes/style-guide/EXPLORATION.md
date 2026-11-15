@@ -1,6 +1,6 @@
 # Sivir exploration
 
-Development-only comparison, not approval to adopt a component or change production defaults. Source review is pinned to Sivir revision `ac4289844b27d0f6d213b25a76d60e7e85866773`; never infer the reference implementation from its mutable checkout. The existing Meadow palettes, native controls, dependencies, and variant host remain the foundation.
+Development-only comparison, not approval to adopt a component or change production defaults. Source review is pinned to Sivir revision `ac4289844b27d0f6d213b25a76d60e7e85866773`; never infer the reference implementation from its mutable checkout. The existing Meadow palettes, native controls, and dependencies remain the foundation.
 
 ## Surface mapping
 
@@ -11,7 +11,6 @@ The relevant upstream sources are `packages/sivir/src/themes/theme.ts`, `package
 - Fields: real border and fill; focus composes with the field boundary rather than introducing a recessed well. Adorned fields share one wrapper boundary.
 - Framed surfaces: distinguish the outer edge, tinted frame, inner stroke, fill, and elevation. Nested radii account for the actual inset and border; upstream Legacy panel-card and modal formulas are not interchangeable.
 - Floating surfaces: coordinate their visual vocabulary, not their semantics. Action menus move focus between actions; editable listboxes retain input focus; previews supplement links and never trap focus.
-- Ringed: appended to `sg-controls-v2`; the original Tactile, Glass, and Outlined indices and the Glass default remain unchanged.
 
 The existing guide deliberately flattens widget shadows. Selecting Cream therefore does not recreate an exact shipped baseline. Recipe comparisons retain Meadow typography and density so those differences do not masquerade as surface changes.
 

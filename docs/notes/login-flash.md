@@ -9,7 +9,7 @@ The developer confirmed on 2026-11-10 that the full-page flash still occurred in
 
 The fix removes the widget gate from `src/app.html` and `src/routes/+layout.svelte` (`onNavigate`) so widgets enter as they render, draws the white surface on its own view-transition group in `src/routes/motion.css` with the captured images hidden, and nests `workspace-content` inside that group with `view-transition-group: nearest` so content rides the surface's leading edge, clipped to it. Recordings afterwards show no empty-surface interval and a full-height surface throughout; Dashboard to Pipeline and Dashboard to login were also recorded without regression. Task 1.3's motion gate no longer exists, so a cancelled or rejected transition cannot leave widgets paused.
 
-Fresh browser profiles also showed 150–300ms GPU stalls (Dawn pipeline compilation on a cold shader cache) that let the front-loaded morph jump forward; with a persistent profile frames were continuous, so that is a measurement artifact rather than the app. The dev-only variant toolbar appears one frame after the overlay is removed, which does not affect production. The developer's own Chrome check of the sign-in path is still the acceptance step for task 1.1.
+Fresh browser profiles also showed 150–300ms GPU stalls (Dawn pipeline compilation on a cold shader cache) that let the front-loaded morph jump forward; with a persistent profile frames were continuous, so that is a measurement artifact rather than the app. The developer's own Chrome check of the sign-in path is still the acceptance step for task 1.1.
 
 ## What has been tried
 

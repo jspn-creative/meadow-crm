@@ -9,7 +9,7 @@ Work from [docs/tasks.md](docs/tasks.md), against [docs/requirements.md](docs/re
 
 Never commit unless explicitly asked. Leave changes in the working tree so the human can review them first. This covers `git commit`, `git commit -a`, and anything that commits implicitly (`git stash pop` after a conflict is fine, but do not resolve-and-commit). `git add`, `git status`, `git diff`, `git log`, and `git stash` are fine to use freely.
 
-When the user does ask for a commit, ask what to include if the tree has unrelated changes. Do not push, create branches, amend, or rewrite history unless that request was explicit too.
+When the user does ask for a commit, ask what to include if the tree has unrelated changes. Do not push or create branches unless that was explicitly requested.
 
 Commit messages use a simplified Conventional Commits form: a type, a colon, and a single lowercase imperative sentence describing the change. No scope parentheses, no `!` markers, no trailing period, no body unless the user asks for one. `chore: drop the unused pipeline options doc`, `fix: stop the timeline overlapping on mobile`, `docs: explain how the archive rules work`. Stick to the obvious types — `feat`, `fix`, `chore`, `docs`, `refactor`, `test` — and do not invent new ones. So not `fix(ui): ...`, not `Fixed the thing.`, not a bulleted changelog.
 
@@ -95,7 +95,7 @@ How the app is built so far; change it only with a reason the developer agrees t
 
 `src/routes/layout.css` owns the product's design tokens, base resets, and CSS-first shared native control and work-row classes. Start buttons and fields as native elements using the existing `control` and `field` patterns; create reusable Svelte components only when current behavior or repeated composition needs them, not as up-front scaffolding. Dashboard widgets share `src/lib/dashboard/DashboardCard.svelte` for their boundary, heading, optional action, and gutters; keep widget content and layout in its children rather than growing a universal card system. Reuse `TaskList` and `DueBadge` for their existing repeated composition and due-state semantics instead of cloning the dashboard widget onto other pages. Widget item titles use the shared `item-title` class: a title designed to sit on one line keeps tight leading so that wrapping never costs more vertical space than the row budgeted.
 
-`DESIGN.md` records the visual intent behind those tokens and classes. The development-only `/style-guide` route renders them with a variant toolbar for trying alternatives; its experiments live in `src/routes/style-guide/style-guide.css` and never ship to other views. When a shared token, control, or chip changes, check it there as well as on the affected view.
+`DESIGN.md` records the visual intent behind those tokens and classes. The development-only `/style-guide` route renders them in their states, with its experiments in `src/routes/style-guide/style-guide.css` that never ship to other views. When a shared token, control, or chip changes, check it there as well as on the affected view.
 
 ### Content responsiveness
 
@@ -103,7 +103,7 @@ Use named Tailwind container queries for content layouts that depend on the spac
 
 ## Design comparisons
 
-Read [src/lib/dev/README.md](src/lib/dev/README.md) before using the variant helpers. Use `VariantPicker` for alternate markup or `variantSetting` for whole-page options, with one `VariantHost` for shared controls. Keep the helper portable: its dropdown chevron is inline SVG, not an icon-package import.
+Read [src/lib/dev/README.md](src/lib/dev/README.md) before using the variant helpers. Use `VariantPicker` for alternate markup or `variantSetting` for whole-page options, with one `VariantHost` for shared controls. Keep the helper portable: its dropdown chevron is inline SVG, not an icon-package import. After choosing a design, remove its experiment wiring and rejected styles, but retain `src/lib/dev/` and this guidance for future comparisons.
 
 ## Documentation
 

@@ -51,7 +51,7 @@ Goal: eliminate the Chrome login flash first, keep save/error feedback truthful,
     - _Requirements: SHELL-4_
   - [ ] 3.3 Keep shared primitives in components.css and route sequencing in motion.css
     - Keep tokens/resets/shell geometry in `src/routes/layout.css`, shared controls/surfaces/fields in `src/routes/components.css`, and route/widget timelines in `src/routes/motion.css`; remove duplicated overrides and obsolete selectors instead of moving all component CSS into another giant file.
-    - Retain the composed field/autofill shadow variables already introduced; inspect changed controls in `/style-guide` and their affected view, preserving material, focus, invalid, disabled, and autofill states. Do not claim a runtime performance gain without evidence.
+    - Retain the composed field/autofill shadow variables already introduced; inspect changed controls in `/style-guide` and their affected view, preserving focus, invalid, disabled, and autofill states. Do not claim a runtime performance gain without evidence.
     - Done when: changed primitives have one clear styling owner and no later unlayered override silently replaces their transitions or shadows.
     - _Requirements: none_
 - [ ] 4. Finish the single route and dashboard entrance sequence

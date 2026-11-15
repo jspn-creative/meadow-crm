@@ -28,7 +28,7 @@
 			oklch(from var(--theme-surface) l c none)
 		);
 		--color-on-selected: var(--theme-ink);
-		--material-sheen: color-mix(in oklab, var(--theme-surface) 75%, transparent);
+		--control-sheen: color-mix(in oklab, var(--theme-surface) 75%, transparent);
 		--color-info: var(--theme-info);
 		--color-pending: var(--theme-pending);
 		--color-tour: var(--theme-tour);
@@ -185,7 +185,7 @@
 		--theme-tone-l: 0.87;
 		--theme-shade: #000;
 		--theme-shade-k: 3;
-		--material-sheen: rgb(255 255 255 / 0.07);
+		--control-sheen: rgb(255 255 255 / 0.07);
 	}
 	[data-theme="sage"] {
 		color-scheme: light;

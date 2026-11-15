@@ -105,6 +105,11 @@
 		--surface-frame: color-mix(in oklab, var(--color-ink) 5%, var(--color-white));
 		@apply text-ink bg-white;
 	}
+	/* Floating layers carry the same top-down light as controls. */
+	.menu,
+	.surface-floating {
+		background-image: linear-gradient(to bottom, var(--color-white), var(--color-canvas));
+	}
 	.dialog {
 		--radius-outer: var(--radius-3xl);
 		@apply text-ink m-auto max-h-[min(92dvh,64rem)] w-[calc(100%-1rem)] max-w-[64rem] overflow-y-auto overscroll-contain rounded-3xl p-0 sm:w-[calc(100%-2rem)];
@@ -173,8 +178,29 @@
 			}
 		}
 	}
+	/* Controls are lit from above with a top sheen and a heavier lower edge, and they fill on hover then press in. Buttons and select pills share the same fills. */
+	.control,
+	.select-pill {
+		--control-fill: linear-gradient(
+			to bottom,
+			var(--color-white),
+			color-mix(in oklab, var(--color-paper) 60%, var(--color-white))
+		);
+		--control-fill-hover: linear-gradient(
+			to bottom,
+			var(--color-paper),
+			color-mix(in oklab, var(--color-paper) 90%, var(--color-ink))
+		);
+		--control-fill-active: linear-gradient(to bottom, var(--color-paper), var(--color-paper));
+	}
 	.control {
 		@apply border-hairline text-ink relative inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-medium;
+		background-image: var(--control-fill);
+		border-color: oklch(from var(--color-ink) l c h / 0.13);
+		border-bottom-color: oklch(from var(--color-ink) l c h / 0.24);
+		box-shadow:
+			inset 0 1px 0 var(--control-sheen),
+			0 1px 2px oklch(from var(--color-black) l c h / calc(0.08 * var(--theme-shade-k)));
 		transition:
 			background-color 120ms ease,
 			color 120ms ease,
@@ -191,7 +217,16 @@
 		&[data-variant="primary"] {
 			@apply border-transparent;
 			background-color: var(--color-primary);
+			background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 60%);
+			border-color: oklch(from var(--color-primary) calc(l - 0.12) c h);
 			color: var(--color-on-primary);
+			box-shadow:
+				inset 0 1px 0 rgb(255 255 255 / 0.28),
+				0 1px 2px oklch(from var(--color-black) l c h / calc(0.25 * var(--theme-shade-k))),
+				0 4px 10px -4px oklch(from var(--color-primary) l c h / 0.55);
+			&:active:not(:disabled) {
+				box-shadow: inset 0 2px 4px oklch(from var(--color-black) l c h / 0.3);
+			}
 		}
 		/* Ghost is a secondary text button beside a primary action, never an icon-only button, control, or trigger. Inline link-like actions use .text-action; compact native icon buttons use .icon-action. A toned context supplies --action-color; danger fixes it to urgent. */
 		&[data-variant="ghost"],
@@ -200,7 +235,6 @@
 			color: var(--action-color, var(--color-field));
 			background-image: none;
 			box-shadow: none;
-			backdrop-filter: none;
 		}
 		&[data-variant="danger"] {
 			--action-color: var(--color-urgent);
@@ -236,8 +270,8 @@
 			}
 		}
 		@media (hover: hover) and (pointer: fine) {
-			&:hover:not(:disabled) {
-				@apply bg-highlight;
+			&:where(:not([data-variant], [aria-pressed="true"])):hover:not(:disabled) {
+				background-image: var(--control-fill-hover);
 			}
 			&[data-variant="primary"]:hover:not(:disabled) {
 				background-color: var(--color-primary-hover);
@@ -270,6 +304,11 @@
 				--control-pressed-soft: var(--color-category-teal);
 				--control-pressed-ink: var(--color-category-teal-ink);
 			}
+		}
+		&:where(:not([data-variant])):active:not(:disabled) {
+			background-image: var(--control-fill-active);
+			box-shadow: inset 0 1px 3px
+				oklch(from var(--color-black) l c h / calc(0.16 * var(--theme-shade-k)));
 		}
 		@media (pointer: fine) {
 			&:active:not(:disabled) {
@@ -348,7 +387,6 @@
 				@apply border-transparent bg-transparent text-current;
 				background-image: none;
 				box-shadow: none;
-				backdrop-filter: none;
 				@media (hover: hover) and (pointer: fine) {
 					&:hover:not(:disabled) {
 						@apply bg-white/15 text-current;
@@ -357,14 +395,17 @@
 			}
 		}
 	}
+	/* Fields are shallow wells: their own fill, a lighter edge than a control's, and a recessed shadow. */
 	.field,
 	.field-group {
 		--radius-outer: var(--radius-xl);
 		--inset: calc(var(--spacing) * 1);
-		--field-shadow: 0 0 transparent;
+		--field-shadow: inset 0 1px 1px oklch(from var(--color-black) l c h / 0.08);
 		--autofill-shadow: 0 0 transparent;
-		--autofill-fill: var(--color-white);
+		--autofill-fill: color-mix(in oklab, var(--color-paper) 45%, var(--color-white));
 		@apply border-hairline text-ink min-h-11 w-full rounded-xl border bg-white;
+		background-color: color-mix(in oklab, var(--color-paper) 45%, var(--color-white));
+		border-color: oklch(from var(--color-ink) l c h / 0.12);
 		transition-property: background-color, border-color, box-shadow, filter;
 		transition-duration: 300ms;
 		transition-timing-function: ease;
@@ -387,6 +428,7 @@
 			@apply text-muted;
 		}
 		&[data-variant="quiet"] {
+			--autofill-fill: var(--color-white);
 			@apply border-transparent bg-transparent;
 			&:not(:focus) {
 				--field-shadow: 0 0 transparent;
@@ -407,6 +449,12 @@
 	.field-group {
 		@apply flex items-center gap-2 p-(--inset);
 	}
+	.field:where(:not([data-variant="quiet"])):focus,
+	.field-group:focus-within {
+		--autofill-fill: var(--color-white);
+		--field-shadow: inset 0 1px 1px oklch(from var(--color-black) l c h / 0.05);
+		background-color: var(--color-white);
+	}
 	.field-bare {
 		--field-shadow: 0 0 transparent;
 		--autofill-shadow: 0 0 transparent;
@@ -418,6 +466,10 @@
 	}
 	.field-addon {
 		@apply rounded-nested bg-paper text-muted flex min-h-9 shrink-0 items-center gap-2 px-2 text-xs;
+		background-image: linear-gradient(to bottom, var(--color-white), var(--color-paper));
+		box-shadow:
+			inset 0 1px 0 var(--control-sheen),
+			inset 0 -1px 0 color-mix(in oklab, var(--color-ink) 12%, transparent);
 	}
 	.field-inset {
 		@apply flex flex-col items-stretch justify-center gap-0.5 px-3 py-2 text-left;
@@ -441,6 +493,12 @@
 	}
 	.select-pill {
 		@apply border-hairline text-ink min-h-9 max-w-full min-w-0 cursor-pointer rounded-xl border bg-white px-3 text-sm font-medium;
+		background-image: var(--control-fill);
+		border-color: oklch(from var(--color-ink) l c h / 0.13);
+		border-bottom-color: oklch(from var(--color-ink) l c h / 0.24);
+		box-shadow:
+			inset 0 1px 0 var(--control-sheen),
+			0 1px 2px oklch(from var(--color-black) l c h / calc(0.08 * var(--theme-shade-k)));
 		/* A pill set away from its default shows the accent in its text and edge, keeping the same fill. */
 		&[data-active="true"] {
 			@apply text-field;
@@ -448,8 +506,13 @@
 		}
 		@media (hover: hover) and (pointer: fine) {
 			&:hover:not(:disabled) {
-				@apply bg-highlight;
+				background-image: var(--control-fill-hover);
 			}
+		}
+		&:active:not(:disabled) {
+			background-image: var(--control-fill-active);
+			box-shadow: inset 0 1px 3px
+				oklch(from var(--color-black) l c h / calc(0.16 * var(--theme-shade-k)));
 		}
 		@media (pointer: coarse) {
 			@apply min-h-11;
@@ -669,135 +732,7 @@
 		@apply text-ink text-sm leading-none font-medium;
 	}
 
-	/* Materials restyle the primitives' resting surface only. Exclusions sit in :where() so these rules keep single-class weight: variants, pressed, active, and invalid states, and the Glow edge all still win. Ghost, danger, .segmented, and .text-action stay plain. */
-
-	/* Glass: translucent controls that blur what sits behind them, edged with light. Strongest over tinted surfaces and washes. */
-	:where([data-material="glass"]) {
-		.control:where(:not([data-variant])),
-		.select-pill,
-		.field:where(:not([data-variant="quiet"])),
-		.field-group {
-			background-color: color-mix(in oklab, var(--color-white) 52%, transparent);
-			border-color: color-mix(in oklab, var(--color-white) 80%, var(--color-ink) 10%);
-			backdrop-filter: blur(14px) saturate(1.6);
-		}
-		.control:where(:not([data-variant])),
-		.select-pill {
-			box-shadow:
-				inset 0 1px 0 var(--material-sheen),
-				0 1px 2px oklch(from var(--color-black) l c h / calc(0.05 * var(--theme-shade-k))),
-				0 8px 22px -14px oklch(from var(--color-black) l c h / calc(0.3 * var(--theme-shade-k)));
-		}
-		.field:where(:not([data-variant="quiet"])),
-		.field-group {
-			--field-shadow:
-				inset 0 1px 0 var(--material-sheen),
-				0 1px 2px oklch(from var(--color-black) l c h / calc(0.05 * var(--theme-shade-k))),
-				0 8px 22px -14px oklch(from var(--color-black) l c h / calc(0.3 * var(--theme-shade-k)));
-		}
-		@media (hover: hover) and (pointer: fine) {
-			.control:where(:not([data-variant], [aria-pressed="true"])):hover:not(:disabled),
-			.select-pill:hover:not(:disabled),
-			.field:where(:not([data-variant="quiet"])):hover:not(:disabled, :focus),
-			.field-group:hover:not(:has(:disabled), :focus-within) {
-				background-color: var(--color-highlight);
-			}
-		}
-		.field:where(:not([data-variant="quiet"])):focus,
-		.field-group:focus-within {
-			background-color: color-mix(in oklab, var(--color-white) 90%, transparent);
-		}
-		.control[data-variant="primary"] {
-			background-color: oklch(from var(--color-primary) l c h / 0.86);
-			backdrop-filter: blur(14px) saturate(1.6);
-			box-shadow:
-				inset 0 1px 0 rgb(255 255 255 / 0.3),
-				inset 0 0 0 1px rgb(255 255 255 / 0.12),
-				0 10px 24px -10px oklch(from var(--color-primary) l c h / 0.75);
-		}
-		.field-addon {
-			background-color: color-mix(in oklab, var(--color-white) 60%, transparent);
-			box-shadow: inset 0 1px 0 var(--material-sheen);
-		}
-		.menu,
-		.surface-floating {
-			background-color: color-mix(
-				in oklab,
-				var(--surface-background, var(--color-white)) 72%,
-				transparent
-			);
-			backdrop-filter: blur(20px) saturate(1.6);
-		}
-	}
-
-	/* Tactile: controls are lit from above with a top sheen and a heavier lower edge, press in when clicked, and fields are recessed wells. */
-	:where([data-material="tactile"]) {
-		.control:where(:not([data-variant])),
-		.select-pill {
-			background-image: linear-gradient(
-				to bottom,
-				var(--color-white),
-				color-mix(in oklab, var(--color-paper) 60%, var(--color-white))
-			);
-			border-color: oklch(from var(--color-ink) l c h / 0.13);
-			border-bottom-color: oklch(from var(--color-ink) l c h / 0.24);
-			box-shadow:
-				inset 0 1px 0 var(--material-sheen),
-				0 1px 2px oklch(from var(--color-black) l c h / calc(0.08 * var(--theme-shade-k)));
-		}
-		@media (hover: hover) and (pointer: fine) {
-			.control:where(:not([data-variant], [aria-pressed="true"])):hover:not(:disabled),
-			.select-pill:hover:not(:disabled) {
-				background-image: linear-gradient(
-					to bottom,
-					var(--color-paper),
-					color-mix(in oklab, var(--color-paper) 90%, var(--color-ink))
-				);
-			}
-		}
-		.control:where(:not([data-variant])):active:not(:disabled),
-		.select-pill:active:not(:disabled) {
-			background-image: linear-gradient(to bottom, var(--color-paper), var(--color-paper));
-			box-shadow: inset 0 1px 3px
-				oklch(from var(--color-black) l c h / calc(0.16 * var(--theme-shade-k)));
-		}
-		.control[data-variant="primary"] {
-			background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 60%);
-			border-color: oklch(from var(--color-primary) calc(l - 0.12) c h);
-			box-shadow:
-				inset 0 1px 0 rgb(255 255 255 / 0.28),
-				0 1px 2px oklch(from var(--color-black) l c h / calc(0.25 * var(--theme-shade-k))),
-				0 4px 10px -4px oklch(from var(--color-primary) l c h / 0.55);
-			&:active:not(:disabled) {
-				box-shadow: inset 0 2px 4px oklch(from var(--color-black) l c h / 0.3);
-			}
-		}
-		.field:where(:not([data-variant="quiet"])),
-		.field-group {
-			--autofill-fill: color-mix(in oklab, var(--color-paper) 45%, var(--color-white));
-			background-color: color-mix(in oklab, var(--color-paper) 45%, var(--color-white));
-			border-color: oklch(from var(--color-ink) l c h / 0.12);
-			--field-shadow: inset 0 1px 1px oklch(from var(--color-black) l c h / 0.08);
-		}
-		.field:where(:not([data-variant="quiet"])):focus,
-		.field-group:focus-within {
-			--autofill-fill: var(--color-white);
-			background-color: var(--color-white);
-			--field-shadow: inset 0 1px 1px oklch(from var(--color-black) l c h / 0.05);
-		}
-		.field-addon {
-			background-image: linear-gradient(to bottom, var(--color-white), var(--color-paper));
-			box-shadow:
-				inset 0 1px 0 var(--material-sheen),
-				inset 0 -1px 0 color-mix(in oklab, var(--color-ink) 12%, transparent);
-		}
-		.menu,
-		.surface-floating {
-			background-image: linear-gradient(to bottom, var(--color-white), var(--color-canvas));
-		}
-	}
-
-	/* Glow belongs to interactive targets, not programmatic focus destinations such as workspace surfaces. It sits after the primitives and materials so a bordered primitive's accent edge wins over its resting edge. */
+	/* Glow belongs to interactive targets, not programmatic focus destinations such as workspace surfaces. It sits after the primitives so a bordered primitive's accent edge wins over its resting edge. */
 	:focus-visible:where(
 		a[href],
 		area[href],
@@ -823,7 +758,7 @@
 		box-shadow: var(--field-shadow), var(--autofill-shadow);
 	}
 
-	/* Chrome's autofill fill is !important in the user-agent stylesheet. An opaque themed inset masks it without delaying color changes; material shadows sit above the paint and focus keeps its shared Glow. Glass uses an opaque backing only while autofilled. The guide forces this same rule, not a separate imitation. */
+	/* Chrome's autofill fill is !important in the user-agent stylesheet. An opaque themed inset masks it without delaying color changes; the field shadow sits above the paint and focus keeps its shared Glow. The guide forces this same rule, not a separate imitation. */
 	.field,
 	.field-bare {
 		&:is(:-webkit-autofill, :autofill, [data-sg-state="autofill"]) {

@@ -13,8 +13,6 @@
 	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
 	import FeedbackTool from "#lib/feedback/FeedbackTool.svelte";
 	import PipelineView from "#lib/pipeline/PipelineView.svelte";
-	import VariantHost from "#lib/dev/VariantHost.svelte";
-	import { variantSetting } from "#lib/dev/variants.svelte.js";
 	import { guide, guideSections } from "./style-guide/guide.svelte.js";
 	import { overflowFade } from "#lib/attachments/overflow-fade.js";
 	import { motion, MotionConfig } from "@humanspeak/svelte-motion";
@@ -45,10 +43,6 @@
 		if (!data.support?.expiresAt) return;
 		const timeout = window.setTimeout(() => replaceSession("/login"), Math.max(0, data.support.expiresAt - Date.now()));
 		return () => window.clearTimeout(timeout);
-	});
-	const material = variantSetting("material", ["Tactile", "Glass"], { label: "Material" });
-	$effect(() => {
-		if (dev) document.documentElement.dataset.material = material.value.toLowerCase();
 	});
 	let collapsed = $state(false);
 	let ready = $state(false);
@@ -286,6 +280,5 @@
 				}} />
 		{/key}
 	{/if}
-	{#if isGuide}<VariantHost />{/if}
 	{#if data.identity && !isLogin}<FeedbackTool />{/if}
 {/if}
