@@ -29,6 +29,8 @@ export type ClientDraft = {
 	consentEmail: boolean;
 	consentMail: boolean;
 	notes: string;
+	flagged: boolean;
+	flagNote: string;
 	people: PersonDraft[];
 	addresses: AddressDraft[];
 	relationships: RelationshipDraft[];
@@ -52,6 +54,8 @@ export function newClientDraft(id: string, name = "", revision = 1): ClientDraft
 		consentEmail: true,
 		consentMail: true,
 		notes: "",
+		flagged: false,
+		flagNote: "",
 		people: [],
 		addresses: [],
 		relationships: [],
@@ -77,6 +81,8 @@ export function clientDraft(record: ClientRecord): ClientDraft {
 		consentEmail: record.consentEmail,
 		consentMail: record.consentMail,
 		notes: record.notes,
+		flagged: record.flagged,
+		flagNote: record.flagNote,
 		people: record.people.map((person) => ({
 			id: person.id,
 			name: person.name,
@@ -142,6 +148,8 @@ export function clientSaveInput(draft: ClientDraft, requestId: string) {
 		consentEmail: draft.consentEmail,
 		consentMail: draft.consentMail,
 		notes: draft.notes,
+		flagged: draft.flagged,
+		flagNote: draft.flagged ? draft.flagNote.trim() : "",
 		people: draft.people
 			.filter(
 				(person) =>

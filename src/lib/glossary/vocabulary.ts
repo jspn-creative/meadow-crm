@@ -338,6 +338,12 @@ export const vocabulary: Term[] = [
 				not: ["contact", "customer", "lead", "prospect"],
 				children: [
 					{
+						term: "Flag",
+						kind: "Field",
+						meaning:
+							"A shared review marker on a client with an optional plain-text note, independent of tags, Consent, archive state, and historical Imported data hints. Clearing it clears the current note while retaining its previous value in History.",
+					},
+					{
 						term: "Person",
 						kind: "Field",
 						meaning:

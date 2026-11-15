@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack, type Snippet } from "svelte";
 	import { SvelteSet } from "svelte/reactivity";
-	import { Ban, Check, Mail, MessageSquare, Pencil, Phone, Plus, X } from "@lucide/svelte";
+	import { Ban, Check, Flag, Mail, MessageSquare, Pencil, Phone, Plus, X } from "@lucide/svelte";
 	import { saveClient } from "#lib/crm.remote.js";
 	import type { Workspace } from "#lib/data/workspace.js";
 	import { notToBeContacted } from "#lib/data/consent.js";
@@ -33,9 +33,14 @@
 	} = $props();
 
 	// The panel reads as a profile; each section switches to its fields on its own, and one save covers every open section.
-	type Section = "details" | "people" | "addresses" | "relationships" | "keyDates" | "notes";
+	type Section = "flag" | "details" | "people" | "addresses" | "relationships" | "keyDates" | "notes";
 	const editing = new SvelteSet<Section>();
 	let failure = $state("");
+	let conflict = $state(false);
+	let conflictRefreshing = $state(false);
+	let conflictReady = $state(false);
+	let refreshFailed = $state(false);
+	let reviewedRevision = $state<number | null>(null);
 	let notesExpanded = $state(false);
 	let clientRecord = $derived(workspace.clients.find((client) => client.id === draft.id));
 	let previousPayload = "";
@@ -64,6 +69,25 @@
 	let tagChoices = $derived(workspace.tags.filter((tag) => !tag.retiredAt || draft.tagIds.includes(tag.id)));
 	let appliedTags = $derived(workspace.tags.filter((tag) => draft.tagIds.includes(tag.id)));
 	let clientName = (id: string) => workspace.referenceClients.find((client) => client.id === id)?.name ?? "Unknown client";
+	let savedReview = $derived.by(() => {
+		if (!clientRecord) return [];
+		const current = clientDraft(clientRecord);
+		return [
+			["Name", current.name],
+			["Flag", current.flagged ? `Flagged for review${current.flagNote ? `\n${current.flagNote}` : " · no note added"}` : "Not flagged"],
+			["Lead source", current.leadSource],
+			["Referred by", current.referredByClientId ? clientName(current.referredByClientId) : current.referredByName],
+			["Preferences", current.preferences],
+			["Preferred contact method", methods.find(([value]) => value === current.preferredContactMethod)?.[1]],
+			["Consent", channels.map(([field, label]) => `${label}: ${current[field] ? "allowed" : "not allowed"}`).join(" · ")],
+			["People", current.people.map((person) => [person.name, person.birthday && `Birthday: ${formatCalendarDate(person.birthday)}`, ...person.phones.map((phone) => `${phone.label}: ${formatPhone(phone.value)}`), ...person.emails.map((email) => `${email.label}: ${email.value}`)].filter(Boolean).join("\n")).join("\n\n")],
+			["Addresses", current.addresses.map((address) => `${address.label}: ${address.address}${address.owned ? " · owned" : ""}`).join("\n")],
+			["Relationships", current.relationships.map((relationship) => `${relationship.label}: ${clientName(relationship.relatedClientId)}`).join("\n")],
+			["Key dates", current.keyDates.map((date) => `${date.name}: ${formatCalendarDate(date.date)}`).join("\n")],
+			["Tags", clientRecord.tags.map((tag) => tag.name).join(", ")],
+			["Notes", current.notes],
+		];
+	});
 	function relatable() {
 		return workspace.referenceClients.filter((client) => client.id !== draft.id && (!client.archivedAt || draft.relationships.some((row) => row.relatedClientId === client.id)));
 	}
@@ -100,10 +124,31 @@
 		if (clientRecord) draft = clientDraft(clientRecord);
 		editing.clear();
 		failure = "";
+		conflict = false;
+	}
+	async function refreshSaved() {
+		conflictRefreshing = true;
+		try {
+			await Promise.all([remote.refresh(), ...updates.flatMap((query) => ("refresh" in query ? [query.refresh()] : []))]);
+			refreshFailed = false;
+			conflictReady = true;
+		} catch {
+			refreshFailed = true;
+		} finally {
+			conflictRefreshing = false;
+		}
+	}
+	function reapplyDraft() {
+		if (!clientRecord || reviewedRevision !== clientRecord.revision) return;
+		draft.revision = clientRecord.revision;
+		conflict = false;
+		failure = "";
 	}
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
+		if (conflict || pending) return;
 		failure = "";
+		refreshFailed = false;
 		const body = clientSaveInput(draft, "");
 		const payload = JSON.stringify(body);
 		if (payload !== previousPayload) {
@@ -112,12 +157,19 @@
 		}
 		pending = true;
 		try {
-			await saveClient({ ...body, requestId }).updates(remote, ...updates);
-			draft.revision += 1;
+			const result = await saveClient({ ...body, requestId }).updates(remote, ...updates);
+			draft = { ...draft, revision: Number(result.revision), flagNote: body.flagNote };
+			refreshFailed = result.refreshFailed === true;
 			editing.clear();
 			saved();
-		} catch {
-			failure = "Client could not be saved. Check the fields; if the client changed elsewhere, refresh and reopen it. Your edits are retained.";
+		} catch (cause) {
+			if (typeof cause === "object" && cause !== null && "status" in cause && cause.status === 409) {
+				conflict = true;
+				conflictReady = false;
+				reviewedRevision = null;
+				failure = "This client changed elsewhere. Your draft is retained. Review the saved version before reapplying your edits.";
+				await refreshSaved();
+			} else failure = "Client could not be saved. Your edits are retained; check the fields and retry.";
 		} finally {
 			pending = false;
 		}
@@ -139,7 +191,7 @@
 {/snippet}
 
 {#snippet removeButton(label: string, onclick: () => void)}
-	<button type="button" class="control" data-variant="ghost" data-size="sm" data-icon aria-label={label} title={label} {onclick}><X size={16} aria-hidden="true" /></button>
+	<button type="button" class="icon-action mx-2" aria-label={label} title={label} {onclick}><X size={16} aria-hidden="true" /></button>
 {/snippet}
 
 {#snippet addButton(label: string, onclick: () => void, disabled = false)}
@@ -170,6 +222,23 @@
 	</header>
 
 	<fieldset disabled={pending} class="divide-hairline border-hairline min-w-0 divide-y border-t *:py-5">
+		<section class="min-w-0" aria-labelledby="client-flag">
+			{@render sectionHead("flag", "Flag")}
+			{#if editing.has("flag")}
+				<label class="flex min-h-11 items-center gap-3"
+					><input
+						class="check"
+						type="checkbox"
+						bind:checked={draft.flagged}
+						onchange={(event) => {
+							if (!event.currentTarget.checked) draft.flagNote = "";
+						}} /><span>Flag for review</span></label>
+				{#if draft.flagged}<label class="mt-2 block space-y-1.5"><span class="text-muted text-xs font-medium">Flag note <span class="font-normal">· optional</span></span><textarea class="field" rows="3" bind:value={draft.flagNote} maxlength="2000" placeholder="What needs to be reviewed?"></textarea></label>{/if}
+			{:else if draft.flagged}
+				<p class="text-field flex items-center gap-2 font-medium"><Flag size={15} aria-hidden="true" />Flagged for review</p>
+				<p class="text-muted mt-2 wrap-anywhere whitespace-pre-wrap">{draft.flagNote || "No note added."}</p>
+			{:else}<p class="text-muted">Not flagged.</p>{/if}
+		</section>
 		<section class="min-w-0" aria-labelledby="client-people">
 			{@render sectionHead("people", draft.people.length > 1 ? "People" : "Contact")}
 			{#if editing.has("people")}
@@ -421,12 +490,42 @@
 		{/if}
 	</fieldset>
 
+	{#if refreshFailed}
+		<div class="bg-pending-soft text-pending mt-4 flex flex-wrap items-center gap-3 rounded-xl p-3 text-xs" role="status">
+			<p class="min-w-0 flex-1">{conflict ? "The saved version could not refresh. Your draft is retained." : "Client saved, but displayed data could not refresh."}</p>
+			<button type="button" class="text-action" disabled={conflictRefreshing} onclick={refreshSaved}>Retry refresh</button>
+		</div>
+	{/if}
+	{#if conflict}
+		<div class="bg-pending-soft text-pending mt-4 space-y-3 rounded-xl p-3 text-sm" role="alert">
+			<p>{failure}</p>
+			{#if conflictReady && clientRecord}
+				<details
+					ontoggle={(event) => {
+						if (event.currentTarget.open) reviewedRevision = clientRecord?.revision ?? null;
+					}}>
+					<summary class="cursor-pointer font-medium">Review saved version · revision {clientRecord.revision}</summary>
+					<dl class="mt-3 space-y-3 text-xs">
+						{#each savedReview as [label, value] (label)}
+							<div>
+								<dt class="font-medium">{label}</dt>
+								<dd class="mt-1 leading-[1.4] wrap-anywhere whitespace-pre-wrap">{value || "Not set"}</dd>
+							</div>
+						{/each}
+					</dl>
+				</details>
+				<div class="flex flex-wrap gap-2">
+					<button type="button" class="control" data-size="sm" disabled={reviewedRevision !== clientRecord.revision} onclick={reapplyDraft}>Reapply draft to this version</button><button type="button" class="control" data-variant="ghost" data-size="sm" onclick={cancel}>Discard draft and reload</button>
+				</div>
+			{/if}
+		</div>
+	{/if}
 	{#if editing.size}
 		<!-- The save bar stays in reach while sections are open; its negative margins match the panel's gutters. -->
 		<div class="bg-canvas/95 border-hairline sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-2 border-t px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
-			<button class="control" data-variant="primary" data-size="sm" disabled={pending} aria-busy={pending}>{pending ? "Saving…" : "Save changes"}</button>
+			<button class="control" data-variant="primary" data-size="sm" disabled={pending || conflict} aria-busy={pending}>{pending ? "Saving…" : "Save changes"}</button>
 			<button type="button" class="control" data-variant="ghost" data-size="sm" disabled={pending} onclick={cancel}>Cancel</button>
-			{#if failure}<p class="text-urgent min-w-0 flex-1 text-xs" role="alert">{failure}</p>{/if}
+			{#if failure && !conflict}<p class="text-urgent min-w-0 flex-1 text-xs" role="alert">{failure}</p>{/if}
 		</div>
 	{/if}
 </form>

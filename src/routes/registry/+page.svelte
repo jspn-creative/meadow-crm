@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { lightDismiss } from "#lib/ui/light-dismiss.js";
-	import { onMount, tick } from "svelte";
+	import { onMount, tick, untrack } from "svelte";
 	import { page } from "$app/state";
 	import { afterNavigate, goto } from "$app/navigation";
 	import { Archive, ArchiveRestore, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Ban, Check, Columns3Cog, ContactRound, EyeOff, ListFilter, LoaderCircle, Mail, MailOpen, MessageSquare, Phone, Plus, Tag, Undo2, X } from "@lucide/svelte";
 	import { columnOrderingFeature, columnVisibilityFeature, createTable, rowSortingFeature, tableFeatures } from "@tanstack/svelte-table";
 	import { bulkUpdateClients, createClient, getClientFacets, getClientIds, getClients, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
+	import ClientFlagHoverCard from "#lib/registry/ClientFlagHoverCard.svelte";
+	import { Flag } from "@lucide/svelte";
+	import { flagChangeLabel } from "#lib/registry/flag-history.js";
 	import { leadSources } from "#lib/data/lead-sources.js";
 	import { userFirstName as person } from "#lib/data/users.js";
 	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
@@ -25,7 +28,7 @@
 	import { opportunityDraft, type OpportunityDraft } from "#lib/pipeline/opportunity-draft.js";
 
 	type ClientRow = Awaited<ReturnType<typeof getClients>>["clients"][number];
-	type SortId = "name" | "address" | "leadSource" | "tags" | "opportunities" | "referredBy" | "created";
+	type SortId = "default" | "name" | "address" | "leadSource" | "tags" | "opportunities" | "referredBy" | "created";
 	type ColumnId = "name" | "contact" | "address" | "leadSource" | "tags" | "opportunities" | "consent" | "referredBy" | "created";
 
 	// --- Columns -------------------------------------------------------------
@@ -100,7 +103,7 @@
 	// Filters and sorting are shallow navigations: the URL and history change without rerunning loads, resetting scroll, or animating the shell. The shallow URL is the current one until a full navigation clears it.
 	let url = $derived(page.shallow?.url ?? page.url);
 	// Normalize before sending to the server so malformed URL values fall back to defaults instead of reaching the validator.
-	const sortIds: SortId[] = ["name", "address", "leadSource", "tags", "opportunities", "referredBy", "created"];
+	const sortIds = ["name", "address", "leadSource", "tags", "opportunities", "referredBy", "created"] as const;
 	const idPattern = /^[a-zA-Z0-9_-]{1,120}$/;
 	function readParams() {
 		const sp = url.searchParams;
@@ -119,8 +122,8 @@
 				const filter = field ? parseFilter(field, sp.get(field)) : null;
 				return filter ? [filter] : [];
 			}),
-			sort: sortIds.includes(sortRaw as SortId) ? (sortRaw as SortId) : "name",
-			sortDir: sp.get("sortDir") === "desc" ? ("desc" as const) : ("asc" as const),
+			sort: sortIds.some((id) => id === sortRaw) ? (sortRaw as SortId) : ("default" as const),
+			sortDir: sortIds.some((id) => id === sortRaw) && sp.get("sortDir") === "desc" ? ("desc" as const) : ("asc" as const),
 		};
 	}
 	let params = $derived(readParams());
@@ -154,9 +157,9 @@
 	function setSort(id: SortId, dir?: "asc" | "desc") {
 		const next = dir ?? (params.sort === id && params.sortDir === "asc" ? "desc" : "asc");
 		updateUrl((sp) => {
-			if (id === "name" && next === "asc") sp.delete("sort");
+			if (id === "default") sp.delete("sort");
 			else sp.set("sort", id);
-			if (next === "asc") sp.delete("sortDir");
+			if (id === "default" || next === "asc") sp.delete("sortDir");
 			else sp.set("sortDir", next);
 		});
 	}
@@ -205,6 +208,8 @@
 	let queryKey = $derived(`${filterKey}|${params.sort}|${params.sortDir}`);
 	let lastScrollKey = "";
 	afterNavigate(() => {
+		flagPreview?.close(true);
+		void refreshRegistry();
 		if (lastScrollKey !== queryKey) {
 			tableBox?.scrollTo({ top: 0, behavior: "instant" });
 			document.getElementById("workspace-main")?.scrollTo({ top: 0, behavior: "instant" });
@@ -219,8 +224,39 @@
 	let remote = $derived(getWorkspace({ archived: params.archived }));
 	let pageQueries = $derived(Array.from({ length: pageCount }, (_, index) => getClients({ ...filters, sort: params.sort, sortDir: params.sortDir, page: index + 1, pageSize: PAGE_SIZE })));
 	let facetsQuery = $derived(getClientFacets(filters));
-	// One await for all three, so a page that resolves first is not left waiting on the others.
-	let [workspace, pages, facets] = $derived(await Promise.all([remote, Promise.all(pageQueries), facetsQuery]));
+	// Keep confirmed query values during refresh failures so retry feedback never unmounts an unsaved editor; only initial reads suspend.
+	let [workspace, pages, facets] = $derived(await Promise.all([remote.current ?? remote, Promise.all(pageQueries.map((query) => query.current ?? query)), facetsQuery.current ?? facetsQuery]));
+	let refreshFailure = $state("");
+	let refreshInFlight: { key: string; promise: Promise<void> } | undefined;
+	let refreshGeneration = 0;
+	let poll: ReturnType<typeof setInterval> | undefined;
+	let disposed = false;
+	async function refreshRegistry() {
+		if (disposed || document.visibilityState !== "visible") return;
+		const key = `${queryKey}|${pageQueries.length}`;
+		if (refreshInFlight?.key === key) return refreshInFlight.promise;
+		const generation = ++refreshGeneration;
+		const queries = [remote, ...pageQueries, facetsQuery];
+		const promise = (async () => {
+			try {
+				await Promise.all(queries.map((query) => query.refresh()));
+				if (!disposed && generation === refreshGeneration && key === `${queryKey}|${pageQueries.length}`) refreshFailure = "";
+			} catch {
+				if (!disposed && generation === refreshGeneration && key === `${queryKey}|${pageQueries.length}`) refreshFailure = "Displayed clients could not refresh. Your edits are retained.";
+			} finally {
+				if (generation === refreshGeneration) refreshInFlight = undefined;
+			}
+		})();
+		refreshInFlight = { key, promise };
+		return promise;
+	}
+	function visibilityChanged() {
+		clearInterval(poll);
+		if (document.visibilityState === "visible") {
+			void refreshRegistry();
+			poll = setInterval(() => void refreshRegistry(), 30_000);
+		}
+	}
 
 	let clients = $derived([...new Map(pages.flatMap((result) => result.clients).map((row) => [row.id, row])).values()]);
 	let total = $derived(pages[0]?.total ?? 0);
@@ -263,7 +299,7 @@
 
 	// --- TanStack Table, server-backed --------------------------------------
 	// Data is the loaded rows: the server filters and sorts, and the table tracks sorting for the header indicators plus column visibility and order.
-	let sorting = $derived([{ id: params.sort, desc: params.sortDir === "desc" }]);
+	let sorting = $derived(params.sort === "default" ? [] : [{ id: params.sort, desc: params.sortDir === "desc" }]);
 	const table = createTable({
 		features: tableFeatures({ columnOrderingFeature, columnVisibilityFeature, rowSortingFeature }),
 		columns,
@@ -399,6 +435,17 @@
 	let tableBox = $state<HTMLElement>();
 	let columnMenu = $state<ReturnType<typeof ContextMenu>>();
 	let menuColumn = $state<ColumnId>("name");
+	let flagPreview = $state<ReturnType<typeof ClientFlagHoverCard>>();
+	$effect(() => {
+		void queryKey;
+		const preview = flagPreview;
+		untrack(() => preview?.close(true));
+	});
+	$effect(() => {
+		const saved = clients;
+		const preview = flagPreview;
+		untrack(() => preview?.reconcile(saved));
+	});
 	const tableFade = overflowFade({ axis: "both", sides: "end", fadePercent: 6 });
 	// Rows tint through --row-bg in opaque colours, since cells sit at fractional widths: each cell paints the tint and spills it one pixel right, so no light seam shows between cells and the sticky client cell hides the columns scrolling beneath it.
 	const cell = "border-hairline border-b bg-(--row-bg) px-4 py-2.5 align-middle shadow-[1px_0_0_var(--row-bg)] transition-colors duration-120 group-last/row:border-b-0 motion-reduce:transition-none";
@@ -434,6 +481,7 @@
 	onMount(() => {
 		loadColumns();
 		ready = true;
+		visibilityChanged();
 		const main = document.getElementById("workspace-main");
 		const loadNearMobileEnd = () => {
 			const sentinel = main?.querySelector<HTMLElement>("[data-mobile-sentinel]");
@@ -441,6 +489,9 @@
 		};
 		main?.addEventListener("scroll", loadNearMobileEnd, { passive: true });
 		return () => {
+			disposed = true;
+			refreshGeneration += 1;
+			clearInterval(poll);
 			main?.removeEventListener("scroll", loadNearMobileEnd);
 			clearTimeout(noticeTimer);
 		};
@@ -464,6 +515,7 @@
 	let linked = $derived(draft ? workspace.links.filter((link) => link.clientId === draft?.id) : []);
 	let changes = $derived(draft ? workspace.history.filter((change) => change.recordKind === "client" && change.recordId === draft?.id) : []);
 	async function openPanel() {
+		flagPreview?.close();
 		opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		failure = "";
 		saved = "";
@@ -503,6 +555,8 @@
 </script>
 
 <svelte:head><title>Registry · Meadow Lane</title></svelte:head>
+<svelte:window onfocus={() => void refreshRegistry()} />
+<svelte:document onvisibilitychange={visibilityChanged} />
 
 {#snippet tagChips(names: string[])}
 	{#each names as name (name)}
@@ -513,6 +567,10 @@
 
 {#snippet empty()}
 	<span class="text-muted/50" aria-hidden="true">—</span><span class="sr-only">None</span>
+{/snippet}
+
+{#snippet flagButton(client: ClientRow)}
+	{#if client.flagged}<button type="button" class="icon-action text-field z-1 mx-2" data-flag-trigger aria-label={`Read flag note for ${client.name}`} aria-expanded="false" onclick={(event) => flagPreview?.reveal(event, client)}><Flag size={15} aria-hidden="true" /></button>{/if}
 {/snippet}
 
 {#snippet consentIcons(consent: ClientRow["consent"])}
@@ -554,7 +612,7 @@
 			<label class="sr-only" for={`${filter.field}-b`}>To</label>
 			<input id={`${filter.field}-b`} class="field min-h-9 w-20 tabular-nums" type="number" min="0" max="1000" inputmode="numeric" value={filter.b ?? ""} oninput={(event) => set("b", event.currentTarget.value)} />
 		{/if}
-		<button class="control" data-size="sm" data-variant="ghost" data-icon aria-label="Done"><Check size={16} aria-hidden="true" /></button>
+		<button class="control" data-size="sm" data-icon aria-label="Done"><Check size={16} aria-hidden="true" /></button>
 	</form>
 	<p class="text-muted mt-2 text-xs">{builderField(filter.field).hint}.</p>
 {/snippet}
@@ -596,7 +654,7 @@
 			<label class="sr-only" for="created-b">To</label>
 			<input id="created-b" class="field min-h-9 w-auto" type="date" value={filter.b} onchange={(event) => setFilter({ ...filter, b: event.currentTarget.value })} />
 		{/if}
-		<button class="control" data-size="sm" data-variant="ghost" data-icon aria-label="Done"><Check size={16} aria-hidden="true" /></button>
+		<button class="control" data-size="sm" data-icon aria-label="Done"><Check size={16} aria-hidden="true" /></button>
 	</form>
 {/snippet}
 
@@ -630,7 +688,7 @@
 				label="Sort clients"
 				appearance="pill"
 				value={`${params.sort}:${params.sortDir}`}
-				options={sortIds.flatMap((id) => (["asc", "desc"] as const).map((dir, index) => ({ value: `${id}:${dir}`, label: `${columnMeta[id].header}: ${columnMeta[id].sort?.[index]}` })))}
+				options={[{ value: "default:asc", label: "Default order" }, ...sortIds.flatMap((id) => (["asc", "desc"] as const).map((dir, index) => ({ value: `${id}:${dir}`, label: `${columnMeta[id].header}: ${columnMeta[id].sort?.[index]}` })))]}
 				onchange={(value) => {
 					const [id, dir] = value.split(":");
 					setSort(id as SortId, dir as "asc" | "desc");
@@ -682,7 +740,7 @@
 				{/snippet}
 			{/each}
 			{#if availableFields.length}
-				<button type="button" class="control text-muted gap-1.5" data-size="sm" data-variant="ghost" popovertarget="registry-add-filter" style:anchor-name="--registry-add-filter" aria-haspopup="menu" disabled={!ready}><ListFilter size={15} aria-hidden="true" />Filter</button>
+				<button type="button" class="control text-muted gap-1.5" data-size="sm" popovertarget="registry-add-filter" style:anchor-name="--registry-add-filter" aria-haspopup="menu" disabled={!ready}><ListFilter size={15} aria-hidden="true" />Filter</button>
 				<div
 					id="registry-add-filter"
 					popover="auto"
@@ -730,6 +788,10 @@
 			</p>
 		{/if}
 
+		{#if refreshFailure}<div class="bg-pending-soft text-pending mt-4 flex flex-wrap items-center gap-3 rounded-xl p-3 text-sm" role="status">
+				<p class="min-w-0 flex-1">{refreshFailure}</p>
+				<button type="button" class="text-action" onclick={() => void refreshRegistry()}>Retry refresh</button>
+			</div>{/if}
 		<div class={["mt-5 flex min-h-0 flex-col transition-opacity duration-150 motion-reduce:transition-none @min-[48rem]/registry:flex-1", refreshing && "opacity-60"]} aria-busy={refreshing}>
 			{#if rows.length === 0}
 				<EmptyState
@@ -822,7 +884,13 @@
 									{@const isSelected = selected.has(c.id)}
 									<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -- the client name is the row's keyboard control; the row click only widens the mouse target. -->
 									<tr
-										class="group/row cursor-pointer [--row-bg:var(--color-white)] hover:not-data-selected:[--row-bg:var(--row-hover)] has-[:focus-visible]:not-data-selected:[--row-bg:var(--row-hover)] data-selected:[--row-bg:var(--color-selected)]"
+										class="group/row cursor-pointer [--row-bg:var(--color-white)] hover:not-data-selected:[--row-bg:var(--row-hover)] has-[:focus-visible]:not-data-selected:[--row-bg:var(--row-hover)] data-flagged:[--row-bg:color-mix(in_oklch,var(--color-field)_7%,var(--color-white))] data-selected:[--row-bg:var(--color-selected)]"
+										data-client-row
+										data-flagged={c.flagged || undefined}
+										onpointerenter={(event) => flagPreview?.enter(event, c)}
+										onpointerleave={() => flagPreview?.leave()}
+										onfocusin={(event) => flagPreview?.focus(event, c)}
+										onfocusout={() => flagPreview?.leave()}
 										data-selected={isSelected || undefined}
 										onclick={(event) => openRow(event, index)}>
 										{#each visibleColumns as column (column.id)}
@@ -845,6 +913,7 @@
 															<button type="button" class="item-title block max-w-full truncate text-left hover:underline hover:decoration-(--color-hairline) hover:underline-offset-4" disabled={!ready} onclick={() => editClient(c.id)}>{c.name}</button>
 															{#if others}<p class="text-muted mt-0.5 truncate text-xs leading-none">{others}</p>{/if}
 														</div>
+														{@render flagButton(c)}
 													</div>
 												{:else if column.id === "contact"}
 													{#if c.phone || c.email}
@@ -910,7 +979,15 @@
 						{#each rows as row, index (row.id)}
 							{@const c = row.original}
 							{@const others = otherPeople(c)}
-							<li class="hover:bg-highlight has-[:focus-visible]:bg-highlight data-selected:bg-selected relative px-4 py-3 transition-colors duration-120" data-selected={selected.has(c.id) || undefined}>
+							<li
+								class="data-flagged:bg-field/7 hover:bg-highlight has-[:focus-visible]:bg-highlight data-selected:bg-selected relative px-4 py-3 transition-colors duration-120"
+								data-client-row
+								data-flagged={c.flagged || undefined}
+								data-selected={selected.has(c.id) || undefined}
+								onpointerenter={(event) => flagPreview?.enter(event, c)}
+								onpointerleave={() => flagPreview?.leave()}
+								onfocusin={(event) => flagPreview?.focus(event, c)}
+								onfocusout={() => flagPreview?.leave()}>
 								<div class="flex items-start gap-3">
 									<input type="checkbox" class="check relative z-1 mt-1 shrink-0" data-shape="box" aria-label={`Select ${c.name}`} checked={selected.has(c.id)} onclick={(event) => toggleRow(index, event)} />
 									<div class="min-w-0 flex-1">
@@ -923,6 +1000,7 @@
 											</p>
 										{/if}
 									</div>
+									{@render flagButton(c)}
 									{#if c.tagNames.length}<div class="flex max-w-28 shrink-0 flex-wrap justify-end gap-1">
 											{@render tagChips(c.tagNames.slice(0, 2))}{#if c.tagNames.length > 2}<span class="text-muted text-xs">+{c.tagNames.length - 2}</span>{/if}
 										</div>{/if}
@@ -974,7 +1052,7 @@
 							<button type="button" class="text-action" disabled={selectingAll || bulkPending} onclick={selectAllMatching}>{selectingAll ? "Selecting…" : total > 2000 ? "Select first 2,000 matches" : `Select all ${total}`}</button>
 						{/if}
 					{/snippet}
-					<button type="button" class="control" data-size="sm" data-variant="ghost" popovertarget="registry-bulk-tags" style:anchor-name="--registry-bulk-tags" disabled={bulkPending}><Tag size={15} aria-hidden="true" />Tags</button>
+					<button type="button" class="control" data-size="sm" popovertarget="registry-bulk-tags" style:anchor-name="--registry-bulk-tags" disabled={bulkPending}><Tag size={15} aria-hidden="true" />Tags</button>
 					<div bind:this={tagMenu} id="registry-bulk-tags" popover="auto" class="surface surface-floating menu w-64 [position-area:block-start]" style:position-anchor="--registry-bulk-tags">
 						<div class="segmented mb-1" role="group" aria-label="Tag change">
 							<button type="button" class="text-xs" aria-pressed={bulkTagMode === "add"} onclick={() => (bulkTagMode = "add")}>Add tag</button>
@@ -991,9 +1069,9 @@
 						</div>
 					</div>
 					{#if params.archived}
-						<button type="button" class="control" data-size="sm" data-variant="ghost" disabled={bulkPending} onclick={() => runBulk({ kind: "restore" }, [...selected])}><ArchiveRestore size={15} aria-hidden="true" />Restore</button>
+						<button type="button" class="control" data-size="sm" disabled={bulkPending} onclick={() => runBulk({ kind: "restore" }, [...selected])}><ArchiveRestore size={15} aria-hidden="true" />Restore</button>
 					{:else}
-						<button type="button" class="control" data-size="sm" data-variant="ghost" disabled={bulkPending} onclick={() => runBulk({ kind: "archive" }, [...selected])}><Archive size={15} aria-hidden="true" />Archive</button>
+						<button type="button" class="control" data-size="sm" disabled={bulkPending} onclick={() => runBulk({ kind: "archive" }, [...selected])}><Archive size={15} aria-hidden="true" />Archive</button>
 					{/if}
 				</BulkActionsBar>
 			{/if}
@@ -1002,6 +1080,7 @@
 </div>
 
 <ContextMenu bind:this={columnMenu} label={`${columnMeta[menuColumn].header} column`}>
+	<button type="button" role="menuitemradio" aria-checked={params.sort === "default"} class="menu-item" onclick={() => setSort("default")}><Flag size={15} aria-hidden="true" />Default order</button>
 	{@const meta = columnMeta[menuColumn]}
 	{@const movable = visibleColumns.map((column) => column.id).filter((id) => id !== "name")}
 	{@const position = movable.indexOf(menuColumn)}
@@ -1037,7 +1116,7 @@
 			<ContactRound size={14} class="shrink-0" aria-hidden="true" />Registry<span aria-hidden="true">/</span>
 			<span class="text-ink truncate font-medium">{creating ? "New client" : record?.archivedAt ? "Archived client" : "Client"}</span>
 		</span>
-		<button type="button" class="control ml-auto" data-variant="ghost" data-size="sm" data-icon data-autofocus={!creating || undefined} aria-label="Close" disabled={pending} onclick={() => dialog?.close()}><X size={17} aria-hidden="true" /></button>
+		<button type="button" class="icon-action ml-auto" data-autofocus={!creating || undefined} aria-label="Close" disabled={pending} onclick={() => dialog?.close()}><X size={17} aria-hidden="true" /></button>
 	</header>
 	<div class="px-4 pt-5 pb-6 sm:px-6">
 		{#if saved}<p role="status" class="bg-success-soft text-success mb-4 rounded-xl px-3.5 py-2 text-sm">{saved}</p>{/if}
@@ -1101,8 +1180,8 @@
 					{#each changes as change (change.id)}
 						<li class="min-w-0">
 							<details>
-								<summary class="text-muted cursor-pointer"
-									><span class="font-medium capitalize">{change.action}</span>
+								<summary class="cursor-pointer"
+									><span class="font-medium capitalize">{flagChangeLabel(change.action, change.data) ?? change.action}</span>
 									<span class="text-muted text-xs"
 										><time datetime={change.createdAt}>{timeFormat.format(new Date(change.createdAt))}</time> · {person(change.actorUserId)}{#if change.actorUserId !== change.effectiveUserId}
 											(acting as {person(change.effectiveUserId)}){/if}</span
@@ -1116,6 +1195,8 @@
 		{/if}
 	</div>
 </dialog>
+
+<ClientFlagHoverCard bind:this={flagPreview} />
 
 {#if creatingOpportunity}
 	<CreateOpportunityDialog

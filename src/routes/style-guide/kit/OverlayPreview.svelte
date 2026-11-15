@@ -100,7 +100,7 @@
 	}}>
 	<div class="flex items-start justify-between gap-3">
 		<span class="text-muted text-xs font-medium">{citation ? "Citation · fixture only" : "Hover card · fixture only"}</span>
-		<button type="button" class="control" data-variant="ghost" data-size="sm" data-icon aria-label="Close preview" onclick={() => close(true)}><X size={13} aria-hidden="true" /></button>
+		<button type="button" class="icon-action" aria-label="Close preview" onclick={() => close(true)}><X size={13} aria-hidden="true" /></button>
 	</div>
 	<p id={`${id}-title`} class="font-display mt-3 text-xl/tight tracking-tight">{title}</p>
 	<p class="text-muted mt-2 text-sm/6 text-pretty">{description}</p>

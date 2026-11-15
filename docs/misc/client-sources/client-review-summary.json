@@ -1,0 +1,1102 @@
+{
+	"as_of": "2026-11-14",
+	"cutoff": "2025-11-14",
+	"groups": {
+		"relationship-tag": {
+			"count": 0,
+			"restricted": 0,
+			"examples": []
+		},
+		"notes-recent": {
+			"count": 30,
+			"restricted": 6,
+			"examples": [
+				{
+					"client_id": "import-client-743",
+					"name": "Shelley Elkins",
+					"group": "notes-recent",
+					"registered": "2026-05-20",
+					"last_engagement": "2026-08-20",
+					"last_note": "2026-08-20",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Shelley+Elkins"
+				},
+				{
+					"client_id": "import-client-440",
+					"name": "JoAnn Cerafici Caston",
+					"group": "notes-recent",
+					"registered": "2026-01-06",
+					"last_engagement": "2026-04-06",
+					"last_note": "2026-04-06",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=JoAnn+Cerafici+Caston&archived=true"
+				},
+				{
+					"client_id": "import-client-615",
+					"name": "Karen Sapp",
+					"group": "notes-recent",
+					"registered": "2025-12-04",
+					"last_engagement": "",
+					"last_note": "2025-12-04",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Karen+Sapp"
+				}
+			]
+		},
+		"notes-older": {
+			"count": 72,
+			"restricted": 0,
+			"examples": [
+				{
+					"client_id": "import-client-413",
+					"name": "Ellie Vincent",
+					"group": "notes-older",
+					"registered": "2025-11-13",
+					"last_engagement": "",
+					"last_note": "2025-11-13",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Ellie+Vincent"
+				},
+				{
+					"client_id": "import-client-509",
+					"name": "Nora Taylor",
+					"group": "notes-older",
+					"registered": "2021-09-08",
+					"last_engagement": "",
+					"last_note": "2022-07-20",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Nora+Taylor&archived=true"
+				},
+				{
+					"client_id": "import-client-518",
+					"name": "Michael Scott",
+					"group": "notes-older",
+					"registered": "2021-09-08",
+					"last_engagement": "",
+					"last_note": "2021-09-08",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Michael+Scott&archived=true"
+				}
+			]
+		},
+		"notes-undated": {
+			"count": 0,
+			"restricted": 0,
+			"examples": []
+		},
+		"recent-engagement": {
+			"count": 36,
+			"restricted": 0,
+			"examples": [
+				{
+					"client_id": "import-client-226",
+					"name": "JOSHUA LOGAN",
+					"group": "recent-engagement",
+					"registered": "2026-09-06",
+					"last_engagement": "2026-09-06",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "Personal Zillow message",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=JOSHUA+LOGAN"
+				},
+				{
+					"client_id": "import-client-710",
+					"name": "Tamara Cox",
+					"group": "recent-engagement",
+					"registered": "2026-03-08",
+					"last_engagement": "2026-03-08",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "Completed phone conversation",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Tamara+Cox"
+				},
+				{
+					"client_id": "import-client-616",
+					"name": "Kobs Strobs",
+					"group": "recent-engagement",
+					"registered": "2025-12-04",
+					"last_engagement": "2025-12-04",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "Personal text reply",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Kobs+Strobs"
+				}
+			]
+		},
+		"older-engagement": {
+			"count": 91,
+			"restricted": 0,
+			"examples": [
+				{
+					"client_id": "import-client-612",
+					"name": "Lliabeth Ortiz-Villanueva",
+					"group": "older-engagement",
+					"registered": "2025-09-29",
+					"last_engagement": "2025-09-29",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "Personal Zillow message",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Lliabeth+Ortiz-Villanueva"
+				},
+				{
+					"client_id": "import-client-371",
+					"name": "Kathleen Smith",
+					"group": "older-engagement",
+					"registered": "2024-01-19",
+					"last_engagement": "2024-01-19",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "Personal Zillow message",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Kathleen+Smith&archived=true"
+				},
+				{
+					"client_id": "import-client-317",
+					"name": "Laura",
+					"group": "older-engagement",
+					"registered": "2022-01-10",
+					"last_engagement": "2022-01-10",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "Personal Zillow message",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Laura&archived=true"
+				}
+			]
+		},
+		"recent-unengaged": {
+			"count": 197,
+			"restricted": 0,
+			"examples": [
+				{
+					"client_id": "import-client-225",
+					"name": "Garrett Horning",
+					"group": "recent-unengaged",
+					"registered": "2026-06-29",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "No personal reply, completed conversation, or relationship note found",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Garrett+Horning"
+				},
+				{
+					"client_id": "import-client-681",
+					"name": "Penny Schuld",
+					"group": "recent-unengaged",
+					"registered": "2026-02-05",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "No personal reply, completed conversation, or relationship note found",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Penny+Schuld"
+				},
+				{
+					"client_id": "import-client-414",
+					"name": "Josanna Biddle-Croco",
+					"group": "recent-unengaged",
+					"registered": "2025-11-26",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "No personal reply, completed conversation, or relationship note found",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Josanna+Biddle-Croco"
+				}
+			]
+		},
+		"older-unengaged": {
+			"count": 192,
+			"restricted": 0,
+			"examples": [
+				{
+					"client_id": "import-client-130",
+					"name": "sarahabicht302",
+					"group": "older-unengaged",
+					"registered": "2025-11-12",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "No personal reply, completed conversation, or relationship note found",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=sarahabicht302"
+				},
+				{
+					"client_id": "import-client-772",
+					"name": "Saul Ramos",
+					"group": "older-unengaged",
+					"registered": "2023-08-29",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "No personal reply, completed conversation, or relationship note found",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Saul+Ramos&archived=true"
+				},
+				{
+					"client_id": "import-client-515",
+					"name": "Kat Budlong",
+					"group": "older-unengaged",
+					"registered": "2021-09-08",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "",
+					"evidence": "No personal reply, completed conversation, or relationship note found",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Kat+Budlong&archived=true"
+				}
+			]
+		},
+		"opted-out": {
+			"count": 96,
+			"restricted": 96,
+			"examples": [
+				{
+					"client_id": "import-client-424",
+					"name": "Liz Hansen",
+					"group": "opted-out",
+					"registered": "2025-12-15",
+					"last_engagement": "2026-08-20",
+					"last_note": "",
+					"last_opt_out": "2026-08-20",
+					"evidence": "STOP reply or recorded opt-out",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=Liz+Hansen&archived=true"
+				},
+				{
+					"client_id": "import-client-355",
+					"name": "DAngelo Bacio",
+					"group": "opted-out",
+					"registered": "2023-07-25",
+					"last_engagement": "2024-10-15",
+					"last_note": "",
+					"last_opt_out": "2024-01-25",
+					"evidence": "STOP reply or recorded opt-out",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=DAngelo+Bacio&archived=true"
+				},
+				{
+					"client_id": "import-client-135",
+					"name": "Joanna Alvarez",
+					"group": "opted-out",
+					"registered": "2025-12-06",
+					"last_engagement": "",
+					"last_note": "",
+					"last_opt_out": "2025-12-10",
+					"evidence": "STOP reply or recorded opt-out",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=Joanna+Alvarez&archived=true"
+				}
+			]
+		}
+	},
+	"recent_cases": [
+		{
+			"id": "note-743",
+			"review_note": "The August buying note needs an outcome check: verify the pre-approval status and whether the inquiry progressed.",
+			"client_ids": ["import-client-743"],
+			"why": "Wants a small, affordable home within about two months of the August note and is new to buying. No pre-approval, home to sell, or other agent is recorded; evening calls are preferred.",
+			"members": [
+				{
+					"client_id": "import-client-743",
+					"name": "Shelley Elkins",
+					"group": "notes-recent",
+					"registered": "2026-05-20",
+					"last_engagement": "2026-08-20",
+					"last_note": "2026-08-20",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Shelley+Elkins"
+				}
+			]
+		},
+		{
+			"id": "outbound-introductions",
+			"review_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry.",
+			"title": "Similar outbound introductions",
+			"client_ids": ["import-client-615", "import-client-690", "import-client-798"],
+			"why": "All three notes are variations of Jayden introducing himself after someone browsed homes and offering help or asking for a time to call. The wording differs, but the purpose is the same. They record outbound outreach, not a client reply or proof of a relationship; no personal engagement was found for any of the three.",
+			"members": [
+				{
+					"client_id": "import-client-615",
+					"name": "Karen Sapp",
+					"group": "notes-recent",
+					"registered": "2025-12-04",
+					"last_engagement": "",
+					"last_note": "2025-12-04",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Karen+Sapp"
+				},
+				{
+					"client_id": "import-client-690",
+					"name": "Jackie Luttrell",
+					"group": "notes-recent",
+					"registered": "2026-02-18",
+					"last_engagement": "",
+					"last_note": "2026-08-05",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Jackie+Luttrell"
+				},
+				{
+					"client_id": "import-client-798",
+					"name": "Jeanne Williams",
+					"group": "notes-recent",
+					"registered": "2025-12-25",
+					"last_engagement": "",
+					"last_note": "2026-08-17",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Jeanne+Williams"
+				}
+			]
+		},
+		{
+			"id": "note-750",
+			"review_note": "Clarify which application the note refers to, its current status, and whether assistance is still needed.",
+			"client_ids": ["import-client-750"],
+			"why": "The August note says an application is still in progress and help is needed to fill it out. It does not identify the application or establish approval, a purchase, or completed business.",
+			"members": [
+				{
+					"client_id": "import-client-750",
+					"name": "Dallas Klahr",
+					"group": "notes-recent",
+					"registered": "2026-07-27",
+					"last_engagement": "",
+					"last_note": "2026-08-05",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Dallas+Klahr"
+				}
+			]
+		},
+		{
+			"id": "note-673",
+			"review_note": "Confirm current timing and financing, and whether the proposed appointment was ever confirmed.",
+			"client_ids": ["import-client-673"],
+			"why": "The March note describes a larger home near Salem, with financing and timing dependent on resolving ownership of the current home. The July update says a purchase probably will not happen until year-end, there is still no pre-approval or other agent, and an appointment time was not confirmed.",
+			"members": [
+				{
+					"client_id": "import-client-673",
+					"name": "Missy Humber",
+					"group": "notes-recent",
+					"registered": "2026-01-28",
+					"last_engagement": "2026-07-15",
+					"last_note": "2026-07-15",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Missy+Humber"
+				}
+			]
+		},
+		{
+			"id": "note-224",
+			"review_note": "The imported note flags a suspected scam. Verify identity and legitimacy before treating this as genuine business.",
+			"client_ids": ["import-client-224"],
+			"why": "The note flags a suspected scam: a strange email asking for a Zoom meeting. It does not describe a genuine buying or selling conversation.",
+			"members": [
+				{
+					"client_id": "import-client-224",
+					"name": "Reginajones117",
+					"group": "notes-recent",
+					"registered": "2026-05-30",
+					"last_engagement": "",
+					"last_note": "2026-06-03",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Reginajones117"
+				}
+			]
+		},
+		{
+			"id": "note-746",
+			"review_note": "Confirm whether the browsing inquiry became current buying work and fill in the missing qualification details.",
+			"client_ids": ["import-client-746"],
+			"why": "Browsing in May with a possible purchase within six months, not working with another agent. Contact details were confirmed and mornings or afternoons were preferred. The note gives little detail about budget or financing.",
+			"members": [
+				{
+					"client_id": "import-client-746",
+					"name": "Matthew Morrow",
+					"group": "notes-recent",
+					"registered": "2026-05-22",
+					"last_engagement": "2026-05-22",
+					"last_note": "2026-05-22",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Matthew+Morrow"
+				}
+			]
+		},
+		{
+			"id": "note-833",
+			"review_note": "Confirm whether the requested showing happened, the inquiry outcome, and current agent representation.",
+			"client_ids": ["import-client-833"],
+			"why": "Asked when a specific Salem home could be toured. The May note suggests offering showing times and confirming whether another agent or pre-approval is involved; it does not record a completed tour or purchase.",
+			"members": [
+				{
+					"client_id": "import-client-833",
+					"name": "Christian Rodriguez",
+					"group": "notes-recent",
+					"registered": "2026-05-18",
+					"last_engagement": "2026-05-19",
+					"last_note": "2026-05-19",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Christian+Rodriguez"
+				}
+			]
+		},
+		{
+			"id": "invalid-email-notices",
+			"review_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship.",
+			"title": "Matching invalid-email notices",
+			"client_ids": ["import-client-209", "import-client-463"],
+			"why": "Both notes use the same system message: an invalid email address was detected and the client was unsubscribed. Only the email address differs. These are email-delivery notices, not personal notes or evidence of a relationship; no personal engagement was found for either client. An email unsubscribe does not establish a restriction on every contact channel.",
+			"members": [
+				{
+					"client_id": "import-client-209",
+					"name": "L Stahl",
+					"group": "notes-recent",
+					"registered": "2026-05-12",
+					"last_engagement": "",
+					"last_note": "2026-05-12",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=L+Stahl"
+				},
+				{
+					"client_id": "import-client-463",
+					"name": "Justin Ryrie",
+					"group": "notes-recent",
+					"registered": "2026-02-17",
+					"last_engagement": "",
+					"last_note": "2026-02-17",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Justin+Ryrie"
+				}
+			]
+		},
+		{
+			"id": "note-205",
+			"review_note": "Confirm current buying interest, financing status, and whether the lender introduction happened.",
+			"client_ids": ["import-client-205"],
+			"why": "Wants to buy as soon as financing is approved, near Philomath or surrounding cities; land or a shop would work. The note says there is no pre-approval, home to sell, or other agent, and suggests a lender introduction.",
+			"members": [
+				{
+					"client_id": "import-client-205",
+					"name": "Rena Johnson",
+					"group": "notes-recent",
+					"registered": "2026-05-09",
+					"last_engagement": "2026-05-09",
+					"last_note": "2026-05-09",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Rena+Johnson"
+				}
+			]
+		},
+		{
+			"id": "note-738",
+			"review_note": "Confirm current buying interest, financing, and whether the unresolved qualification questions were answered.",
+			"client_ids": ["import-client-738"],
+			"why": "Looking for one to five acres with utilities, possibly a fixer, up to $400,000 near Albany and surrounding cities. The May note gives a one-to-six-month window and says pre-approval and utility requirements still need confirmation.",
+			"members": [
+				{
+					"client_id": "import-client-738",
+					"name": "Logan Grossman",
+					"group": "notes-recent",
+					"registered": "2026-05-03",
+					"last_engagement": "2026-05-03",
+					"last_note": "2026-05-03",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Logan+Grossman"
+				}
+			]
+		},
+		{
+			"id": "note-736",
+			"review_note": "Detailed search notes exist but no personal engagement was detected by the classifier. Verify communication history and the search outcome.",
+			"client_ids": ["import-client-736"],
+			"why": "Detailed relocation notes describe a family moving from Idaho toward Albany or Corvallis, school and hospital-access priorities, financing, and a hoped-for June closing. A second note compares five specific homes and gives opinions on their suitability. This is substantive home-search work, although no completed purchase is recorded.",
+			"members": [
+				{
+					"client_id": "import-client-736",
+					"name": "Candice Dawson",
+					"group": "notes-recent",
+					"registered": "2026-04-30",
+					"last_engagement": "",
+					"last_note": "2026-04-30",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Candice+Dawson"
+				}
+			]
+		},
+		{
+			"id": "note-484",
+			"review_note": "Confirm current interest and whether the client is represented by another agent before further outreach.",
+			"client_ids": ["import-client-484"],
+			"why": "Interested in buying soon with cash after seeing a property near Lacom Drive. The note says the client is already working with another agent without a signed contract and feels they should remain loyal; contact after 11 a.m. was preferred.",
+			"members": [
+				{
+					"client_id": "import-client-484",
+					"name": "Daniel Findley",
+					"group": "notes-recent",
+					"registered": "2026-04-14",
+					"last_engagement": "2026-04-21",
+					"last_note": "2026-04-14",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=Daniel+Findley&archived=true"
+				}
+			]
+		},
+		{
+			"id": "note-650",
+			"review_note": "The latest note puts plans on hold. Confirm whether they resumed before treating this as current work.",
+			"client_ids": ["import-client-650"],
+			"why": "The January note describes browsing for a small single-story home in Salem or Stayton, with a purchase two to three years away. The April update says the plans are on hold and mentions a future sale of the current home. Neither note records completed business.",
+			"members": [
+				{
+					"client_id": "import-client-650",
+					"name": "Carolyn Gallagher",
+					"group": "notes-recent",
+					"registered": "2026-01-07",
+					"last_engagement": "2026-07-07",
+					"last_note": "2026-04-07",
+					"last_opt_out": "2026-07-07",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=Carolyn+Gallagher&archived=true"
+				}
+			]
+		},
+		{
+			"id": "note-440",
+			"review_note": "Confirm the current sale and purchase status, the offer outcome, and whether another agent is involved.",
+			"client_ids": ["import-client-440"],
+			"why": "Needs to sell a current home and says an offer is already in on another house. The note does not confirm whether the offer was accepted, whether financing is approved, or whether another agent is involved.",
+			"members": [
+				{
+					"client_id": "import-client-440",
+					"name": "JoAnn Cerafici Caston",
+					"group": "notes-recent",
+					"registered": "2026-01-06",
+					"last_engagement": "2026-04-06",
+					"last_note": "2026-04-06",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=JoAnn+Cerafici+Caston&archived=true"
+				}
+			]
+		},
+		{
+			"id": "note-481",
+			"review_note": "Reconcile the changing inquiry and showing notes; confirm current interest, agent representation, and the follow-up outcome.",
+			"client_ids": ["import-client-481"],
+			"why": "The April notes first describe a postponed showing, then a request to see a Waldport home while visiting. A later note says the client and partner would keep their Albany home, had rented the Waldport property before, were open to changing agents, and were probably six or more months from buying. These are updates to one case, not separate clients.",
+			"members": [
+				{
+					"client_id": "import-client-481",
+					"name": "Jackie Eastman",
+					"group": "notes-recent",
+					"registered": "2026-04-04",
+					"last_engagement": "2026-04-06",
+					"last_note": "2026-04-06",
+					"last_opt_out": "2026-08-04",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=Jackie+Eastman&archived=true"
+				}
+			]
+		},
+		{
+			"id": "note-715",
+			"review_note": "Two near-duplicate notes describe the same inquiry. Confirm financing and the follow-up outcome without treating the duplicate as additional evidence.",
+			"client_ids": ["import-client-715"],
+			"why": "Two nearly identical April notes describe the same first-time buying case: a manufactured home on its own land, a possible HUD 184 loan, questions about financing and costs, and a hoped-for move by the end of June. The second version explicitly says pre-approval is not yet in place. These duplicate notes need only one decision.",
+			"members": [
+				{
+					"client_id": "import-client-715",
+					"name": "Patricia Sitsler George",
+					"group": "notes-recent",
+					"registered": "2026-03-24",
+					"last_engagement": "2026-04-03",
+					"last_note": "2026-04-03",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Patricia+Sitsler+George"
+				}
+			]
+		},
+		{
+			"id": "note-702",
+			"review_note": "Confirm who the intended buyer is, whether the client record represents them correctly, and current agent representation.",
+			"client_ids": ["import-client-702"],
+			"why": "Helping a granddaughter buy a first home around Albany, with pre-approval and a $200,000–$260,000 budget. They have used an agent but are not exclusive and are open to switching; the note asks for a call and suitable showings.",
+			"members": [
+				{
+					"client_id": "import-client-702",
+					"name": "Veda Williams",
+					"group": "notes-recent",
+					"registered": "2026-02-24",
+					"last_engagement": "2026-03-16",
+					"last_note": "2026-03-16",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Veda+Williams"
+				}
+			]
+		},
+		{
+			"id": "note-824",
+			"review_note": "Confirm who participated in the recorded conversation and whether the record identifies the intended buyer correctly.",
+			"client_ids": ["import-client-824"],
+			"why": "The note records a conversation with the client's wife: she is considering under ten acres within six months, says financing is pre-approved, and is not working exclusively with another agent. A transfer was declined and evenings were preferred. The conversation is attributed to the wife, not assumed to be with the named client.",
+			"members": [
+				{
+					"client_id": "import-client-824",
+					"name": "Fred Taylor",
+					"group": "notes-recent",
+					"registered": "2026-03-05",
+					"last_engagement": "2026-03-05",
+					"last_note": "2026-03-05",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Fred+Taylor"
+				}
+			]
+		},
+		{
+			"id": "note-820",
+			"review_note": "Confirm current buying interest, financing, and whether the requested callback happened.",
+			"client_ids": ["import-client-820"],
+			"why": "Looking for an investment rental near Salem and willing to buy when the right home appears. No pre-approval, property to sell, or other agent is recorded; a live transfer was declined and afternoons were preferred for a callback.",
+			"members": [
+				{
+					"client_id": "import-client-820",
+					"name": "Jose Lopez",
+					"group": "notes-recent",
+					"registered": "2026-02-17",
+					"last_engagement": "2026-02-20",
+					"last_note": "2026-02-20",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Jose+Lopez"
+				}
+			]
+		},
+		{
+			"id": "note-818",
+			"review_note": "Confirm the current sale and purchase status and whether the requested callback was completed.",
+			"client_ids": ["import-client-818"],
+			"why": "Plans to sell a mobile home in Albany and move to Salem before June. Pre-approval is in progress, no agent has been signed, and a Spanish-speaking callback was requested.",
+			"members": [
+				{
+					"client_id": "import-client-818",
+					"name": "Erika Ramirez",
+					"group": "notes-recent",
+					"registered": "2026-02-16",
+					"last_engagement": "2026-02-16",
+					"last_note": "2026-02-16",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Erika+Ramirez"
+				}
+			]
+		},
+		{
+			"id": "note-458",
+			"review_note": "Confirm current buying interest, financing status, and whether the requested callback happened.",
+			"client_ids": ["import-client-458"],
+			"why": "Looking for an accessible home near Corvallis or in the Linn/Benton County area within about six months of the February note. Not pre-approved and has no home to sell or chosen agent; asked for contact after a meeting.",
+			"members": [
+				{
+					"client_id": "import-client-458",
+					"name": "Lana Dugger",
+					"group": "notes-recent",
+					"registered": "2026-02-11",
+					"last_engagement": "2026-02-14",
+					"last_note": "2026-02-14",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Lana+Dugger"
+				}
+			]
+		},
+		{
+			"id": "note-809",
+			"review_note": "Confirm current buying interest, agent representation, and whether the planned follow-up happened.",
+			"client_ids": ["import-client-809"],
+			"why": "Wants to move closer to a son after a bereavement. Has another agent in mind but has not decided; the note says Jayden's information will be texted and a follow-up should happen the next week.",
+			"members": [
+				{
+					"client_id": "import-client-809",
+					"name": "Laneve Holmes",
+					"group": "notes-recent",
+					"registered": "2026-01-21",
+					"last_engagement": "",
+					"last_note": "2026-01-21",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Laneve+Holmes"
+				}
+			]
+		},
+		{
+			"id": "note-401",
+			"review_note": "Confirm whether the recorded buying interest is still current and whether any later work or outcome is missing.",
+			"client_ids": ["import-client-401"],
+			"why": "The January 2026 note says the client is ready to buy in 2026 and might consider a particular home needing rehabilitation. It gives a property and listing number, but no completed purchase.",
+			"members": [
+				{
+					"client_id": "import-client-401",
+					"name": "Aaron Bratt",
+					"group": "notes-recent",
+					"registered": "2025-05-29",
+					"last_engagement": "",
+					"last_note": "2026-01-16",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Aaron+Bratt"
+				}
+			]
+		},
+		{
+			"id": "note-808",
+			"review_note": "The January notes deferred a decision until spring. Confirm whether that decision was made and whether the sale-and-purchase plans are still current.",
+			"client_ids": ["import-client-808"],
+			"why": "Two January notes describe downsizing after a bereavement, selling the current home, and looking for a single-story home around Salem or Woodburn. The detailed follow-up covers sale preparation, financing, and family help, and says a decision cannot be made until spring.",
+			"members": [
+				{
+					"client_id": "import-client-808",
+					"name": "Kathleen Smidt",
+					"group": "notes-recent",
+					"registered": "2026-01-15",
+					"last_engagement": "2026-01-15",
+					"last_note": "2026-01-15",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Kathleen+Smidt"
+				}
+			]
+		},
+		{
+			"id": "note-648",
+			"review_note": "Confirm the current buying and selling status, financing, and outcome of the recorded follow-up.",
+			"client_ids": ["import-client-648"],
+			"why": "Exploring Willamette Valley land or a fixer-upper up to $200,000, with no firm timeline or pre-approval. May need to sell a duplex first. The long note repeats this buying/selling summary and suggests confirming areas, financing, and whether another agent is involved.",
+			"members": [
+				{
+					"client_id": "import-client-648",
+					"name": "David Smith",
+					"group": "notes-recent",
+					"registered": "2026-01-06",
+					"last_engagement": "2026-05-13",
+					"last_note": "2026-01-13",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=David+Smith&archived=true"
+				}
+			]
+		},
+		{
+			"id": "note-437",
+			"review_note": "Confirm current buying interest, financing status, and whether the disconnected transfer was followed up.",
+			"client_ids": ["import-client-437"],
+			"why": "A first-time buyer wants to purchase soon in Corvallis, Albany, or Philomath and needs help getting started. No pre-approval, property to sell, or other agent is recorded; an attempted transfer disconnected.",
+			"members": [
+				{
+					"client_id": "import-client-437",
+					"name": "Hisham Youssef",
+					"group": "notes-recent",
+					"registered": "2026-01-04",
+					"last_engagement": "2026-01-04",
+					"last_note": "2026-01-04",
+					"last_opt_out": "",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "",
+					"url": "https://dash.meadownw.com/registry?q=Hisham+Youssef"
+				}
+			]
+		},
+		{
+			"id": "note-137",
+			"review_note": "Confirm the current selling timeline and whether the recorded follow-up led to further work.",
+			"client_ids": ["import-client-137"],
+			"why": "The December 2025 note says the home was already appraised and the client planned to sell in about a year before moving out of state. A live transfer was declined. This describes a possible future sale, not completed business.",
+			"members": [
+				{
+					"client_id": "import-client-137",
+					"name": "Ed Cochran",
+					"group": "notes-recent",
+					"registered": "2025-12-07",
+					"last_engagement": "2025-12-07",
+					"last_note": "2025-12-07",
+					"last_opt_out": "2026-05-06",
+					"evidence": "Free-text note to review; meaning and author not established",
+					"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+					"url": "https://dash.meadownw.com/registry?q=Ed+Cochran&archived=true"
+				}
+			]
+		}
+	],
+	"approved_active": [
+		{
+			"client_id": "import-client-743",
+			"case_id": "note-743",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The August buying note needs an outcome check: verify the pre-approval status and whether the inquiry progressed."
+		},
+		{
+			"client_id": "import-client-615",
+			"case_id": "outbound-introductions",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+		},
+		{
+			"client_id": "import-client-690",
+			"case_id": "outbound-introductions",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+		},
+		{
+			"client_id": "import-client-798",
+			"case_id": "outbound-introductions",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+		},
+		{
+			"client_id": "import-client-750",
+			"case_id": "note-750",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Clarify which application the note refers to, its current status, and whether assistance is still needed."
+		},
+		{
+			"client_id": "import-client-673",
+			"case_id": "note-673",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current timing and financing, and whether the proposed appointment was ever confirmed."
+		},
+		{
+			"client_id": "import-client-224",
+			"case_id": "note-224",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The imported note flags a suspected scam. Verify identity and legitimacy before treating this as genuine business."
+		},
+		{
+			"client_id": "import-client-746",
+			"case_id": "note-746",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm whether the browsing inquiry became current buying work and fill in the missing qualification details."
+		},
+		{
+			"client_id": "import-client-833",
+			"case_id": "note-833",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm whether the requested showing happened, the inquiry outcome, and current agent representation."
+		},
+		{
+			"client_id": "import-client-209",
+			"case_id": "invalid-email-notices",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
+		},
+		{
+			"client_id": "import-client-463",
+			"case_id": "invalid-email-notices",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
+		},
+		{
+			"client_id": "import-client-205",
+			"case_id": "note-205",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current buying interest, financing status, and whether the lender introduction happened."
+		},
+		{
+			"client_id": "import-client-738",
+			"case_id": "note-738",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current buying interest, financing, and whether the unresolved qualification questions were answered."
+		},
+		{
+			"client_id": "import-client-736",
+			"case_id": "note-736",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Detailed search notes exist but no personal engagement was detected by the classifier. Verify communication history and the search outcome."
+		},
+		{
+			"client_id": "import-client-484",
+			"case_id": "note-484",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current interest and whether the client is represented by another agent before further outreach."
+		},
+		{
+			"client_id": "import-client-650",
+			"case_id": "note-650",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The latest note puts plans on hold. Confirm whether they resumed before treating this as current work."
+		},
+		{
+			"client_id": "import-client-440",
+			"case_id": "note-440",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm the current sale and purchase status, the offer outcome, and whether another agent is involved."
+		},
+		{
+			"client_id": "import-client-481",
+			"case_id": "note-481",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Reconcile the changing inquiry and showing notes; confirm current interest, agent representation, and the follow-up outcome."
+		},
+		{
+			"client_id": "import-client-715",
+			"case_id": "note-715",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Two near-duplicate notes describe the same inquiry. Confirm financing and the follow-up outcome without treating the duplicate as additional evidence."
+		},
+		{
+			"client_id": "import-client-702",
+			"case_id": "note-702",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm who the intended buyer is, whether the client record represents them correctly, and current agent representation."
+		},
+		{
+			"client_id": "import-client-824",
+			"case_id": "note-824",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm who participated in the recorded conversation and whether the record identifies the intended buyer correctly."
+		},
+		{
+			"client_id": "import-client-820",
+			"case_id": "note-820",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current buying interest, financing, and whether the requested callback happened."
+		},
+		{
+			"client_id": "import-client-818",
+			"case_id": "note-818",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm the current sale and purchase status and whether the requested callback was completed."
+		},
+		{
+			"client_id": "import-client-458",
+			"case_id": "note-458",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current buying interest, financing status, and whether the requested callback happened."
+		},
+		{
+			"client_id": "import-client-809",
+			"case_id": "note-809",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current buying interest, agent representation, and whether the planned follow-up happened."
+		},
+		{
+			"client_id": "import-client-401",
+			"case_id": "note-401",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm whether the recorded buying interest is still current and whether any later work or outcome is missing."
+		},
+		{
+			"client_id": "import-client-808",
+			"case_id": "note-808",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "The January notes deferred a decision until spring. Confirm whether that decision was made and whether the sale-and-purchase plans are still current."
+		},
+		{
+			"client_id": "import-client-648",
+			"case_id": "note-648",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm the current buying and selling status, financing, and outcome of the recorded follow-up."
+		},
+		{
+			"client_id": "import-client-437",
+			"case_id": "note-437",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm current buying interest, financing status, and whether the disconnected transfer was followed up."
+		},
+		{
+			"client_id": "import-client-137",
+			"case_id": "note-137",
+			"decision": "active",
+			"flagged": true,
+			"flag_note": "Confirm the current selling timeline and whether the recorded follow-up led to further work."
+		}
+	]
+}

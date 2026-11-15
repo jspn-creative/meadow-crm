@@ -1,0 +1,173 @@
+{
+	"as_of": "2026-11-14",
+	"cutoff": "2025-11-14",
+	"decision": "active",
+	"flag_for_review": true,
+	"decision_source": "Developer instruction on 2026-11-14: all 27 outlined cases, covering 30 distinct clients, are Active and need a review flag.",
+	"cases": [
+		{
+			"id": "note-137",
+			"review_note": "Confirm the current selling timeline and whether the recorded follow-up led to further work.",
+			"client_ids": ["import-client-137"],
+			"why": "The December 2025 note says the home was already appraised and the client planned to sell in about a year before moving out of state. A live transfer was declined. This describes a possible future sale, not completed business."
+		},
+		{
+			"id": "note-205",
+			"review_note": "Confirm current buying interest, financing status, and whether the lender introduction happened.",
+			"client_ids": ["import-client-205"],
+			"why": "Wants to buy as soon as financing is approved, near Philomath or surrounding cities; land or a shop would work. The note says there is no pre-approval, home to sell, or other agent, and suggests a lender introduction."
+		},
+		{
+			"id": "invalid-email-notices",
+			"review_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship.",
+			"title": "Matching invalid-email notices",
+			"client_ids": ["import-client-209", "import-client-463"],
+			"why": "Both notes use the same system message: an invalid email address was detected and the client was unsubscribed. Only the email address differs. These are email-delivery notices, not personal notes or evidence of a relationship; no personal engagement was found for either client. An email unsubscribe does not establish a restriction on every contact channel."
+		},
+		{
+			"id": "note-224",
+			"review_note": "The imported note flags a suspected scam. Verify identity and legitimacy before treating this as genuine business.",
+			"client_ids": ["import-client-224"],
+			"why": "The note flags a suspected scam: a strange email asking for a Zoom meeting. It does not describe a genuine buying or selling conversation."
+		},
+		{
+			"id": "note-401",
+			"review_note": "Confirm whether the recorded buying interest is still current and whether any later work or outcome is missing.",
+			"client_ids": ["import-client-401"],
+			"why": "The January 2026 note says the client is ready to buy in 2026 and might consider a particular home needing rehabilitation. It gives a property and listing number, but no completed purchase."
+		},
+		{
+			"id": "note-437",
+			"review_note": "Confirm current buying interest, financing status, and whether the disconnected transfer was followed up.",
+			"client_ids": ["import-client-437"],
+			"why": "A first-time buyer wants to purchase soon in Corvallis, Albany, or Philomath and needs help getting started. No pre-approval, property to sell, or other agent is recorded; an attempted transfer disconnected."
+		},
+		{
+			"id": "note-440",
+			"review_note": "Confirm the current sale and purchase status, the offer outcome, and whether another agent is involved.",
+			"client_ids": ["import-client-440"],
+			"why": "Needs to sell a current home and says an offer is already in on another house. The note does not confirm whether the offer was accepted, whether financing is approved, or whether another agent is involved."
+		},
+		{
+			"id": "note-458",
+			"review_note": "Confirm current buying interest, financing status, and whether the requested callback happened.",
+			"client_ids": ["import-client-458"],
+			"why": "Looking for an accessible home near Corvallis or in the Linn/Benton County area within about six months of the February note. Not pre-approved and has no home to sell or chosen agent; asked for contact after a meeting."
+		},
+		{
+			"id": "note-481",
+			"review_note": "Reconcile the changing inquiry and showing notes; confirm current interest, agent representation, and the follow-up outcome.",
+			"client_ids": ["import-client-481"],
+			"why": "The April notes first describe a postponed showing, then a request to see a Waldport home while visiting. A later note says the client and partner would keep their Albany home, had rented the Waldport property before, were open to changing agents, and were probably six or more months from buying. These are updates to one case, not separate clients."
+		},
+		{
+			"id": "note-484",
+			"review_note": "Confirm current interest and whether the client is represented by another agent before further outreach.",
+			"client_ids": ["import-client-484"],
+			"why": "Interested in buying soon with cash after seeing a property near Lacom Drive. The note says the client is already working with another agent without a signed contract and feels they should remain loyal; contact after 11 a.m. was preferred."
+		},
+		{
+			"id": "outbound-introductions",
+			"review_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry.",
+			"title": "Similar outbound introductions",
+			"client_ids": ["import-client-615", "import-client-690", "import-client-798"],
+			"why": "All three notes are variations of Jayden introducing himself after someone browsed homes and offering help or asking for a time to call. The wording differs, but the purpose is the same. They record outbound outreach, not a client reply or proof of a relationship; no personal engagement was found for any of the three."
+		},
+		{
+			"id": "note-648",
+			"review_note": "Confirm the current buying and selling status, financing, and outcome of the recorded follow-up.",
+			"client_ids": ["import-client-648"],
+			"why": "Exploring Willamette Valley land or a fixer-upper up to $200,000, with no firm timeline or pre-approval. May need to sell a duplex first. The long note repeats this buying/selling summary and suggests confirming areas, financing, and whether another agent is involved."
+		},
+		{
+			"id": "note-650",
+			"review_note": "The latest note puts plans on hold. Confirm whether they resumed before treating this as current work.",
+			"client_ids": ["import-client-650"],
+			"why": "The January note describes browsing for a small single-story home in Salem or Stayton, with a purchase two to three years away. The April update says the plans are on hold and mentions a future sale of the current home. Neither note records completed business."
+		},
+		{
+			"id": "note-673",
+			"review_note": "Confirm current timing and financing, and whether the proposed appointment was ever confirmed.",
+			"client_ids": ["import-client-673"],
+			"why": "The March note describes a larger home near Salem, with financing and timing dependent on resolving ownership of the current home. The July update says a purchase probably will not happen until year-end, there is still no pre-approval or other agent, and an appointment time was not confirmed."
+		},
+		{
+			"id": "note-702",
+			"review_note": "Confirm who the intended buyer is, whether the client record represents them correctly, and current agent representation.",
+			"client_ids": ["import-client-702"],
+			"why": "Helping a granddaughter buy a first home around Albany, with pre-approval and a $200,000–$260,000 budget. They have used an agent but are not exclusive and are open to switching; the note asks for a call and suitable showings."
+		},
+		{
+			"id": "note-715",
+			"review_note": "Two near-duplicate notes describe the same inquiry. Confirm financing and the follow-up outcome without treating the duplicate as additional evidence.",
+			"client_ids": ["import-client-715"],
+			"why": "Two nearly identical April notes describe the same first-time buying case: a manufactured home on its own land, a possible HUD 184 loan, questions about financing and costs, and a hoped-for move by the end of June. The second version explicitly says pre-approval is not yet in place. These duplicate notes need only one decision."
+		},
+		{
+			"id": "note-736",
+			"review_note": "Detailed search notes exist but no personal engagement was detected by the classifier. Verify communication history and the search outcome.",
+			"client_ids": ["import-client-736"],
+			"why": "Detailed relocation notes describe a family moving from Idaho toward Albany or Corvallis, school and hospital-access priorities, financing, and a hoped-for June closing. A second note compares five specific homes and gives opinions on their suitability. This is substantive home-search work, although no completed purchase is recorded."
+		},
+		{
+			"id": "note-738",
+			"review_note": "Confirm current buying interest, financing, and whether the unresolved qualification questions were answered.",
+			"client_ids": ["import-client-738"],
+			"why": "Looking for one to five acres with utilities, possibly a fixer, up to $400,000 near Albany and surrounding cities. The May note gives a one-to-six-month window and says pre-approval and utility requirements still need confirmation."
+		},
+		{
+			"id": "note-743",
+			"review_note": "The August buying note needs an outcome check: verify the pre-approval status and whether the inquiry progressed.",
+			"client_ids": ["import-client-743"],
+			"why": "Wants a small, affordable home within about two months of the August note and is new to buying. No pre-approval, home to sell, or other agent is recorded; evening calls are preferred."
+		},
+		{
+			"id": "note-746",
+			"review_note": "Confirm whether the browsing inquiry became current buying work and fill in the missing qualification details.",
+			"client_ids": ["import-client-746"],
+			"why": "Browsing in May with a possible purchase within six months, not working with another agent. Contact details were confirmed and mornings or afternoons were preferred. The note gives little detail about budget or financing."
+		},
+		{
+			"id": "note-750",
+			"review_note": "Clarify which application the note refers to, its current status, and whether assistance is still needed.",
+			"client_ids": ["import-client-750"],
+			"why": "The August note says an application is still in progress and help is needed to fill it out. It does not identify the application or establish approval, a purchase, or completed business."
+		},
+		{
+			"id": "note-808",
+			"review_note": "The January notes deferred a decision until spring. Confirm whether that decision was made and whether the sale-and-purchase plans are still current.",
+			"client_ids": ["import-client-808"],
+			"why": "Two January notes describe downsizing after a bereavement, selling the current home, and looking for a single-story home around Salem or Woodburn. The detailed follow-up covers sale preparation, financing, and family help, and says a decision cannot be made until spring."
+		},
+		{
+			"id": "note-809",
+			"review_note": "Confirm current buying interest, agent representation, and whether the planned follow-up happened.",
+			"client_ids": ["import-client-809"],
+			"why": "Wants to move closer to a son after a bereavement. Has another agent in mind but has not decided; the note says Jayden's information will be texted and a follow-up should happen the next week."
+		},
+		{
+			"id": "note-818",
+			"review_note": "Confirm the current sale and purchase status and whether the requested callback was completed.",
+			"client_ids": ["import-client-818"],
+			"why": "Plans to sell a mobile home in Albany and move to Salem before June. Pre-approval is in progress, no agent has been signed, and a Spanish-speaking callback was requested."
+		},
+		{
+			"id": "note-820",
+			"review_note": "Confirm current buying interest, financing, and whether the requested callback happened.",
+			"client_ids": ["import-client-820"],
+			"why": "Looking for an investment rental near Salem and willing to buy when the right home appears. No pre-approval, property to sell, or other agent is recorded; a live transfer was declined and afternoons were preferred for a callback."
+		},
+		{
+			"id": "note-824",
+			"review_note": "Confirm who participated in the recorded conversation and whether the record identifies the intended buyer correctly.",
+			"client_ids": ["import-client-824"],
+			"why": "The note records a conversation with the client's wife: she is considering under ten acres within six months, says financing is pre-approved, and is not working exclusively with another agent. A transfer was declined and evenings were preferred. The conversation is attributed to the wife, not assumed to be with the named client."
+		},
+		{
+			"id": "note-833",
+			"review_note": "Confirm whether the requested showing happened, the inquiry outcome, and current agent representation.",
+			"client_ids": ["import-client-833"],
+			"why": "Asked when a specific Salem home could be toured. The May note suggests offering showing times and confirming whether another agent or pre-approval is involved; it does not record a completed tour or purchase."
+		}
+	]
+}

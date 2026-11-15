@@ -120,7 +120,7 @@ Goal: eliminate the Chrome login flash first, keep save/error feedback truthful,
   - [ ] 8.1 Fall back to defaults for malformed sort and mode values
     - Open `/registry?sort=bogus&sortDir=up&tagMode=x&sourceMode=y&archived=maybe`.
     - If the page errors or shows anything else, fix the parsing in `src/routes/registry/+page.svelte:101` (`readParams`).
-    - Done when: the page shows current clients sorted Client A to Z, with no error.
+    - Done when: the view shows current clients in default order (flagged first, then name within each group), with no error; explicit name A to Z remains a separate sort under REG-24.
     - _Requirements: REG-4_
   - [ ] 8.2 Ignore unknown tags in the URL
     - Open `/registry?tag=%3Cbad%3E`.
