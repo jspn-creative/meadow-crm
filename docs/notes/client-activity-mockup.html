@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Client activity mockup</title>
+		<!-- Fictional data. A sketch of entry shapes, wording, and states for the design pass in client-activity.md, not a visual design. -->
+		<style>
+			.mock {
+				--fg: var(--foreground, #1d2320);
+				--soft: var(--muted-foreground, #5d6762);
+				--tint: var(--muted, #eef1ee);
+				--rule: var(--border, #dfe4e0);
+				--accent: var(--primary, #2f6b4f);
+				--warn: var(--warning, #9a5b13);
+				--mono: var(--font-mono, ui-monospace, Menlo, monospace);
+				color: var(--fg);
+				max-width: 720px;
+				display: grid;
+				gap: 1.75rem;
+
+				& h2 {
+					font-size: 0.8rem;
+					text-transform: uppercase;
+					letter-spacing: 0.06em;
+					color: var(--soft);
+					margin: 0 0 0.6rem;
+				}
+
+				& p {
+					margin: 0 0 0.5rem;
+				}
+			}
+
+			.raw {
+				font: 0.78rem/1.5 var(--mono);
+				background: var(--code-background, #f3f4f1);
+				color: var(--code-foreground, var(--fg));
+				border-radius: 8px;
+				padding: 0.75rem 0.9rem;
+				white-space: pre-wrap;
+				word-break: break-word;
+			}
+
+			.parsed {
+				display: grid;
+				grid-template-columns: max-content 1fr;
+				gap: 0.3rem 0.9rem;
+				font-size: 0.85rem;
+				margin-top: 0.6rem;
+
+				& dt {
+					color: var(--soft);
+					font-family: var(--mono);
+					font-size: 0.78rem;
+				}
+
+				& dd {
+					margin: 0;
+				}
+
+				& s {
+					color: var(--soft);
+				}
+			}
+
+			.feed {
+				display: grid;
+				gap: 0.15rem;
+				font-size: 0.9rem;
+			}
+
+			.era {
+				display: flex;
+				align-items: center;
+				gap: 0.6rem;
+				margin: 0.9rem 0 0.4rem;
+				font-size: 0.75rem;
+				font-weight: 600;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				color: var(--soft);
+
+				&::before,
+				&::after {
+					content: "";
+					height: 1px;
+					flex: 1;
+					background: var(--rule);
+				}
+
+				&.meadow {
+					color: var(--accent);
+				}
+			}
+
+			.row {
+				display: grid;
+				grid-template-columns: 1.5rem 1fr auto;
+				gap: 0.5rem;
+				align-items: start;
+				padding: 0.3rem 0;
+
+				& .icon {
+					width: 1.5rem;
+					height: 1.5rem;
+					border-radius: 999px;
+					display: grid;
+					place-items: center;
+					font-size: 0.7rem;
+					font-weight: 700;
+					background: var(--tint);
+					color: var(--soft);
+				}
+
+				& .time {
+					color: var(--soft);
+					font-size: 0.78rem;
+					white-space: nowrap;
+					padding-top: 0.15rem;
+				}
+
+				& .line {
+					min-width: 0;
+					padding-top: 0.1rem;
+				}
+
+				& .actor {
+					font-weight: 600;
+				}
+
+				&.quiet .line {
+					color: var(--soft);
+				}
+
+				&.client .icon {
+					background: color-mix(in oklab, var(--accent) 18%, transparent);
+					color: var(--accent);
+				}
+
+				&.user .icon {
+					background: var(--fg);
+					color: var(--background, #fff);
+				}
+			}
+
+			.toggle {
+				all: unset;
+				cursor: pointer;
+				color: inherit;
+
+				&::after {
+					content: " ›";
+					display: inline-block;
+					transition: rotate 150ms;
+				}
+
+				&[aria-expanded="true"]::after {
+					rotate: 90deg;
+				}
+
+				&:focus-visible {
+					outline: 2px solid var(--accent);
+					outline-offset: 2px;
+				}
+			}
+
+			.nested {
+				margin: 0.2rem 0 0.3rem 2rem;
+				padding-left: 0.75rem;
+				border-left: 1px solid var(--rule);
+
+				& .row {
+					grid-template-columns: 1fr auto;
+				}
+			}
+
+			.detail {
+				display: grid;
+				grid-template-columns: max-content 1fr;
+				gap: 0.15rem 0.75rem;
+				margin: 0.35rem 0 0.2rem;
+				font-size: 0.82rem;
+
+				& dt {
+					color: var(--soft);
+				}
+
+				& dd {
+					margin: 0;
+				}
+			}
+
+			.bubble {
+				margin-top: 0.3rem;
+				padding: 0.45rem 0.7rem;
+				border-radius: 0.75rem;
+				max-width: 34rem;
+				width: fit-content;
+
+				&.in {
+					background: color-mix(in oklab, var(--accent) 12%, transparent);
+					border-top-left-radius: 0.2rem;
+				}
+
+				&.out {
+					border: 1px solid var(--rule);
+					border-top-left-radius: 0.2rem;
+				}
+			}
+
+			.note {
+				margin-top: 0.3rem;
+				padding: 0.6rem 0.8rem;
+				border-radius: 0.6rem;
+				background: var(--card, #fff);
+				border: 1px solid var(--rule);
+
+				& ul {
+					margin: 0.3rem 0 0;
+					padding-left: 1.1rem;
+				}
+
+				&.clamped ul li:nth-child(n + 4) {
+					display: none;
+				}
+			}
+
+			.tag {
+				font-size: 0.7rem;
+				font-weight: 600;
+				padding: 0.05rem 0.4rem;
+				border-radius: 999px;
+				border: 1px solid var(--rule);
+				color: var(--soft);
+				margin-left: 0.3rem;
+				vertical-align: 0.1em;
+
+				&.warn {
+					border-color: var(--warn);
+					color: var(--warn);
+				}
+			}
+
+			.marker {
+				display: inline-grid;
+				place-items: center;
+				width: 1.1rem;
+				height: 1.1rem;
+				border-radius: 999px;
+				background: var(--warn);
+				color: #fff;
+				font-size: 0.65rem;
+				font-weight: 700;
+				margin-left: 0.35rem;
+				vertical-align: 0.1em;
+			}
+
+			.legend {
+				margin: 0;
+				padding-left: 1.2rem;
+				font-size: 0.85rem;
+				color: var(--soft);
+
+				& li {
+					margin-bottom: 0.25rem;
+				}
+			}
+
+			.composer {
+				margin-top: 0.75rem;
+				border: 1px solid var(--rule);
+				border-radius: 0.6rem;
+				padding: 0.5rem 0.7rem;
+				color: var(--soft);
+				font-size: 0.85rem;
+
+				& b {
+					color: var(--fg);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="mock">
+			<section>
+				<h2>1. One BoldTrail note string becomes entries</h2>
+				<div class="raw">
+					2025-03-02 18:04:11: To Number: +15550001111&lt;br&gt;From Number:
+					+15550002222&lt;br&gt;Direction: incoming&lt;br&gt;Count: 1&lt;br&gt;Text: Hi! Is the Alder Ct
+					house still available? Could we see it Saturday?&lt;br&gt;Message Type: text --- 2025-03-02
+					18:09:40: Details: Spoke with Priya, wants 3bd near Eastside schools&lt;br&gt;Outcome:
+					phoneConversation&lt;br&gt;Phone: +15550001111 --- 2025-03-02 18:10:02: Lead Status:
+					completed&lt;br&gt;Status Type: AutoClaimed&lt;br&gt;Reason: agent-engaged --- 2025-03-02
+					18:10:05: Phone +15550001111 agreed to TCPA consent …
+				</div>
+				<dl class="parsed">
+					<dt>text, in</dt>
+					<dd><b>Priya</b> texted: “Hi! Is the Alder Ct house still available? …”</dd>
+					<dt>call, out</dt>
+					<dd>
+						<b>BoldTrail</b> called Priya · Talked — “Spoke with Priya, wants 3bd near Eastside schools”
+					</dd>
+					<dt>system</dt>
+					<dd><b>BoldTrail</b> follow-up status: claimed by agent</dd>
+					<dt>dropped</dt>
+					<dd><s>TCPA consent boilerplate</s> — not imported</dd>
+				</dl>
+			</section>
+
+			<section>
+				<h2>2. The same client’s Activity, oldest first</h2>
+				<div class="feed">
+					<div class="era">From BoldTrail · Nov 2024 – Oct 2026</div>
+
+					<div class="row quiet">
+						<span class="icon">BT</span
+						><span class="line">Added from a Zillow inquiry about 418 Alder Ct</span
+						><span class="time">Nov 14, 2024</span>
+					</div>
+
+					<div class="row client">
+						<span class="icon">PN</span>
+						<span class="line"
+							><span class="actor">Priya</span> sent a Zillow inquiry<span class="marker">A</span>
+							<button class="toggle" type="button" aria-expanded="false">Details</button>
+							<div class="bubble in">
+								We’re relocating from Denver this summer and need something walkable with a yard for our
+								dog.
+							</div>
+							<dl class="detail" hidden>
+								<dt>Property</dt>
+								<dd>418 Alder Ct</dd>
+								<dt>Searching</dt>
+								<dd>$600k–$750k · 3+ bd · Eastside</dd>
+								<dt>Source</dt>
+								<dd>Zillow Premier Agent</dd>
+							</dl>
+						</span>
+						<span class="time">Nov 14, 2024</span>
+					</div>
+
+					<div class="row quiet">
+						<span class="icon">BT</span>
+						<span class="line"
+							><button class="toggle" type="button" aria-expanded="false">
+								BoldTrail sent 14 automated texts
+							</button>
+							· no reply<span class="marker">B</span>
+							<div class="nested" hidden>
+								<div class="row quiet">
+									<span class="line">“Hi Priya, it’s Jayden’s team. Still looking in Eastside?”</span
+									><span class="time">Dec 2, 2024</span>
+								</div>
+								<div class="row quiet">
+									<span class="line">“Just checking in. Any questions about the market?”</span
+									><span class="time">Dec 9, 2024</span>
+								</div>
+								<div class="row quiet"><span class="line">… 11 more</span><span class="time"></span></div>
+								<div class="row quiet">
+									<span class="line">“New listings near you this week: …”</span
+									><span class="time">Feb 20, 2025</span>
+								</div>
+							</div>
+						</span>
+						<span class="time">Dec 2024 – Feb 2025</span>
+					</div>
+
+					<div class="row client">
+						<span class="icon">PN</span>
+						<span class="line"
+							><span class="actor">Priya</span> texted<span class="marker">C</span>
+							<div class="bubble in">
+								Hi! Is the Alder Ct house still available? Could we see it Saturday?
+							</div>
+						</span>
+						<span class="time">Mar 2, 2025</span>
+					</div>
+
+					<div class="row">
+						<span class="icon">BT</span>
+						<span class="line"
+							><span class="actor">BoldTrail</span> called Priya · Talked
+							<div class="bubble out">Spoke with Priya, wants 3bd near Eastside schools</div>
+						</span>
+						<span class="time">Mar 2, 2025</span>
+					</div>
+
+					<div class="row quiet">
+						<span class="icon">BT</span>
+						<span class="line"
+							><button class="toggle" type="button" aria-expanded="true">
+								BoldTrail follow-up status: claimed by agent</button
+							><span class="marker">D</span>
+							<dl class="detail">
+								<dt>Status</dt>
+								<dd>Completed</dd>
+								<dt>Type</dt>
+								<dd>AutoClaimed</dd>
+								<dt>Reason</dt>
+								<dd>Agent engaged</dd>
+							</dl>
+						</span>
+						<span class="time">Mar 2, 2025</span>
+					</div>
+
+					<div class="row">
+						<span class="icon">BT</span>
+						<span class="line"
+							><span class="actor">Note from BoldTrail</span><span class="tag">author unknown</span
+							><span class="marker">E</span>
+							<div class="note clamped">
+								Needs list after Saturday’s showings:
+								<ul>
+									<li>3 bd minimum, 2 bath</li>
+									<li>Fenced yard (dog)</li>
+									<li>Walk to Eastside Elementary</li>
+									<li>No HOA if possible</li>
+									<li>Under $725k, pre-approved with Cascade Lending</li>
+									<li>Wants to close before August</li>
+								</ul>
+								<button class="toggle" type="button" data-clamp aria-expanded="false">Show all 6</button>
+							</div>
+						</span>
+						<span class="time">Mar 9, 2025</span>
+					</div>
+
+					<div class="row quiet">
+						<span class="icon">BT</span
+						><span class="line"
+							><button class="toggle" type="button" aria-expanded="false">
+								BoldTrail sent 9 market reports
+							</button>
+							· Eastside</span
+						><span class="time">Apr – Dec 2025</span>
+					</div>
+
+					<div class="row client">
+						<span class="icon">PN</span>
+						<span class="line"
+							><span class="actor">Priya</span> replied STOP · texting turned off<span class="tag warn"
+								>consent</span
+							></span
+						>
+						<span class="time">Jan 4, 2026</span>
+					</div>
+
+					<div class="era meadow">In Meadow · since Oct 30, 2026</div>
+
+					<div class="row quiet">
+						<span class="icon">JA</span
+						><span class="line"
+							><span class="actor">Janae</span> changed the lead source from Website to Zillow</span
+						><span class="time">Nov 3</span>
+					</div>
+
+					<div class="row user">
+						<span class="icon">JA</span>
+						<span class="line"
+							><span class="actor">Janae</span> called Priya · Talked<span class="marker">F</span>
+							<div class="bubble out">
+								She’s ready to start again in the spring. Same needs list, budget now $775k.
+							</div>
+						</span>
+						<span class="time">Nov 10</span>
+					</div>
+
+					<div class="row client">
+						<span class="icon">PN</span>
+						<span class="line"
+							><span class="actor">Priya</span> emailed<span class="tag">logged by Jayden</span>
+							<div class="bubble in">Thanks Jayden! Here’s our lender letter.</div>
+						</span>
+						<span class="time">Nov 11</span>
+					</div>
+
+					<div class="row user">
+						<span class="icon">JB</span>
+						<span class="line"
+							><span class="actor">Jayden</span> added a note
+							<div class="note">Send her the two Eastside pocket listings before they go live.</div>
+						</span>
+						<span class="time">Nov 12</span>
+					</div>
+
+					<div class="composer"><b>Note</b> · Log contact — Write a note…</div>
+				</div>
+			</section>
+
+			<section>
+				<h2>Markers</h2>
+				<ol class="legend" type="A">
+					<li>
+						Two-way contact, standalone: the client’s own words in a tinted bubble. Expanding shows the
+						parsed detail.
+					</li>
+					<li>
+						Collapsed run of automated outbound texts with no reply in between; expanded, each is a quiet
+						one-liner. Collapsing happens in the UI only; every text stays its own row.
+					</li>
+					<li>Same shape as a Meadow-logged inbound text: only the era and the actor differ.</li>
+					<li>Standalone system entry, expanded to its fields.</li>
+					<li>Typed BoldTrail note with no recorded author, clamped to three lines.</li>
+					<li>
+						Meadow-era call: identical to the BoldTrail call above it, attributed to the user who logged
+						it.
+					</li>
+				</ol>
+			</section>
+		</div>
+		<script>
+			for (const button of document.querySelectorAll(".mock .toggle")) {
+				button.addEventListener("click", () => {
+					const open = button.getAttribute("aria-expanded") !== "true";
+					button.setAttribute("aria-expanded", String(open));
+					if (button.hasAttribute("data-clamp")) {
+						button.closest(".note").classList.toggle("clamped", !open);
+						button.textContent = open ? "Show less" : "Show all 6";
+						return;
+					}
+					const target = button.closest(".line").querySelector(".nested, .detail");
+					if (target) target.hidden = !open;
+				});
+			}
+		</script>
+	</body>
+</html>

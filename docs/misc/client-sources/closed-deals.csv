@@ -1,0 +1,166 @@
+year,side,property,source,client_ids,clients,confidence,handwritten_name
+2021,sold,34134 E Lacomb Rd,Past Client Originals,import-client-6,Steve Johnson,strong,Johnson
+2021,bought,3071 SE Midvale Dr,Past Client Originals,import-client-291,Brett Burkhardt,strong,Burkhardt
+2021,bought,3251 SE Lyon St,Past Client Originals,import-client-17,Mary and Jason Middleton,strong,Middleton
+2021,bought,2224 Front Ave NE,Past Client Originals,import-client-14,Maricela Valenzuela,strong,Valenzuela
+2021,bought,7173 Cheryl Ct SE,Past Client Originals,import-client-416,Jim White,strong,White
+2021,bought,2942 41st Ave SE,Past Client Originals,import-client-282 import-client-521,Spencer Mullins; Dezaray Mullins,strong,Mullins
+2021,bought,3770 & 3776 State St,Past Client Originals,import-client-752,Tina Spinney,strong,Spinney
+2020,bought,2960 NE Levi Ln,Past Client Originals,import-client-23,Dominic Sr. DeCarlo,strong,Geralyn/Dominic DeCarlo
+2020,bought,2650 Willetta St SW,Past Client Originals,import-client-300,Daniel Abernethy,strong,Dan Abernethy
+2020,bought,173 Cedar Ln,Past Client Originals,import-client-18,Carol Ross,strong,Carol Ross
+2020,bought,1728 NW 33rd St,Past Client Originals,import-client-301,Derek Vandenburgh,strong,Derek/Jelana Vandenburgh
+2020,bought,7625 Buena Vista Rd,Past Client Originals,import-client-520,Dee Mariott,strong,Dee Mariott
+2020,bought,2372 Laura Vista Dr NW,Past Client Originals,import-client-257 import-client-11,Yedil Hunde; Mahi Dinku,strong,Mahi/Yedil Hunde
+2020,bought,1785 Moraga Ave SE,Past Client Originals,import-client-292 import-client-522,Cathie & Dennis Davis; Dennis Davis,strong,Cathie/Dennis Davis
+2020,sold,1709 Springhill Dr NE,Past Client Originals,import-client-299,Corey Bontrager,strong,Corey
+2020,bought,4432 Bounty Dr NE,Past Client Originals,import-client-19,Bobby Chitwood,strong,Robert Chitwood
+2020,bought,1931 SW Waverly St,Past Client Originals,import-client-262 import-client-506,Zouhong Wang; Lin Zhu,strong,Lin Zhu/Zouhong Wang
+2020,bought,331 SE Elder St,Past Client Originals,import-client-254,Teddy Murphy,strong,Teddy Murphy
+2020,bought,305 SE Elder St,Past Client Originals,import-client-254,Teddy Murphy,strong,Teddy Murphy
+2019,bought,797 29th Ave,Past Client Originals,import-client-5 import-client-510,Jim Buck; Marilyn Buck,strong,Jim/Marilyn Buck
+2019,sold,2568 Orchard Heights Av NW,Past Client Originals,import-client-20,Cairo Kearney,strong,Cairo
+2019,sold,4116 Clay Pl SE,Past Client Originals,import-client-268,Moria Golub,strong,Cairo (inferred)
+2019,bought,4116 Clay Pl SE,Past Client Originals,import-client-20,Cairo Kearney,strong,Cairo (inferred)
+2019,bought,1089 42nd Ave,Past Client Originals,import-client-266,Glenn Gross,strong,Glen Gross
+2019,sold,3328 Avondale Pl,Past Client Originals,import-client-22,Dave Schut,strong,Dave Schut
+2019,sold,352 Berry St,Past Client Originals,import-client-24,Dennis Westbrook,strong,Dennis Westbrook
+2019,bought,Baker St SE,Past Client Originals,import-client-840,Ben & Nina Pruett,strong,Ben/Nina Pruett
+2019,sold,Windy Av NE,Past Client Originals,import-client-840,Ben & Nina Pruett,strong,Ben/Nina Pruett
+2019,sold,3860 Grand Prairie Rd SE,Past Client Originals,import-client-288,Stephany & Mike Carsner,strong,Mike/Steph Carsner
+2019,bought,38171 Golden Valley Dr,Past Client Originals,import-client-8 import-client-514,Jerry Walusiak; Julie Walusiak,strong,Jerry Walusiak
+2019,bought,575 Hardcastle Ave,Past Client Originals,import-client-273 import-client-517,Riley Grimes; Briar Grimes,strong,Riley/Briar Grimes
+2019,sold,3317 Avondale Pl,Past Client Originals,import-client-285 import-client-512,Kevin Bogatin; Cameo Bogatin,strong,Kevin/Cameo Bogatin
+2019,sold,5514 Sugar Plum St SE,Past Client Originals,import-client-508 import-client-265,Nicolas Alexander; Sarah Alexander,strong,Nic/Sarah Alexander
+2019,bought,991 Cooper Ct,Past Client Originals,import-client-508 import-client-265,Nicolas Alexander; Sarah Alexander,strong,Nic/Sarah Alexander
+2019,sold,5518 N Coast Hwy,Past Client Originals,import-client-299,Corey Bontrager,strong,Corey
+2019,bought,5050 Columbus St SE #16,Past Client Originals,import-client-3,Joyce Hildebrand,strong,Joyce Hildebrand
+2019,bought,1060 Charlie Ave,Past Client Originals,import-client-504,Chase Meister,strong,Chase/Bri Meister
+2019,sold,34138 E Lacomb Rd,Past Client Originals,import-client-6,Steve Johnson,strong,Steve Johnson
+2019,bought,195 S Airport Rd,Past Client Originals,import-client-295,Jason and Joslyn Garcia,strong,Jason/Joslyn Garcia
+2019,bought,889 S Williams St,Past Client Originals,import-client-267,Zoila Schickler,strong,Zoila
+2019,sold,759 N Sunrise Dr,Past Client Originals,import-client-753,Nathan & Hali Smith,strong,Hali/Nathan Smith
+2019,bought,2822 NE Sherwood Pl,Past Client Originals,import-client-10,Vivek Narendra,strong,Vivek Narendra
+2019,bought,2455 Boston St SE,Past Client Originals,import-client-271,Ryan Billington,strong,Ryan Billington/Janice Partridge
+2019,bought,2993 Essex Av NW,Past Client Originals,import-client-15,Nitesh Madaan,strong,Nitesh/Isha Madaan
+2019,sold,1043 5th Av SE,Past Client Originals,import-client-500,Shanti Chatfield,strong,Shanti Chatfield
+2019,bought,1709 Springhill Dr NW,Past Client Originals,import-client-299,Corey Bontrager,strong,Corey
+2019,bought,352 Berry St,Past Client Originals,import-client-24,Dennis Westbrook,strong,Dennis Westbrook
+2019,bought,517 Knapp Pl NE,Past Client Originals,import-client-24,Dennis Westbrook,strong,Dennis Westbrook
+2019,bought,237 Harold Ct SE,Past Client Originals,import-client-277,Morgan Draper,strong,Morgan Draper/Emily Lockwood
+2019,bought,409 Montgomery St SE,Past Client Originals,import-client-4,Steven Koenig,strong,Edi/Steven Koenig
+2019,bought,22986 N Fork Rd SE,Past Client Originals,import-client-755,Denise Moyle,strong,Mark/Denise Moyle
+2019,sold,Harder Ln NW,Past Client Originals,import-client-299,Corey Bontrager,strong,Corey
+2019,bought,110 Jackson St E,Past Client Originals,import-client-296,Dirk Detweiler Leichty,strong,Dirk Leichty/Lydia Short/Khalicia Leichty
+2018,bought,7807 SE 46th Ave,Past Client Originals,import-client-280 import-client-287,Gabe Gregg; Kelly Ogden,strong,Gabe Gregg/Kelly Ogden
+2018,sold,1737 Main St,Past Client Originals,import-client-7,Sean Karbowski,strong,Sean Karbowski
+2018,sold,SE Summerfield Dr,Past Client Originals,import-client-238,Jennifer Ketterman,strong,?
+2018,bought,2507 Fulton St SE,Past Client Originals,import-client-511 import-client-513,Schyler Casey; Kacie Casey,strong,Schyler/Kacie Casey
+2018,bought,610 13th Ave SE,Past Client Originals,import-client-258,Hanna Collier,strong,Hanna Collier/Jean Reynolds
+2018,bought,1320 Washington St SW,Past Client Originals,import-client-278,Ronda Wirth,strong,Ronda Wirth
+2018,bought,900 Northview Ln NW,Past Client Originals,import-client-281 import-client-505,Hector Cordova; Claudia Cordova,strong,Hector Cordova
+2018,bought,3226 Pacific Pl SW #B,Past Client Originals,import-client-297,Koyce Miller,strong,Koyce Miller
+2018,bought,4116 Clay Pl SE,Past Client Originals,import-client-268,Moria Golub,strong,Moria
+2018,bought,1521 Harder Ln NW,Past Client Originals,import-client-299,Corey Bontrager,strong,Corey
+2018,bought,913 NW Edgewood Dr,Past Client Originals,import-client-754,Susan & Bob Fessler,strong,Robert/Susan Fessler
+2018,bought,1130 SW Park Pl,Past Client Originals,import-client-290,Brian Mehl,strong,Brian/Emily Mehl
+2018,bought,W Oak St,Past Client Originals,import-client-839,John King,strong,King (Tyler)
+2021,bought,1088 Meadowridge St NE,Past Client Originals,import-client-253,Susan Silva,possible,Susan
+2021,bought,3745 La Branch St SE,Past Client Originals,import-client-256,Dean Vandenburgh,possible,Vandenburgh
+2022,bought,2066 & 2084 Crocker Ln NW,Broker statements,import-client-305,Dorothy Griffith,likely,
+2022,sold,2504 Laura Vista NW,Broker statements,import-client-305,Dorothy Griffith,likely,
+2023,bought,1545 Adams St,Broker statements,import-client-540,Josh & Janissa Chavez,likely,
+2023,bought,2469 Kokanee Way,Broker statements,import-client-52,Mia and Josh  Miller,likely,
+2023,bought,3962 Edgewater Dr,Broker statements,import-client-352,Kathy Adams,likely,
+2025,bought,1650 Thurston St SE,Broker statements,import-client-394,Daniel Hernandez,likely,
+2024,sold,4116 Clay Pl SE,Broker statements,import-client-20,Cairo Kearney,strong,
+2022,bought,1121 NE Lafayette St,Broker statements,import-client-525,Andrew Armstrong,possible,
+2024,bought,1540 NW Springhill Dr,Broker statements,import-client-589,Ashley Kofler,possible,
+2023,referred,36276 Tapper Ln SE,Broker statements,import-client-574,Megan Shearer,possible,
+2025,bought,277 NE Conifer Blvd #1 Corvallis,Broker statements,,,unknown,
+2025,bought,5050 Columbus St SE #286 Albany,Broker statements,,,unknown,
+2025,bought,1740 NW Menlo Dr Corvallis,Broker statements,,,unknown,
+2025,referred,11311 Cowlitz Dr SE Olympia,Broker statements,,,unknown,
+2025,sold,2261 NE Valley Ridge Dr Newport,Broker statements,,,unknown,
+2025,bought,34118 Oakville Rd SW Albany,Broker statements,,,unknown,
+2025,bought,2187 Lafayette St SE Albany,Broker statements,,,unknown,
+2025,bought,1925 SE Jackson St Albany,Broker statements,,,unknown,
+2025,sold,1668 25th Ave SW Albany,Broker statements,,,unknown,
+2022,bought,325 SE 28th Street Albany,Broker statements,,,unknown,
+2022,bought,255 Warren Street N Monmouth,Broker statements,,,unknown,
+2022,bought,455 Crowfoot Road Lebanon,Broker statements,,,unknown,
+2022,bought,1234 NW 19th Avenue Albany,Broker statements,,,unknown,
+2022,bought,774 SW Lookout Drive Corvallis,Broker statements,,,unknown,
+2022,bought,971 Poplar Street Sweet Home,Broker statements,,,unknown,
+2022,bought,1454 Westwood Lane Sweet Home,Broker statements,,,unknown,
+2022,sold,2516 Laura Vista Drive NW Albany,Broker statements,,,unknown,
+2022,bought,500 Loucks Way #3 Brownsville,Broker statements,,,unknown,
+2022,sold,455 Crowfoot Road Lebanon,Broker statements,,,unknown,
+2022,sold,2777 41st Avenue SE Albany,Broker statements,,,unknown,
+2022,commercial,853 NE Harlow Road Troutdale,Broker statements,,,unknown,
+2022,sold,5100 NW Scenic Drive Albany,Broker statements,,,unknown,
+2022,bought,1635 Airway Place Lebanon,Broker statements,,,unknown,
+2022,both sides,517 NW 10th Street Corvallis,Broker statements,,,unknown,
+2022,bought,825 Evergreen Drive Creswell,Broker statements,,,unknown,
+2022,bought,425 SE 24th Ave Albany,Broker statements,,,unknown,
+2023,bought,5254 Hudson Ave Corvallis,Broker statements,,,unknown,
+2023,sold,2830 Hazel Drive Lebanon,Broker statements,,,unknown,
+2023,bought,5207 Jones Road SE Salem,Broker statements,,,unknown,
+2023,bought,4826 Shortridge St Albany,Broker statements,,,unknown,
+2023,bought,37357 Crabtree Drive Scio,Broker statements,,,unknown,
+2023,bought,33270 E Hwy 99 Tangent,Broker statements,,,unknown,
+2023,bought,1546 Terracegreen Place Corvallis,Broker statements,,,unknown,
+2023,sold,1235 Queen Avenue SE Albany,Broker statements,,,unknown,
+2023,sold,905 SE Fulton St Albany,Broker statements,,,unknown,
+2023,bought,11344 E Steelhead Place Tidewater,Broker statements,,,unknown,
+2023,bought,1935 Breakwood Circle SE Albany,Broker statements,,,unknown,
+2023,bought,1194 38th Ave Sweet Home,Broker statements,,,unknown,
+2023,bought,34505 Riverside Drive #22 Albany,Broker statements,,,unknown,
+2023,referred,0 NE Evergreen Hillsboro,Broker statements,,,unknown,
+2023,bought,3479 Siuslaw Court NE Albany,Broker statements,,,unknown,
+2023,sold,1955 Spicer Wayside SE Albany,Broker statements,,,unknown,
+2023,sold,415 NW 54th Place Newport,Broker statements,,,unknown,
+2023,bought,5555 Red Leaf Drive S Salem,Broker statements,,,unknown,
+2024,sold,162 SW 86th Ct South Beach,Broker statements,,,unknown,
+2024,bought,1231 SW Ellis St Dallas,Broker statements,,,unknown,
+2024,bought,4 Olalla Place Toledo,Broker statements,,,unknown,
+2024,bought,26653 Monroe Cemetery Rd Monroe,Broker statements,,,unknown,
+2024,bought,2437 27th Ave SE Albany,Broker statements,,,unknown,
+2024,bought,2345 G St Springfield,Broker statements,,,unknown,
+2024,bought,3314 Columbus St SE Albany,Broker statements,,,unknown,
+2025,sold,4423 Mackinaw Ave SE Albany,Broker statements,,,unknown,
+2025,bought,1954 SW Lyon St Albany,Broker statements,,,unknown,
+2025,bought,1356 Pressler Ct S Salem,Broker statements,,,unknown,
+2025,bought,1974 SW Waverly St Corvallis,Broker statements,,,unknown,
+2025,bought,1020 21st Ave SE Albany,Broker statements,,,unknown,
+2025,bought,898 Morning Glory Dr Independence,Broker statements,,,unknown,
+2025,bought,215 SE 7th Ave Albany,Broker statements,,,unknown,
+2025,bought,2763 NW Weather Stone St Albany,Broker statements,,,unknown,
+2021,bought,35064 SW Oakville Rd Albany,Past Client Originals,,,unknown,Fev/Linz
+2021,bought,V/L parcel 11S04W2302503 Albany,Past Client Originals,,,unknown,Neal
+2021,bought,1937 Bloom Ln NW Albany,Past Client Originals,,,unknown,Gma/Gpa
+2021,both sides,2952 NW San Pedro Ave Albany,Past Client Originals,,,unknown,Krebs
+2021,bought,0 NW Evergreen Blvd Hillsboro,Past Client Originals,,,unknown,Pabon
+2021,sold,5535 Apollo St SE Turner,Past Client Originals,,,unknown,Tim Perdue
+2021,sold,2944 San Pedro Ave NW Albany,Past Client Originals,,,unknown,Oleksak
+2021,sold,32558 Bellinger Scale Rd Lebanon,Past Client Originals,,,unknown,Gma/Gpa
+2021,sold,3257 Columbine St Lebanon,Past Client Originals,,,unknown,Hartman
+2021,bought,38945 Sodaville Waterloo Dr Lebanon,Past Client Originals,,,unknown,Hartman
+2021,bought,270 Walker Ln NW Albany,Past Client Originals,,,unknown,Farcog/Brown
+2021,bought,2243 Bloom Ln NW Albany,Past Client Originals,,,unknown,Farcog/Brown
+2020,bought,705 E Milton St Lebanon,Past Client Originals,,,unknown,Pat/Kellie Conrads
+2020,bought,318 9th Ave Sweet Home,Past Client Originals,,,unknown,Lakeshore Lane
+2020,lease,Pacific Blvd,Past Client Originals,,,unknown,Wolfy/Lara Herrmann
+2019,sold,2961 S 10th St Lebanon,Past Client Originals,,,unknown,Scott Wilson
+2019,sold,Calapooia St SW,Past Client Originals,,,unknown,?
+2019,bought,3339 Dorothy Dr Lebanon,Past Client Originals,,,unknown,Nick/Mallori Sobania
+2019,bought,976 Moneda Ave N Salem,Past Client Originals,,,unknown,Steve/Vickie Silva
+2019,bought,1720 Bobcat Ave SW,Past Client Originals,,,unknown,Christian/Stevie Metzger
+2018,sold,(Lot #18) Ln,Past Client Originals,,,unknown,?
+2018,bought,2656 Grandview Dr NW,Past Client Originals,,,unknown,Sevi/Angie Vejil
+2018,bought,Jefferson Pl SE,Past Client Originals,,,unknown,?
+2018,bought,1020 22nd Ave SE Albany,Past Client Originals,,,unknown,Candice Rudisill
+2018,sold,N River Dr,Past Client Originals,,,unknown,?
+2018,bought,13th Ave,Past Client Originals,,,unknown,Aaron/Anna Fetter
+2018,bought,Riverside Dr SW,Past Client Originals,,,unknown,Metzgers?/Beachy (Tim)
+2018,bought,Pacific Blvd (lot),Past Client Originals,,,unknown,Calvin/Justin

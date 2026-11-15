@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Client review</title>
+		<style>
+			:root {
+				color-scheme: light;
+				--ink: #1d2320;
+				--muted: #5d6762;
+				--line: #dfe4e0;
+				--accent: #2f6b4f;
+				font:
+					100%/1.6 -apple-system,
+					BlinkMacSystemFont,
+					"Segoe UI",
+					sans-serif;
+				color: var(--ink);
+				background: #fbfaf7;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+			}
+			main {
+				max-width: 48rem;
+				margin-inline: auto;
+				padding: 2.5rem 1rem 4rem;
+			}
+			h1 {
+				margin: 0 0 0.5rem;
+				font-size: 2rem;
+				line-height: 1.2;
+				letter-spacing: -0.025em;
+			}
+			p {
+				margin: 0 0 1rem;
+			}
+			.muted {
+				color: var(--muted);
+			}
+			a {
+				color: var(--accent);
+				text-underline-offset: 0.2em;
+				overflow-wrap: anywhere;
+			}
+			fieldset {
+				min-width: 0;
+				margin: 1.5rem 0;
+				padding: 1rem 1.25rem;
+				border: 1px solid var(--line);
+				border-radius: 0.75rem;
+				background: #fff;
+
+				& legend {
+					max-width: 100%;
+					padding-inline: 0.35rem;
+					font-weight: 650;
+					font-size: 1.1rem;
+					overflow-wrap: anywhere;
+				}
+				& p {
+					margin-bottom: 0.5rem;
+				}
+			}
+			.count {
+				margin-inline-start: 0.4rem;
+				color: var(--muted);
+				font-weight: 400;
+				font-variant-numeric: tabular-nums;
+			}
+			details {
+				margin-block: 0.5rem;
+				font-size: 0.95rem;
+
+				& summary {
+					width: fit-content;
+					padding-block: 0.5rem;
+					color: var(--accent);
+					cursor: pointer;
+				}
+				& ul {
+					margin: 0;
+					padding-inline-start: 1.2rem;
+				}
+				& li {
+					margin-bottom: 0.5rem;
+				}
+			}
+			.choices {
+				display: flex;
+				flex-wrap: wrap;
+				column-gap: 1.25rem;
+				align-items: center;
+
+				& label {
+					display: inline-flex;
+					align-items: center;
+					gap: 0.4rem;
+					min-height: 3rem;
+					cursor: pointer;
+				}
+				& input {
+					margin: 0;
+					width: 1.1rem;
+					height: 1.1rem;
+					accent-color: var(--accent);
+				}
+			}
+			button {
+				min-height: 3rem;
+				padding: 0.6rem 1rem;
+				border: 0;
+				border-radius: 0.5rem;
+				font: inherit;
+				color: #fff;
+				background: var(--accent);
+				cursor: pointer;
+
+				&:hover {
+					background: #24543e;
+				}
+			}
+			:focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 3px;
+			}
+			footer {
+				margin-top: 1.5rem;
+
+				& p {
+					margin-top: 0.5rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1 id="title">The remaining 684 clients</h1>
+			<p>
+				Choose <strong>Active</strong> to show clients in the Registry, <strong>Archive</strong> to hide
+				them but keep their data, <strong>Delete</strong> to remove them permanently, or
+				<strong>Not sure</strong> for further review.
+			</p>
+			<p class="muted">
+				Snapshot: November 14, 2026. “Recent” means November 14, 2025 onward. Notes are split by their
+				latest dated note, not when the client was added. Added dates come from BoldTrail’s registration
+				date and may reflect an older import. Engagement dates come from personal replies or completed
+				conversations; automated outreach and BoldTrail’s Status field do not count.
+			</p>
+			<form id="review" aria-labelledby="title">
+				<div id="tiers"></div>
+				<footer>
+					<p id="progress" class="muted"></p>
+					<button type="submit">Download answers for Josh</button>
+					<p class="muted" id="status" role="status">
+						Choose once for each remaining group. Downloads also include the 30 clients already approved
+						Active.
+					</p>
+				</footer>
+			</form>
+			<noscript>This form needs JavaScript to show the groups and download answers.</noscript>
+		</main>
+		<script id="review-data" type="application/json">
+			{
+				"as_of": "2026-11-14",
+				"cutoff": "2025-11-14",
+				"groups": {
+					"relationship-tag": {
+						"count": 0,
+						"restricted": 0,
+						"examples": []
+					},
+					"notes-older": {
+						"count": 72,
+						"restricted": 0,
+						"examples": [
+							{
+								"client_id": "import-client-413",
+								"name": "Ellie Vincent",
+								"group": "notes-older",
+								"registered": "2025-11-13",
+								"last_engagement": "",
+								"last_note": "2025-11-13",
+								"last_opt_out": "",
+								"evidence": "Free-text note to review; meaning and author not established",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Ellie+Vincent"
+							},
+							{
+								"client_id": "import-client-509",
+								"name": "Nora Taylor",
+								"group": "notes-older",
+								"registered": "2021-09-08",
+								"last_engagement": "",
+								"last_note": "2022-07-20",
+								"last_opt_out": "",
+								"evidence": "Free-text note to review; meaning and author not established",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Nora+Taylor&archived=true"
+							},
+							{
+								"client_id": "import-client-518",
+								"name": "Michael Scott",
+								"group": "notes-older",
+								"registered": "2021-09-08",
+								"last_engagement": "",
+								"last_note": "2021-09-08",
+								"last_opt_out": "",
+								"evidence": "Free-text note to review; meaning and author not established",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Michael+Scott&archived=true"
+							}
+						]
+					},
+					"notes-undated": {
+						"count": 0,
+						"restricted": 0,
+						"examples": []
+					},
+					"recent-engagement": {
+						"count": 36,
+						"restricted": 0,
+						"examples": [
+							{
+								"client_id": "import-client-226",
+								"name": "JOSHUA LOGAN",
+								"group": "recent-engagement",
+								"registered": "2026-09-06",
+								"last_engagement": "2026-09-06",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "Personal Zillow message",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=JOSHUA+LOGAN"
+							},
+							{
+								"client_id": "import-client-710",
+								"name": "Tamara Cox",
+								"group": "recent-engagement",
+								"registered": "2026-03-08",
+								"last_engagement": "2026-03-08",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "Completed phone conversation",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Tamara+Cox"
+							},
+							{
+								"client_id": "import-client-616",
+								"name": "Kobs Strobs",
+								"group": "recent-engagement",
+								"registered": "2025-12-04",
+								"last_engagement": "2025-12-04",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "Personal text reply",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Kobs+Strobs"
+							}
+						]
+					},
+					"older-engagement": {
+						"count": 91,
+						"restricted": 0,
+						"examples": [
+							{
+								"client_id": "import-client-612",
+								"name": "Lliabeth Ortiz-Villanueva",
+								"group": "older-engagement",
+								"registered": "2025-09-29",
+								"last_engagement": "2025-09-29",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "Personal Zillow message",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Lliabeth+Ortiz-Villanueva"
+							},
+							{
+								"client_id": "import-client-371",
+								"name": "Kathleen Smith",
+								"group": "older-engagement",
+								"registered": "2024-01-19",
+								"last_engagement": "2024-01-19",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "Personal Zillow message",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Kathleen+Smith&archived=true"
+							},
+							{
+								"client_id": "import-client-317",
+								"name": "Laura",
+								"group": "older-engagement",
+								"registered": "2022-01-10",
+								"last_engagement": "2022-01-10",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "Personal Zillow message",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Laura&archived=true"
+							}
+						]
+					},
+					"recent-unengaged": {
+						"count": 197,
+						"restricted": 0,
+						"examples": [
+							{
+								"client_id": "import-client-225",
+								"name": "Garrett Horning",
+								"group": "recent-unengaged",
+								"registered": "2026-06-29",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "No personal reply, completed conversation, or relationship note found",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Garrett+Horning"
+							},
+							{
+								"client_id": "import-client-681",
+								"name": "Penny Schuld",
+								"group": "recent-unengaged",
+								"registered": "2026-02-05",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "No personal reply, completed conversation, or relationship note found",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Penny+Schuld"
+							},
+							{
+								"client_id": "import-client-414",
+								"name": "Josanna Biddle-Croco",
+								"group": "recent-unengaged",
+								"registered": "2025-11-26",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "No personal reply, completed conversation, or relationship note found",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Josanna+Biddle-Croco"
+							}
+						]
+					},
+					"older-unengaged": {
+						"count": 192,
+						"restricted": 0,
+						"examples": [
+							{
+								"client_id": "import-client-130",
+								"name": "sarahabicht302",
+								"group": "older-unengaged",
+								"registered": "2025-11-12",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "No personal reply, completed conversation, or relationship note found",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=sarahabicht302"
+							},
+							{
+								"client_id": "import-client-772",
+								"name": "Saul Ramos",
+								"group": "older-unengaged",
+								"registered": "2023-08-29",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "No personal reply, completed conversation, or relationship note found",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Saul+Ramos&archived=true"
+							},
+							{
+								"client_id": "import-client-515",
+								"name": "Kat Budlong",
+								"group": "older-unengaged",
+								"registered": "2021-09-08",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "",
+								"evidence": "No personal reply, completed conversation, or relationship note found",
+								"contact_restriction": "",
+								"url": "https://dash.meadownw.com/registry?q=Kat+Budlong&archived=true"
+							}
+						]
+					},
+					"opted-out": {
+						"count": 96,
+						"restricted": 96,
+						"examples": [
+							{
+								"client_id": "import-client-424",
+								"name": "Liz Hansen",
+								"group": "opted-out",
+								"registered": "2025-12-15",
+								"last_engagement": "2026-08-20",
+								"last_note": "",
+								"last_opt_out": "2026-08-20",
+								"evidence": "STOP reply or recorded opt-out",
+								"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+								"url": "https://dash.meadownw.com/registry?q=Liz+Hansen&archived=true"
+							},
+							{
+								"client_id": "import-client-355",
+								"name": "DAngelo Bacio",
+								"group": "opted-out",
+								"registered": "2023-07-25",
+								"last_engagement": "2024-10-15",
+								"last_note": "",
+								"last_opt_out": "2024-01-25",
+								"evidence": "STOP reply or recorded opt-out",
+								"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+								"url": "https://dash.meadownw.com/registry?q=DAngelo+Bacio&archived=true"
+							},
+							{
+								"client_id": "import-client-135",
+								"name": "Joanna Alvarez",
+								"group": "opted-out",
+								"registered": "2025-12-06",
+								"last_engagement": "",
+								"last_note": "",
+								"last_opt_out": "2025-12-10",
+								"evidence": "STOP reply or recorded opt-out",
+								"contact_restriction": "Recorded opt-out; preserve Consent by channel",
+								"url": "https://dash.meadownw.com/registry?q=Joanna+Alvarez&archived=true"
+							}
+						]
+					}
+				},
+				"approved_active": [
+					{
+						"client_id": "import-client-743",
+						"case_id": "note-743",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The August buying note needs an outcome check: verify the pre-approval status and whether the inquiry progressed."
+					},
+					{
+						"client_id": "import-client-615",
+						"case_id": "outbound-introductions",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+					},
+					{
+						"client_id": "import-client-690",
+						"case_id": "outbound-introductions",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+					},
+					{
+						"client_id": "import-client-798",
+						"case_id": "outbound-introductions",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The review evidence was a generic outbound introduction with no personal reply found. Verify actual engagement and whether this client belongs in the active Registry."
+					},
+					{
+						"client_id": "import-client-750",
+						"case_id": "note-750",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Clarify which application the note refers to, its current status, and whether assistance is still needed."
+					},
+					{
+						"client_id": "import-client-673",
+						"case_id": "note-673",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current timing and financing, and whether the proposed appointment was ever confirmed."
+					},
+					{
+						"client_id": "import-client-224",
+						"case_id": "note-224",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The imported note flags a suspected scam. Verify identity and legitimacy before treating this as genuine business."
+					},
+					{
+						"client_id": "import-client-746",
+						"case_id": "note-746",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm whether the browsing inquiry became current buying work and fill in the missing qualification details."
+					},
+					{
+						"client_id": "import-client-833",
+						"case_id": "note-833",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm whether the requested showing happened, the inquiry outcome, and current agent representation."
+					},
+					{
+						"client_id": "import-client-209",
+						"case_id": "invalid-email-notices",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
+					},
+					{
+						"client_id": "import-client-463",
+						"case_id": "invalid-email-notices",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The review evidence was an invalid-email system notice, not personal engagement. Verify the email address and whether there is a genuine business relationship."
+					},
+					{
+						"client_id": "import-client-205",
+						"case_id": "note-205",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current buying interest, financing status, and whether the lender introduction happened."
+					},
+					{
+						"client_id": "import-client-738",
+						"case_id": "note-738",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current buying interest, financing, and whether the unresolved qualification questions were answered."
+					},
+					{
+						"client_id": "import-client-736",
+						"case_id": "note-736",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Detailed search notes exist but no personal engagement was detected by the classifier. Verify communication history and the search outcome."
+					},
+					{
+						"client_id": "import-client-484",
+						"case_id": "note-484",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current interest and whether the client is represented by another agent before further outreach."
+					},
+					{
+						"client_id": "import-client-650",
+						"case_id": "note-650",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The latest note puts plans on hold. Confirm whether they resumed before treating this as current work."
+					},
+					{
+						"client_id": "import-client-440",
+						"case_id": "note-440",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm the current sale and purchase status, the offer outcome, and whether another agent is involved."
+					},
+					{
+						"client_id": "import-client-481",
+						"case_id": "note-481",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Reconcile the changing inquiry and showing notes; confirm current interest, agent representation, and the follow-up outcome."
+					},
+					{
+						"client_id": "import-client-715",
+						"case_id": "note-715",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Two near-duplicate notes describe the same inquiry. Confirm financing and the follow-up outcome without treating the duplicate as additional evidence."
+					},
+					{
+						"client_id": "import-client-702",
+						"case_id": "note-702",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm who the intended buyer is, whether the client record represents them correctly, and current agent representation."
+					},
+					{
+						"client_id": "import-client-824",
+						"case_id": "note-824",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm who participated in the recorded conversation and whether the record identifies the intended buyer correctly."
+					},
+					{
+						"client_id": "import-client-820",
+						"case_id": "note-820",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current buying interest, financing, and whether the requested callback happened."
+					},
+					{
+						"client_id": "import-client-818",
+						"case_id": "note-818",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm the current sale and purchase status and whether the requested callback was completed."
+					},
+					{
+						"client_id": "import-client-458",
+						"case_id": "note-458",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current buying interest, financing status, and whether the requested callback happened."
+					},
+					{
+						"client_id": "import-client-809",
+						"case_id": "note-809",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current buying interest, agent representation, and whether the planned follow-up happened."
+					},
+					{
+						"client_id": "import-client-401",
+						"case_id": "note-401",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm whether the recorded buying interest is still current and whether any later work or outcome is missing."
+					},
+					{
+						"client_id": "import-client-808",
+						"case_id": "note-808",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "The January notes deferred a decision until spring. Confirm whether that decision was made and whether the sale-and-purchase plans are still current."
+					},
+					{
+						"client_id": "import-client-648",
+						"case_id": "note-648",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm the current buying and selling status, financing, and outcome of the recorded follow-up."
+					},
+					{
+						"client_id": "import-client-437",
+						"case_id": "note-437",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm current buying interest, financing status, and whether the disconnected transfer was followed up."
+					},
+					{
+						"client_id": "import-client-137",
+						"case_id": "note-137",
+						"decision": "active",
+						"flagged": true,
+						"flag_note": "Confirm the current selling timeline and whether the recorded follow-up led to further work."
+					}
+				]
+			}
+		</script>
+		<script>
+			const data = JSON.parse(document.getElementById("review-data").textContent);
+			const tiers = [
+				{
+					id: "relationship-tag",
+					title: "PastClient/ForeverClient hashtags",
+					criteria:
+						"An explicit PastClient/ForeverClient hashtag, kept separate from free-text notes. The hashtag is a clue, not independent proof of completed business.",
+				},
+				{
+					id: "notes-older",
+					title: "Older notes",
+					criteria:
+						"Latest dated note before November 14, 2025, with no PastClient/ForeverClient hashtag. These are notes needing review, not verified relationships. This choice applies to all 72 clients.",
+				},
+				{
+					id: "notes-undated",
+					title: "Undated notes",
+					criteria:
+						"A free-text note with no usable note date and no PastClient/ForeverClient hashtag. Not assumed to be recent or older.",
+				},
+				{
+					id: "recent-engagement",
+					title: "Recent engagement",
+					criteria:
+						"A personal text reply or answered question, a non-template Zillow message, or a completed phone conversation on or after November 14, 2025, without a note-review clue or recorded contact restriction.",
+				},
+				{
+					id: "older-engagement",
+					title: "Older engagement",
+					criteria:
+						"Same engagement evidence, but the latest recorded engagement is before November 14, 2025. Automated messages and unanswered calls are excluded.",
+				},
+				{
+					id: "recent-unengaged",
+					title: "Recently added, no engagement",
+					criteria:
+						"Registered in BoldTrail on or after November 14, 2025, without a note-review clue, personal engagement, or recorded restriction. Generic address inquiries do not count as personal engagement.",
+				},
+				{
+					id: "older-unengaged",
+					title: "Older, no engagement",
+					criteria: "Same as above, except registered before November 14, 2025.",
+				},
+				{
+					id: "opted-out",
+					title: "Opted out",
+					criteria:
+						"An incoming STOP reply, a recorded opt-out, or an imported contact restriction, without a hashtag or note-review clue. A later reply does not clear a restriction. Choose Not sure to explore particular dates and opt-out signals.",
+				},
+			].filter((tier) => data.groups[tier.id]?.count > 0);
+			const store = "meadow-client-review-note-cases-2026-11-14";
+			const status = document.getElementById("status");
+			const options = [
+				["active", "Active"],
+				["archive", "Archive"],
+				["delete", "Delete"],
+				["unsure", "Not sure"],
+			];
+			const validAnswer = (value) => options.some(([option]) => option === value);
+			const object = (value) =>
+				value && typeof value === "object" && !Array.isArray(value) ? value : {};
+			let saved = { tiers: {}, cases: {} };
+			try {
+				const previous = object(JSON.parse(localStorage.getItem(store) || "{}"));
+				saved = { tiers: object(previous.tiers), cases: object(previous.cases) };
+				const legacy = object(
+					JSON.parse(localStorage.getItem("meadow-client-review-six-groups-2026-11-14") || "{}"),
+				);
+				const legacyTiers = object(legacy.tiers);
+				for (const tier of tiers) {
+					if (
+						!tier.id.startsWith("notes-") &&
+						tier.id !== "relationship-tag" &&
+						!validAnswer(saved.tiers[tier.id]) &&
+						validAnswer(legacyTiers[tier.id])
+					)
+						saved.tiers[tier.id] = legacyTiers[tier.id];
+				}
+			} catch {
+				status.textContent = "Browser saving is unavailable. Download your answers before closing.";
+			}
+			const escape = (value) =>
+				String(value).replace(
+					/[&<>"']/g,
+					(character) =>
+						({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character],
+				);
+			const displayDate = (value) => {
+				const [year, month, day] = value.split("-");
+				return `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(month) - 1]} ${Number(day)}, ${year}`;
+			};
+			const dates = (client) =>
+				[
+					`Added ${displayDate(client.registered)}`,
+					client.last_engagement
+						? `last engagement ${displayDate(client.last_engagement)}`
+						: "no personal engagement found",
+					client.last_note ? `latest note ${displayDate(client.last_note)}` : "",
+					client.last_opt_out ? `opt-out ${displayDate(client.last_opt_out)}` : "",
+				]
+					.filter(Boolean)
+					.join(" · ");
+			const controls = (kind, id) =>
+				`<div class="choices">${options.map(([value, label]) => `<label for="${kind}-${escape(id)}-${value}"><input id="${kind}-${escape(id)}-${value}" type="radio" name="${kind}-${escape(id)}" data-kind="${kind}" data-id="${escape(id)}" value="${value}" ${saved[kind][id] === value ? "checked" : ""}>${label}</label>`).join("")}</div>`;
+			document.getElementById("tiers").innerHTML = tiers
+				.map((tier, index) => {
+					const group = data.groups[tier.id];
+					return `<fieldset aria-describedby="description-${tier.id}"><legend>${index + 1}. ${escape(tier.title)}<span class="count">${group.count} clients</span></legend><p id="description-${tier.id}">${escape(tier.criteria)}</p><details><summary>Examples and dates</summary><ul>${group.examples.map((client) => `<li><a href="${escape(client.url)}" target="_blank" rel="noopener">${escape(client.name)}</a> — ${escape(client.evidence)}<br><span class="muted">${escape(dates(client))}</span></li>`).join("")}</ul></details>${controls("tiers", tier.id)}</fieldset>`;
+				})
+				.join("");
+			document.getElementById("title").textContent =
+				`The remaining ${tiers.reduce((total, tier) => total + data.groups[tier.id].count, 0)} clients`;
+			const updateProgress = () => {
+				const answered = tiers.filter((tier) => validAnswer(saved.tiers[tier.id])).length;
+				document.getElementById("progress").textContent =
+					`${answered} of ${tiers.length} groups answered.`;
+			};
+			updateProgress();
+			document.getElementById("review").addEventListener("change", (event) => {
+				if (event.target.type !== "radio") return;
+				const { kind, id } = event.target.dataset;
+				saved[kind][id] = event.target.value;
+				updateProgress();
+				try {
+					localStorage.setItem(store, JSON.stringify(saved));
+					status.textContent = "Answers saved in this browser. Download them when ready.";
+				} catch {
+					status.textContent = "Browser saving is unavailable. Download your answers before closing.";
+				}
+			});
+			document.getElementById("review").addEventListener("submit", (event) => {
+				event.preventDefault();
+				const labels = Object.fromEntries(options);
+				const rows = [
+					[
+						"As of",
+						"Recent since",
+						"Group ID",
+						"Group",
+						"Case ID",
+						"Client ID",
+						"Clients",
+						"Answer",
+						"Review note",
+					],
+				];
+				for (const client of data.approved_active)
+					rows.push([
+						data.as_of,
+						data.cutoff,
+						"notes-recent",
+						"Recent notes — already approved Active",
+						client.case_id,
+						client.client_id,
+						1,
+						"Active",
+						client.flag_note,
+					]);
+				for (const tier of tiers) {
+					rows.push([
+						data.as_of,
+						data.cutoff,
+						tier.id,
+						tier.title,
+						"",
+						"",
+						data.groups[tier.id].count,
+						labels[saved.tiers[tier.id]] ?? "Not answered",
+						"",
+					]);
+				}
+				const cell = (value) => {
+					const text = String(value);
+					return `"${(/^[=+\-@\t\r\n]/.test(text) ? "'" + text : text).replace(/"/g, '""')}"`;
+				};
+				const url = URL.createObjectURL(
+					new Blob(["\ufeff" + rows.map((row) => row.map(cell).join(",")).join("\r\n")], {
+						type: "text/csv;charset=utf-8",
+					}),
+				);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = "meadow-client-review.csv";
+				document.body.append(link);
+				link.click();
+				link.remove();
+				setTimeout(() => URL.revokeObjectURL(url), 1000);
+				status.textContent = "Downloaded meadow-client-review.csv with your answers. Send it to Josh.";
+			});
+		</script>
+	</body>
+</html>
