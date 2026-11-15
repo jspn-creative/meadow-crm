@@ -8,6 +8,7 @@
 	import { destinations } from "#lib/shell/navigation.js";
 	import Motif from "#lib/shell/Motif.svelte";
 	import UserChip from "#lib/shell/UserChip.svelte";
+	import { userFirstName } from "#lib/data/users.js";
 	import { identityChangeKey, replaceSession } from "#lib/shell/session-navigation.js";
 	import BookmarkStack from "#lib/bookmarks/BookmarkStack.svelte";
 	import FeedbackTool from "#lib/feedback/FeedbackTool.svelte";
@@ -45,7 +46,7 @@
 		const timeout = window.setTimeout(() => replaceSession("/login"), Math.max(0, data.support.expiresAt - Date.now()));
 		return () => window.clearTimeout(timeout);
 	});
-	const material = variantSetting("material", ["Glass", "Tactile"], { label: "Material" });
+	const material = variantSetting("material", ["Tactile", "Glass"], { label: "Material" });
 	$effect(() => {
 		if (dev) document.documentElement.dataset.material = material.value.toLowerCase();
 	});
@@ -107,6 +108,7 @@
 	// The nav scrolls sideways below desktop, and vertically on desktop only for the style guide's longer list; the app's desktop nav never scrolls, so it skips the mask that would clip its focus rings.
 	const navFadeX = overflowFade({ axis: "x", fadePercent: 12 });
 	const navFadeY = overflowFade({ axis: "y", fadePercent: 12 });
+	const mainFade = overflowFade({ axis: "y", fadePercent: 4, scrollSource: (node) => node.closest("main") });
 	let navFade = $derived(desktop.current ? (isGuide ? navFadeY : null) : navFadeX);
 	let greetingHidden = $derived(desktop.current ? collapsed : mobileScrolled);
 	// Shallow navigations change a view's own state, such as the Registry's filters, so they keep the scroll position and skip the shell transition.
@@ -188,7 +190,7 @@
 			{:else}
 				<MotionConfig reducedMotion="user" skipAnimations={reducedMotion.current}>
 					<motion.div initial={false} animate={{ height: greetingHidden ? 0 : "auto", opacity: greetingHidden ? 0 : 1 }} transition={{ type: "tween", duration: 0.36, ease: [0.23, 1, 0.32, 1] }} class="rail-greeting shrink-0 overflow-hidden" inert={greetingHidden}>
-						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight sm:mt-8 lg:mt-10 lg:w-52"><span class="whitespace-nowrap">Good morning,</span><br /> <span class="whitespace-nowrap">Meadow Lane.</span></p>
+						<p class="font-display mt-4 text-2xl/[1.08] tracking-tight sm:mt-8 lg:mt-10 lg:w-52"><span class="whitespace-nowrap">Good morning,</span><br /> <span class="whitespace-nowrap">{data.identity ? userFirstName(data.identity.effectiveUserId) : "Meadow Lane"}.</span></p>
 					</motion.div>
 				</MotionConfig>
 				{#snippet navLink(href: string, label: string, Icon: (typeof destinations)[number]["icon"], state: "page" | "true" | undefined, onclick?: (event: MouseEvent) => void)}
@@ -248,7 +250,7 @@
 				if (scrollTop > 24) mobileScrolled = true;
 				else if (scrollTop <= 0) mobileScrolled = false;
 			}}>
-			<div class="workspace-content">
+			<div class="workspace-content" {@attach mainFade}>
 				{#if !isLogin}
 					<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
 						<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
@@ -284,6 +286,6 @@
 				}} />
 		{/key}
 	{/if}
-	<VariantHost />
+	{#if isGuide}<VariantHost />{/if}
 	{#if data.identity && !isLogin}<FeedbackTool />{/if}
 {/if}

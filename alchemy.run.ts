@@ -64,7 +64,11 @@ export const Website = Cloudflare.Website.SvelteKit(
 			...(parent
 				? { preview: { of: parent, name: stage } }
 				: { name: stage === "prod" ? "meadow" : `meadow-${stage}` }),
-			dev: { host: process.env.MEADOW_DEV_HOST ?? "localhost", port: 1337, strictPort: true },
+			dev: {
+				host: process.env.MEADOW_DEV_HOST ?? "localhost",
+				port: Number(process.env.MEADOW_DEV_PORT ?? 1337),
+				strictPort: true,
+			},
 			observability: {
 				enabled: true,
 				logs: { enabled: true, invocationLogs: true },
@@ -79,7 +83,7 @@ export const Website = Cloudflare.Website.SvelteKit(
 					stage === "prod"
 						? "https://dash.meadownw.com"
 						: stage === "dev"
-							? (process.env.MEADOW_DEV_URL ?? "http://localhost:1337")
+							? (process.env.MEADOW_DEV_URL ?? `http://localhost:${process.env.MEADOW_DEV_PORT ?? 1337}`)
 							: Cloudflare.URL,
 				LOCAL_IDENTITY_STUB: stage === "dev" ? (process.env.LOCAL_IDENTITY_STUB ?? "false") : "false",
 				LOCAL_DEMO_USER: stage === "dev" ? (process.env.LOCAL_DEMO_USER ?? "realtor") : "realtor",
