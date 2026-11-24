@@ -235,7 +235,7 @@
 {/snippet}
 
 {#snippet fieldLabel(text: string)}
-	<span class="text-muted block text-xs font-medium">{text}</span>
+	<span class="field-label">{text}</span>
 {/snippet}
 
 {#snippet typeChip(type: OpportunityType)}
@@ -329,7 +329,7 @@
 
 {#snippet compactStage(scope: string)}
 	<fieldset>
-		<legend class="text-muted mb-2 text-xs font-medium">Stage</legend>
+		<legend class="field-label mb-label">Stage</legend>
 		<div class="bg-paper/70 grid grid-cols-2 gap-1 rounded-2xl p-1 @min-[36rem]/opportunity:grid-cols-4">
 			{#each stages as stage (stage)}
 				<label class="has-focus-visible:outline-field flex min-h-10 min-w-0 cursor-pointer items-center gap-2 rounded-xl px-2.5 py-2 hover:bg-white/60 has-checked:bg-white has-focus-visible:outline-2 has-focus-visible:outline-offset-2">
@@ -490,7 +490,7 @@
 					<div class="space-y-8 px-5 sm:px-8">
 						<!-- Stages are a sequence, so they read as a stepper: passed stages fill in, and choosing one moves the opportunity. -->
 						<fieldset>
-							<legend class="text-muted mb-2.5 text-xs font-medium">Stage</legend>
+							<legend class="field-label mb-label">Stage</legend>
 							<div class="bg-paper/70 grid grid-cols-2 gap-1 rounded-2xl p-1 @min-[30rem]/opportunity:grid-cols-4">
 								{#each stages as stage, index (stage)}
 									<label
@@ -835,13 +835,13 @@
 	<div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))] gap-4">
 		<div data-sg-panel class="border-hairline space-y-4 rounded-3xl border bg-white p-5">
 			{@render subheading("Text field", "Every state, forced where the pointer would be needed.")}
-			<label class="block space-y-1.5">{@render fieldLabel("Rest")}<input class="field" placeholder="Property address" /></label>
-			<label class="block space-y-1.5">{@render fieldLabel("Hover")}<input class="field" data-sg-state="hover" placeholder="Property address" /></label>
-			<label class="block space-y-1.5">{@render fieldLabel("Focus")}<input class="field" data-sg-state="focus" value="14 Orchard Row" /></label>
-			<label class="block space-y-1.5"
+			<label class="labeled">{@render fieldLabel("Rest")}<input class="field" placeholder="Property address" /></label>
+			<label class="labeled">{@render fieldLabel("Hover")}<input class="field" data-sg-state="hover" placeholder="Property address" /></label>
+			<label class="labeled">{@render fieldLabel("Focus")}<input class="field" data-sg-state="focus" value="14 Orchard Row" /></label>
+			<label class="labeled"
 				>{@render fieldLabel("Invalid")}<input class="field" aria-invalid="true" aria-describedby="sg-invalid-hint" value="ada.maple@" /><span id="sg-invalid-hint" class="text-urgent flex items-center gap-1.5 text-xs"><CircleAlert size={13} aria-hidden="true" />Enter a full email address.</span></label>
-			<label class="block space-y-1.5">{@render fieldLabel("Disabled")}<input class="field" disabled value="Saving…" /></label>
-			<label class="block space-y-1.5">{@render fieldLabel("Autofill")}<input class="field" data-sg-state="autofill" value="Ada Maple" autocomplete="name" /></label>
+			<label class="labeled">{@render fieldLabel("Disabled")}<input class="field" disabled value="Saving…" /></label>
+			<label class="labeled">{@render fieldLabel("Autofill")}<input class="field" data-sg-state="autofill" value="Ada Maple" autocomplete="name" /></label>
 		</div>
 		<div data-sg-panel class="border-hairline space-y-4 rounded-3xl border bg-white p-5">
 			{@render subheading("Field groups", "One boundary and one focus ring around a label, an addon or an icon.")}
@@ -853,10 +853,10 @@
 		</div>
 		<div data-sg-panel class="border-hairline space-y-4 rounded-3xl border bg-white p-5">
 			{@render subheading("Select, date and text area", "Native selects use the shared indicator and the browser’s picker.")}
-			<div class="space-y-1.5">{@render fieldLabel("Stage")}<Select label="Stage" bind:value={sampleStage} dot={`var(--color-${stageTones[sampleStage]})`} options={optionsFrom(stageLabels)} /></div>
-			<div class="space-y-1.5">{@render fieldLabel("Lead source")}<Select label="Lead source" bind:value={form.source} options={leadSources.map((source) => ({ value: source, label: source }))} /></div>
-			<label class="block space-y-1.5">{@render fieldLabel("Date")}<input class="field" type="date" value={today} /></label>
-			<label class="block space-y-1.5">{@render fieldLabel("Text area")}<textarea class="field field-sizing-content min-h-24">Flexible on closing date.</textarea></label>
+			<div class="labeled">{@render fieldLabel("Stage")}<Select label="Stage" bind:value={sampleStage} dot={`var(--color-${stageTones[sampleStage]})`} options={optionsFrom(stageLabels)} /></div>
+			<div class="labeled">{@render fieldLabel("Lead source")}<Select label="Lead source" bind:value={form.source} options={leadSources.map((source) => ({ value: source, label: source }))} /></div>
+			<label class="labeled">{@render fieldLabel("Date")}<input class="field" type="date" value={today} /></label>
+			<label class="labeled">{@render fieldLabel("Text area")}<textarea class="field field-sizing-content min-h-24">Flexible on closing date.</textarea></label>
 		</div>
 		<div data-sg-panel class="border-hairline space-y-4 rounded-3xl border bg-white p-5">
 			{@render subheading("Pill selects", "Compact filters; they show the accent when set to anything other than their default.")}
@@ -996,8 +996,8 @@
 	<form onsubmit={submitForm} aria-label="Sample client form" data-sg-panel class="border-hairline @container/form max-w-3xl space-y-6 rounded-3xl border bg-white p-5 sm:p-7" novalidate>
 		<p class="text-muted text-xs">Fields are illustrative, not the Registry’s client form.</p>
 		<div class="grid gap-4 @min-[32rem]/form:grid-cols-2">
-			<label class="block space-y-1.5">{@render fieldLabel("Name")}<input class="field" bind:value={form.name} required /></label>
-			<label class="block space-y-1.5">{@render fieldLabel("Birthday (optional)")}<input class="field" type="date" bind:value={form.birthday} /></label>
+			<label class="labeled">{@render fieldLabel("Name")}<input class="field" bind:value={form.name} required /></label>
+			<label class="labeled">{@render fieldLabel("Birthday (optional)")}<input class="field" type="date" bind:value={form.birthday} /></label>
 			<div class="space-y-1.5">
 				<span class="text-muted block text-xs font-medium" id="sg-phone-label">Phone</span>
 				<div class="grid grid-cols-[7rem_minmax(0,1fr)] gap-2">
@@ -1005,30 +1005,30 @@
 					<input class="field tabular-nums" type="tel" aria-labelledby="sg-phone-label" bind:value={form.phone} />
 				</div>
 			</div>
-			<label class="block space-y-1.5">
+			<label class="labeled">
 				{@render fieldLabel("Email")}
 				<input class="field" type="email" bind:value={form.email} aria-invalid={emailInvalid || undefined} aria-describedby={emailInvalid ? "sg-email-error" : undefined} oninput={() => (emailInvalid = false)} />
 				{#if emailInvalid}<span id="sg-email-error" class="text-urgent flex items-center gap-1.5 text-xs"><CircleAlert size={13} aria-hidden="true" />Enter a full email address, such as ada@example.com.</span>{/if}
 			</label>
-			<div class="space-y-1.5">{@render fieldLabel("Lead source")}<Select label="Lead source" bind:value={form.source} options={leadSources.map((source) => ({ value: source, label: source }))} /></div>
-			<label class="block space-y-1.5">{@render fieldLabel("Referred by")}<input class="field" bind:value={form.referredBy} placeholder="A client or a name" /></label>
+			<div class="labeled">{@render fieldLabel("Lead source")}<Select label="Lead source" bind:value={form.source} options={leadSources.map((source) => ({ value: source, label: source }))} /></div>
+			<label class="labeled">{@render fieldLabel("Referred by")}<input class="field" bind:value={form.referredBy} placeholder="A client or a name" /></label>
 		</div>
 		<div class="grid gap-6 @min-[32rem]/form:grid-cols-2">
 			<fieldset>
-				<legend class="text-muted mb-2 text-xs font-medium">Tags</legend>
+				<legend class="field-label mb-label">Tags</legend>
 				<div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
 					{#each tags as tag (tag.name)}<label class="flex min-h-9 items-center gap-2.5"><input type="checkbox" class="check" value={tag.name} bind:group={form.tags} />{tag.name}</label>{/each}
 				</div>
 			</fieldset>
 			<fieldset>
-				<legend class="text-muted mb-2 text-xs font-medium">Consent</legend>
+				<legend class="field-label mb-label">Consent</legend>
 				<div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
 					{#each ["call", "text", "email", "mail"] as channel (channel)}<label class="flex min-h-9 items-center gap-2.5 capitalize"><input type="checkbox" class="check" value={channel} bind:group={form.consent} />{channel}</label>{/each}
 				</div>
 				{#if !form.consent.length}<p class="bg-urgent-soft text-urgent mt-2 rounded-lg px-2.5 py-1.5 text-xs">Not to be contacted.</p>{/if}
 			</fieldset>
 		</div>
-		<label class="block space-y-1.5">{@render fieldLabel("Preferences")}<textarea class="field field-sizing-content min-h-24" bind:value={form.preferences}></textarea></label>
+		<label class="labeled">{@render fieldLabel("Preferences")}<textarea class="field field-sizing-content min-h-24" bind:value={form.preferences}></textarea></label>
 		<div class="border-hairline flex flex-wrap justify-end gap-2 border-t pt-4">
 			<button type="button" class="control" onclick={simulated("cancelled")}>Cancel</button>
 			<button class="control" data-variant="primary">Save client</button>
@@ -1062,7 +1062,7 @@
 	</div>
 {/snippet}
 
-<div class="surface-content @container/guide pb-24 [--gutter:--spacing(5)] sm:[--gutter:--spacing(8)] lg:[--gutter:--spacing(10)]" data-tight {@attach spy} {@attach contentFade}>
+<div class="surface-content @container/guide pb-24 [--gutter:var(--spacing-page)]" data-tight {@attach spy} {@attach contentFade}>
 	<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-8">
 		<div class="max-w-2xl space-y-2">
 			<p class="text-muted text-sm/6 text-pretty">The app’s shared classes and components, shown with fictional records. Records are never saved; local file selection and clipboard actions are identified where they occur.</p>

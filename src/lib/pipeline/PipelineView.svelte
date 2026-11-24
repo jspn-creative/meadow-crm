@@ -313,7 +313,7 @@
 </script>
 
 {#if !dialogOnly}
-	<div class="surface-content @container/board [--gutter:--spacing(5)] sm:[--gutter:--spacing(8)] lg:[--gutter:--spacing(10)]" data-tight>
+	<div class="surface-content @container/board [--gutter:var(--spacing-page)]" data-tight>
 		<p role="status" aria-live="polite" class="sr-only">{selected || creating ? "" : status}</p>
 		{#if failure && !selected && !creating}
 			<div role="alert" class="bg-urgent-soft text-urgent mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-urgent)]">

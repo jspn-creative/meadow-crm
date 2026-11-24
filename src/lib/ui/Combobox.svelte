@@ -102,7 +102,7 @@
 <svelte:document onpointerdown={dismissOutside} onfocusin={dismissOutside} />
 
 <div bind:this={root} class="relative min-w-0">
-	<label for={`${id}-input`} class="text-muted mb-1.5 block text-xs font-medium">{label}</label>
+	<label for={`${id}-input`} class="field-label mb-label block">{label}</label>
 	<div bind:this={field} class="field-group flex-wrap">
 		{#each selected as option (option.value)}
 			<span class="chip max-w-full min-w-0">

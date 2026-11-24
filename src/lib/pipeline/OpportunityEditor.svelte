@@ -39,25 +39,24 @@
 			pending = false;
 		}
 	}
-	const label = "text-muted block text-xs font-medium";
 </script>
 
 <form onsubmit={submit} aria-label="Opportunity editor" class="min-w-0 space-y-6" aria-busy={pending}>
 	<fieldset disabled={pending} class="min-w-0 space-y-6">
-		<label class="block space-y-1.5"><span class={label}>Opportunity title</span><input class="field font-display text-xl" bind:value={draft.title} required maxlength="200" /></label>
+		<label class="labeled"><span class="field-label">Opportunity title</span><input class="field font-display text-xl" bind:value={draft.title} required maxlength="200" /></label>
 		<div class="grid min-w-0 gap-4 @min-[28rem]/opportunity:grid-cols-2">
-			{#if !draft.revision}<label class="block min-w-0 space-y-1.5"><span class={label}>Type</span><Select label="Type" bind:value={draft.type} options={optionsFrom(typeLabels)} /></label>{/if}
-			<label class="block min-w-0 space-y-1.5"><span class={label}>{draft.revision ? "Stage" : "Initial stage"}</span><Select label={draft.revision ? "Stage" : "Initial stage"} bind:value={draft.stage} options={optionsFrom(stageLabels)} /></label>
-			<label class="block min-w-0 space-y-1.5"><span class={label}>Timeline (optional)</span><Select label="Timeline (optional)" bind:value={draft.timeline} options={[{ value: "", label: "No timeline" }, ...optionsFrom(timelineLabels)]} /></label>
-			<label class="block min-w-0 space-y-1.5"><span class={label}>Budget (USD, optional)</span><input class="field tabular-nums" inputmode="decimal" bind:value={draft.budget} placeholder="125000.50" /></label>
+			{#if !draft.revision}<label class="labeled"><span class="field-label">Type</span><Select label="Type" bind:value={draft.type} options={optionsFrom(typeLabels)} /></label>{/if}
+			<label class="labeled"><span class="field-label">{draft.revision ? "Stage" : "Initial stage"}</span><Select label={draft.revision ? "Stage" : "Initial stage"} bind:value={draft.stage} options={optionsFrom(stageLabels)} /></label>
+			<label class="labeled"><span class="field-label">Timeline (optional)</span><Select label="Timeline (optional)" bind:value={draft.timeline} options={[{ value: "", label: "No timeline" }, ...optionsFrom(timelineLabels)]} /></label>
+			<label class="labeled"><span class="field-label">Budget (USD, optional)</span><input class="field tabular-nums" inputmode="decimal" bind:value={draft.budget} placeholder="125000.50" /></label>
 		</div>
-		<label class="block space-y-1.5"><span class={label}>Property address (optional)</span><input class="field" bind:value={draft.address} maxlength="1000" /></label>
+		<label class="labeled"><span class="field-label">Property address (optional)</span><input class="field" bind:value={draft.address} maxlength="1000" /></label>
 		<Combobox label="Clients (optional)" placeholder="Start typing a client's name…" options={clientOptions} bind:values={draft.clientIds} disabled={pending}>
 			{#snippet chipIcon()}<span class="flex size-4 shrink-0 items-center justify-center rounded-sm bg-white"><UsersRound size={12} aria-hidden="true" /></span>{/snippet}
 		</Combobox>
-		{#if draft.revision}<label class="block space-y-1.5"><span class={label}>Notes</span><textarea class="field field-sizing-content" bind:value={draft.notes} maxlength="20000"></textarea></label>{/if}
+		{#if draft.revision}<label class="labeled"><span class="field-label">Notes</span><textarea class="field field-sizing-content" bind:value={draft.notes} maxlength="20000"></textarea></label>{/if}
 		<section aria-label="Edit references" class="min-w-0 space-y-2">
-			<h3 class={label}>References</h3>
+			<h3 class="field-label">References</h3>
 			{#each draft.references as reference, index (reference.key)}
 				<div class="bg-paper/50 grid min-w-0 gap-2 rounded-xl p-2 @min-[34rem]/opportunity:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
 					<Select label={`Reference ${index + 1} kind`} bind:value={reference.kind} options={referenceKinds} onchange={() => (reference.destination = "")} />

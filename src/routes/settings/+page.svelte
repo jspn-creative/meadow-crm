@@ -27,7 +27,7 @@
 
 <svelte:head><title>Settings · Meadow Lane</title></svelte:head>
 
-<nav aria-label="Settings sections" class="tabs gap-7 px-5 sm:px-8 lg:px-10">
+<nav aria-label="Settings sections" class="tabs px-page gap-7">
 	{#each sections as entry (entry.id)}<a href={`/settings?section=${entry.id}`} aria-current={section === entry.id ? "page" : undefined} class="tab shrink-0">{entry.label}</a>{/each}
 </nav>
 

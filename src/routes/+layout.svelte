@@ -102,7 +102,7 @@
 	// The nav scrolls sideways below desktop, and vertically on desktop only for the style guide's longer list; the app's desktop nav never scrolls, so it skips the mask that would clip its focus rings.
 	const navFadeX = overflowFade({ axis: "x", fadePercent: 12 });
 	const navFadeY = overflowFade({ axis: "y", fadePercent: 12 });
-	const mainFade = overflowFade({ axis: "y", fadePercent: 4, scrollSource: (node) => node.closest("main") });
+	const mainFade = overflowFade({ axis: "y", fadePercent: 10, scrollSource: (node) => node.closest("main") });
 	let navFade = $derived(desktop.current ? (isGuide ? navFadeY : null) : navFadeX);
 	let greetingHidden = $derived(desktop.current ? collapsed : mobileScrolled);
 	// Shallow navigations change a view's own state, such as the Registry's filters, so they keep the scroll position and skip the shell transition.
@@ -170,7 +170,7 @@
 					<span class="brand-label font-display truncate text-base tracking-tight">Meadow Lane</span>
 				</a>
 				{#if !isLogin}
-					<div class="flex items-center gap-2 pr-8 lg:hidden">
+					<div class="flex items-center gap-2 lg:hidden">
 						<BookmarkStack variant="compact" {openOpportunity} />
 						<UserChip compact />
 					</div>
@@ -208,7 +208,7 @@
 					{@attach navFade}
 					class={[
 						// Below lg the row scrolls sideways, so its vertical padding (offset by the margins) keeps focus glows from being clipped.
-						"-mx-6 flex shrink-0 gap-2 overflow-x-auto px-6 transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none max-lg:-mb-1.5 max-lg:py-1.5 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0",
+						"-mx-edge px-edge flex shrink-0 gap-2 overflow-x-auto transition-[margin-top] duration-360 ease-(--ease-shell) motion-reduce:transition-none max-lg:-mb-1.5 max-lg:py-1.5 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0",
 						!desktop.current && mobileScrolled ? "mt-0.5 sm:mt-2.5" : "mt-2.5 sm:mt-6.5 lg:mt-8",
 						// The style guide lists more sections than the app has modules, so on short viewports they scroll instead of pushing the account chip away.
 						isGuide && "lg:-mx-1 lg:min-h-0 lg:shrink lg:overflow-y-auto lg:px-1 lg:py-1",
@@ -246,7 +246,7 @@
 			}}>
 			<div class="workspace-content" {@attach mainFade}>
 				{#if !isLogin}
-					<header class="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 lg:px-10">
+					<header class="px-page flex flex-wrap items-center justify-between gap-3 pt-5 pb-4 sm:pt-8 sm:pb-6">
 						<h1 class="workspace-title font-display text-2xl tracking-tight text-balance sm:text-3xl">
 							{title}{#if routeUrl.pathname === "/"}
 								<span class="text-muted ml-1">/ Overview</span>{:else if routeUrl.pathname === "/pipeline/archived"}

@@ -70,6 +70,10 @@
 		0 8px 24px -8px oklch(from var(--theme-shade) l c h / calc(0.16 * var(--theme-shade-k))),
 		0 2px 6px oklch(from var(--theme-shade) l c h / calc(0.06 * var(--theme-shade-k)));
 	--ease-shell: cubic-bezier(0.23, 1, 0.32, 1);
+	/* Spacing tokens, as utilities such as gap-label and px-page. The label gap is how far every field label sits above its control; the edge is the inset of everything pinned to the window's corners: brand, account chip, and floating tools; the page gutter is the horizontal inset of a view's content, widened by the base layer as the viewport grows. */
+	--spacing-label: calc(var(--spacing) * 2);
+	--spacing-edge: calc(var(--spacing) * 6);
+	--spacing-page: calc(var(--spacing) * 5);
 }
 
 /* Static so the families stay available to runtime-selected CSS variables, not only to utilities found in markup. */
@@ -117,6 +121,14 @@
 }
 
 @layer base {
+	:root {
+		@media (min-width: 40rem) {
+			--spacing-page: calc(var(--spacing) * 8);
+		}
+		@media (min-width: 64rem) {
+			--spacing-page: calc(var(--spacing) * 10);
+		}
+	}
 	html {
 		@apply bg-canvas text-ink h-full overscroll-none;
 	}
@@ -212,9 +224,9 @@
 		@apply flex-row;
 	}
 	.rail {
-		@apply relative z-10 flex shrink-0 flex-col px-6 py-4;
+		@apply px-edge relative z-10 flex shrink-0 flex-col py-4;
 		@media (min-width: 64rem) {
-			@apply h-full px-6 py-7;
+			@apply h-full py-7;
 			width: var(--rail-width);
 			transition:
 				width 360ms var(--ease-shell),
@@ -390,7 +402,7 @@
 }
 
 .surface-content {
-	@apply px-5 py-8 sm:px-8 lg:px-10;
+	@apply px-page py-8;
 	&[data-tight] {
 		@apply pt-1;
 	}
