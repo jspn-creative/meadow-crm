@@ -2,15 +2,21 @@
 	import { lightDismiss } from "#lib/ui/light-dismiss.js";
 	let { opportunity = "", dialogOnly = false, onclose = () => {} }: { opportunity?: string; dialogOnly?: boolean; onclose?: () => void } = $props();
 	import { onDestroy, onMount, untrack } from "svelte";
-	import { Archive, ArrowLeft, Banknote, Bookmark, Clock3, Columns3, ContactRound, Link2, MapPin, PencilLine, Pin, PinOff, Plus, RefreshCw, Shapes, SlidersHorizontal, Tags, Trash2, Undo2, UserRound, X } from "@lucide/svelte";
+	import { Archive, ArrowLeft, Banknote, Bookmark, Clock3, Columns3, ContactRound, Link2, MapPin, NotebookPen, PencilLine, Pin, PinOff, Plus, RefreshCw, Shapes, SlidersHorizontal, Tags, Trash2, Undo2, UserRound, X } from "@lucide/svelte";
 	import { page } from "$app/state";
-	import { getWorkspace, saveOpportunity } from "#lib/crm.remote.js";
+	import { getActivity, getWorkspace, saveOpportunity } from "#lib/crm.remote.js";
 	import { bookmarks } from "#lib/bookmarks/bookmarks.svelte.js";
 	import OpportunityEditor from "#lib/pipeline/OpportunityEditor.svelte";
 	import CreateOpportunityDialog from "#lib/pipeline/CreateOpportunityDialog.svelte";
 	import OpportunityCard from "#lib/pipeline/OpportunityCard.svelte";
-	import OpportunityNotes from "#lib/pipeline/OpportunityNotes.svelte";
-	import OpportunityHistory from "#lib/pipeline/OpportunityHistory.svelte";
+	import ActivitySection from "#lib/activity/ActivitySection.svelte";
+	import LogContactPane from "#lib/activity/LogContactPane.svelte";
+	import NoteComposer from "#lib/activity/NoteComposer.svelte";
+	import { clientFacts } from "#lib/activity/client-facts.js";
+	import type { ActivityLookup } from "#lib/activity/entries.js";
+	import { RecordActivity } from "#lib/activity/record-activity.svelte.js";
+	import { mainPaneClass, SubPanel, subPaneClass } from "#lib/activity/sub-panel.svelte.js";
+	import type { ActivityOpportunity, ContactEntry } from "#lib/activity/types.js";
 	import ReferenceList from "#lib/pipeline/ReferenceList.svelte";
 	import ChecklistItem from "#lib/pipeline/ChecklistItem.svelte";
 	import BoardColumn from "#lib/pipeline/BoardColumn.svelte";
@@ -43,7 +49,6 @@
 	let filterTypes = $state<OpportunityType[]>([]);
 	let filterTimeline = $state("all");
 	let filterTag = $state("all");
-	let tab = $state<"notes" | "history">("notes");
 	let adding = $state(false);
 	let dragId = $state("");
 	let dropStage = $state("");
@@ -115,14 +120,38 @@
 	function toggleType(type: OpportunityType) {
 		filterTypes = filterTypes.includes(type) ? filterTypes.filter((value) => value !== type) : [...filterTypes, type];
 	}
-	const tabs = [
-		{ id: "notes", label: "Notes" },
-		{ id: "history", label: "History" },
-	] as const;
 	let linked = $derived(selected ? clientIds(selected.id).flatMap((id) => clientById.get(id) ?? []) : []);
 	let tags = $derived([...new Map(linked.flatMap((client) => client.tags.map((tag) => [tag.id, tag]))).values()]);
 	let references = $derived(selected ? workspace.references.filter((reference) => reference.opportunityId === selected.id) : []);
-	let changes = $derived(selected ? workspace.history.filter((change) => change.recordId === selected.id) : []);
+	// The open opportunity's own Activity, with Log contact as a sub-panel of its dialog.
+	let record = $derived(selectedId ? new RecordActivity({ opportunityId: selectedId }, { identity: () => workspace.identity }) : null);
+	const lookup: ActivityLookup = {
+		client: (id) => clientById.get(id)?.name ?? "a removed client",
+		tag: (id) => allTags.find((tag) => tag.id === id)?.name ?? "a removed",
+		item: (id) => workspace.checklists.flatMap((list) => list.items).find((item) => item.id === id)?.title,
+	};
+	let entries = $derived(record?.entries(lookup) ?? []);
+	let contactClients = $derived(linked.flatMap((client) => workspace.clients.filter((row) => row.id === client.id).map((row) => clientFacts(row))));
+	let called = $derived(contactClients.length === 1 ? contactClients[0]!.called : contactClients.map((client) => client.name).join(" and "));
+	let activity = $state<ReturnType<typeof ActivitySection>>();
+	const logging = new SubPanel<true>();
+	async function postNote(body: string) {
+		if (!record) return false;
+		const { id, saved } = record.post(body);
+		void activity?.reveal(id);
+		const posted = await saved;
+		if (posted) announce("Note posted.");
+		return posted;
+	}
+	async function logContact(entry: ContactEntry, about: ActivityOpportunity[]) {
+		if (!record) return false;
+		const { id, saved } = record.log(entry, about);
+		if (!(await saved)) return false;
+		logging.close();
+		announce("Contact logged.");
+		void activity?.reveal(id);
+		return true;
+	}
 	let done = $derived(checklist?.items.filter((item) => item.completedAt).length ?? 0);
 	const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
@@ -142,7 +171,7 @@
 		referenceAdding = false;
 		inlineEditing = "";
 		clearChecklistDrag();
-		tab = "notes";
+		logging.close();
 		failure = "";
 		status = "";
 	}
@@ -258,7 +287,7 @@
 			failure = input;
 			return false;
 		}
-		return run(working, done, failed, () => saveOpportunity({ ...input, requestId: crypto.randomUUID(), revision: row.revision }).updates(remote));
+		return run(working, done, failed, () => saveOpportunity({ ...input, requestId: crypto.randomUUID(), revision: row.revision }).updates(remote, getActivity));
 	}
 	function startInline(kind: InlineField) {
 		const row = selected;
@@ -302,18 +331,10 @@
 			input.focus();
 		}
 	}
-	function switchTab(event: KeyboardEvent) {
-		if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-		event.preventDefault();
-		const index = tabs.findIndex(({ id }) => id === tab);
-		const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-		tab = tabs[next]!.id;
-		document.getElementById(`opportunity-tab-${tab}`)?.focus();
-	}
 </script>
 
 {#if !dialogOnly}
-	<div class="surface-content @container/board [--gutter:--spacing(5)] sm:[--gutter:--spacing(8)] lg:[--gutter:--spacing(10)]" data-tight>
+	<div class="surface-content @container/board [--gutter:var(--spacing-page)]" data-tight>
 		<p role="status" aria-live="polite" class="sr-only">{selected || creating ? "" : status}</p>
 		{#if failure && !selected && !creating}
 			<div role="alert" class="bg-urgent-soft text-urgent mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-urgent)]">
@@ -465,7 +486,11 @@
 		class="dialog"
 		data-size="lg"
 		oncancel={(event) => {
-			if (pending) event.preventDefault();
+			// A click outside steps back out of Log contact before it can close the opportunity.
+			if (logging.current) {
+				event.preventDefault();
+				logging.close();
+			} else if (pending) event.preventDefault();
 			else closeOpportunity();
 		}}
 		onclose={closeOpportunity}>
@@ -523,316 +548,337 @@
 			</Menu>
 			<button class="control" data-variant="ghost" data-size="sm" data-icon type="button" data-autofocus aria-label="Close" disabled={pending} onclick={closeOpportunity}><X size={17} aria-hidden="true" /></button>
 		</header>
-		<div class="@container/opportunity">
-			<div class="grid min-w-0 @min-[48rem]/opportunity:grid-cols-[minmax(0,1fr)_minmax(20rem,25rem)] @min-[48rem]/opportunity:grid-rows-[auto_1fr]">
-				<div class="min-w-0 space-y-7 px-4 pt-6 pb-7 sm:px-8">
-					{#if failure}
-						<div role="alert" class="bg-urgent-soft text-urgent flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-urgent)]">
-							<span class="min-w-0 flex-1 basis-60 py-1">{failure}</span>
-							<button
-								class="control -ml-3"
-								data-variant="ghost"
-								data-size="sm"
-								type="button"
-								disabled={pending}
-								onclick={async () => {
-									await remote.refresh();
-									failure = "";
-								}}><RefreshCw size={15} aria-hidden="true" />Refresh records</button>
-						</div>
-					{/if}
-					<h2 id="opportunity-heading" class={["font-display text-3xl tracking-tight text-balance wrap-anywhere", editing && "sr-only"]}>{selected.title}</h2>
-					{#if editing}
-						<OpportunityEditor
-							bind:draft={drafts[selected.id]!}
-							{workspace}
-							{remote}
-							bind:pending
-							cancel={() => (editing = false)}
-							saved={() => {
-								if (selected) delete drafts[selected.id];
-								editing = false;
-								inspectedStage = "";
-								announce("Opportunity saved.");
-							}} />
-					{:else}
-						{#if drafts[selected.id]}
-							<div class="bg-pending-soft text-pending flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-pending)]">
-								<span class="min-w-0 flex-1 basis-60 py-1">An unsaved editing draft is retained.</span>
-								<span class="-ml-3 flex shrink-0 flex-wrap items-center gap-1">
-									<button type="button" class="control" data-variant="ghost" data-size="sm" onclick={() => (editing = true)}><PencilLine size={15} aria-hidden="true" />Resume editing</button>
-									<button
-										type="button"
-										class="control"
-										data-variant="ghost"
-										data-size="sm"
-										disabled={pending}
-										onclick={() => {
-											if (selected) delete drafts[selected.id];
-										}}><Undo2 size={15} aria-hidden="true" />Discard editing draft</button>
-								</span>
+		<!-- The opportunity and Log contact share one cell and trade places. Log contact sticks under the header, so it fills the view wherever the dialog was scrolled. Clipping, unlike hidden, keeps that sticky working while the waiting pane's offset stays out of the dialog's horizontal scroll. -->
+		<div class="grid grid-cols-1 overflow-x-clip" {@attach logging.stepBack}>
+			<div class={[mainPaneClass, "@container/opportunity"]} data-active={!logging.current} inert={!!logging.current}>
+				<div class="grid min-w-0 @min-[48rem]/opportunity:grid-cols-[minmax(0,1fr)_minmax(20rem,25rem)] @min-[48rem]/opportunity:grid-rows-[auto_1fr]">
+					<div class="min-w-0 space-y-7 px-4 pt-6 pb-7 sm:px-8">
+						{#if failure}
+							<div role="alert" class="bg-urgent-soft text-urgent flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-urgent)]">
+								<span class="min-w-0 flex-1 basis-60 py-1">{failure}</span>
+								<button
+									class="control -ml-3"
+									data-variant="ghost"
+									data-size="sm"
+									type="button"
+									disabled={pending}
+									onclick={async () => {
+										await remote.refresh();
+										failure = "";
+									}}><RefreshCw size={15} aria-hidden="true" />Refresh records</button>
 							</div>
 						{/if}
-						<dl class="-mt-1 grid grid-cols-[minmax(6.5rem,auto)_minmax(0,1fr)] gap-x-6 text-sm @min-[34rem]/opportunity:grid-cols-[9rem_minmax(0,1fr)]">
-							{#snippet property(Icon: typeof Clock3, label: string)}
-								<dt class="text-muted flex min-h-10 items-center gap-2.5"><Icon size={15} aria-hidden="true" />{label}</dt>
-							{/snippet}
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(Columns3, "Stage")}
-								<dd class="flex min-h-10 items-center">
-									<Select appearance="pill" class="max-w-full" id="selected-stage" label="Pipeline stage" value={selected.stage} dot={`var(--color-${stageTones[selected.stage]})`} disabled={pending} options={optionsFrom(stageLabels)} onchange={(stage) => selected && moveCard(selected, stage)} />
-								</dd>
-							</div>
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(Shapes, "Type")}
-								<dd class="flex min-h-10 items-center">
-									<span class="chip" data-tone={style.tone}><TypeIcon size={12} strokeWidth={2.25} aria-hidden="true" />{typeLabels[selected.type]}</span>
-								</dd>
-							</div>
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(Clock3, "Timeline")}
-								<dd class="flex min-h-10 items-center">
-									<Select
-										appearance="pill"
-										label="Timeline"
-										value={selected.timeline ?? ""}
-										disabled={pending}
-										options={[{ value: "", label: "No timeline" }, ...optionsFrom(timelineLabels)]}
-										onchange={(value) => {
-											if (selected && value !== (selected.timeline ?? "")) void saveField({ timeline: value }, "Saving timeline…", "Timeline saved.", "Timeline could not be saved or has changed. Refresh before retrying.");
-										}} />
-								</dd>
-							</div>
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(ContactRound, "Clients")}
-								<dd class="flex min-h-10 flex-wrap items-center gap-1.5 py-1.5">
-									{#each linked as client (client.id)}
-										<a href={`/registry?client=${encodeURIComponent(client.id)}`} class="chip pl-0.5">
-											<span class="grid size-5 shrink-0 place-items-center rounded-sm bg-current/12" aria-hidden="true"><UserRound size={12} strokeWidth={2.25} /></span>
-											<span class="truncate">{client.name}</span>
-										</a>
-									{:else}<span class="text-muted">No clients</span>{/each}
-								</dd>
-							</div>
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(Tags, "Tags")}
-								<dd class="flex min-h-10 flex-wrap items-center gap-1.5 py-1.5">
-									{#each tags as tag (tag.id)}
-										<span class="chip" data-dot style:--dot={tag.color}>{tag.name}</span>
-									{:else}<span class="text-muted">None</span>{/each}
-								</dd>
-							</div>
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(Banknote, "Budget")}
-								<dd class="flex min-h-10 items-center">
-									{#if inlineEditing === "budget"}
-										<input
-											class="field w-40 tabular-nums"
-											inputmode="decimal"
-											placeholder="125000.50"
-											aria-label="Budget (USD)"
-											maxlength="20"
-											bind:value={inlineDraft}
+						<h2 id="opportunity-heading" class={["font-display text-3xl tracking-tight text-balance wrap-anywhere", editing && "sr-only"]}>{selected.title}</h2>
+						{#if editing}
+							<OpportunityEditor
+								bind:draft={drafts[selected.id]!}
+								{workspace}
+								{remote}
+								bind:pending
+								cancel={() => (editing = false)}
+								saved={() => {
+									if (selected) delete drafts[selected.id];
+									editing = false;
+									inspectedStage = "";
+									announce("Opportunity saved.");
+								}} />
+						{:else}
+							{#if drafts[selected.id]}
+								<div class="bg-pending-soft text-pending flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-pending)]">
+									<span class="min-w-0 flex-1 basis-60 py-1">An unsaved editing draft is retained.</span>
+									<span class="-ml-3 flex shrink-0 flex-wrap items-center gap-1">
+										<button type="button" class="control" data-variant="ghost" data-size="sm" onclick={() => (editing = true)}><PencilLine size={15} aria-hidden="true" />Resume editing</button>
+										<button
+											type="button"
+											class="control"
+											data-variant="ghost"
+											data-size="sm"
 											disabled={pending}
-											{@attach (input) => {
-												input.focus();
-												input.select();
-											}}
-											onkeydown={(event) => {
-												if (event.key === "Enter") {
-													event.preventDefault();
-													void commitInline();
-												}
-												if (event.key === "Escape") {
-													event.preventDefault();
-													inlineEditing = "";
-													inlineDraft = "";
-												}
-											}}
-											onblur={() => {
-												if (inlineEditing === "budget") void commitInline();
-											}} />
-									{:else}
-										<span class="group/inline flex min-w-0 items-center gap-0.5">
-											<span class={["min-w-0 wrap-anywhere", selected.budgetCents == null && "text-muted"]}>{selected.budgetCents == null ? "Not set" : money.format(selected.budgetCents / 100)}</span>
-											<button type="button" class="control pointer-fine:opacity-0 pointer-fine:group-hover/inline:opacity-100 pointer-fine:focus-visible:opacity-100" data-variant="ghost" data-size="sm" data-icon aria-label="Edit budget" title="Edit budget" disabled={pending} onclick={() => startInline("budget")}
-												><PencilLine size={13} aria-hidden="true" /></button>
-										</span>
-									{/if}
-								</dd>
-							</div>
-							<div class="col-span-2 grid grid-cols-subgrid">
-								{@render property(MapPin, "Address")}
-								<dd class="flex min-h-10 items-center">
-									{#if inlineEditing === "address"}
-										<input
-											class="field min-w-0"
-											aria-label="Property address"
-											maxlength="1000"
-											bind:value={inlineDraft}
+											onclick={() => {
+												if (selected) delete drafts[selected.id];
+											}}><Undo2 size={15} aria-hidden="true" />Discard editing draft</button>
+									</span>
+								</div>
+							{/if}
+							<dl class="-mt-1 grid grid-cols-[minmax(6.5rem,auto)_minmax(0,1fr)] gap-x-6 text-sm @min-[34rem]/opportunity:grid-cols-[9rem_minmax(0,1fr)]">
+								{#snippet property(Icon: typeof Clock3, label: string)}
+									<dt class="text-muted flex min-h-10 items-center gap-2.5"><Icon size={15} aria-hidden="true" />{label}</dt>
+								{/snippet}
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(Columns3, "Stage")}
+									<dd class="flex min-h-10 items-center">
+										<Select appearance="pill" class="max-w-full" id="selected-stage" label="Pipeline stage" value={selected.stage} dot={`var(--color-${stageTones[selected.stage]})`} disabled={pending} options={optionsFrom(stageLabels)} onchange={(stage) => selected && moveCard(selected, stage)} />
+									</dd>
+								</div>
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(Shapes, "Type")}
+									<dd class="flex min-h-10 items-center">
+										<span class="chip" data-tone={style.tone}><TypeIcon size={12} strokeWidth={2.25} aria-hidden="true" />{typeLabels[selected.type]}</span>
+									</dd>
+								</div>
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(Clock3, "Timeline")}
+									<dd class="flex min-h-10 items-center">
+										<Select
+											appearance="pill"
+											label="Timeline"
+											value={selected.timeline ?? ""}
 											disabled={pending}
-											{@attach (input) => {
-												input.focus();
-												input.select();
-											}}
-											onkeydown={(event) => {
-												if (event.key === "Enter") {
-													event.preventDefault();
-													void commitInline();
-												}
-												if (event.key === "Escape") {
-													event.preventDefault();
-													inlineEditing = "";
-													inlineDraft = "";
-												}
-											}}
-											onblur={() => {
-												if (inlineEditing === "address") void commitInline();
+											options={[{ value: "", label: "No timeline" }, ...optionsFrom(timelineLabels)]}
+											onchange={(value) => {
+												if (selected && value !== (selected.timeline ?? "")) void saveField({ timeline: value }, "Saving timeline…", "Timeline saved.", "Timeline could not be saved or has changed. Refresh before retrying.");
 											}} />
-									{:else}
-										<span class="group/inline flex min-w-0 items-center gap-0.5">
-											<span class={["min-w-0 wrap-anywhere", !selected.address && "text-muted"]}>{selected.address || "Not set"}</span>
-											<button type="button" class="control pointer-fine:opacity-0 pointer-fine:group-hover/inline:opacity-100 pointer-fine:focus-visible:opacity-100" data-variant="ghost" data-size="sm" data-icon aria-label="Edit address" title="Edit address" disabled={pending} onclick={() => startInline("address")}
-												><PencilLine size={13} aria-hidden="true" /></button>
-										</span>
-									{/if}
-								</dd>
-							</div>
-						</dl>
-					{/if}
-				</div>
-				<div class="border-hairline bg-paper/30 min-w-0 border-y @min-[48rem]/opportunity:col-start-2 @min-[48rem]/opportunity:row-span-2 @min-[48rem]/opportunity:row-start-1 @min-[48rem]/opportunity:border-y-0 @min-[48rem]/opportunity:border-l">
-					<section
-						class="px-2 pt-5 pb-6 sm:px-6 @min-[48rem]/opportunity:sticky @min-[48rem]/opportunity:top-[3.5625rem] @min-[48rem]/opportunity:max-h-[calc(min(92dvh,64rem)-3.5625rem)] @min-[48rem]/opportunity:overflow-y-auto @min-[48rem]/opportunity:px-3 @min-[48rem]/opportunity:pt-6"
-						aria-label="Inspected-stage checklist"
-						aria-busy={pending}>
-						<div class="px-2.5">
-							<div class="flex items-baseline justify-between gap-3">
-								<h3 class="font-display text-xl tracking-tight">{stageLabels[checklist?.stage ?? selected.stage]} checklist</h3>
-								{#if checklist?.items.length}<span class="chip shrink-0 tabular-nums"><span class="sr-only">Complete: </span>{done} of {checklist.items.length}</span>{/if}
-							</div>
-							{#if checklist?.items.length}
-								<div class="mt-2.5 flex gap-1" aria-hidden="true">
-									{#each checklist.items as item (item.id)}<span class={["h-1 flex-1 rounded-full transition-colors duration-300", item.completedAt ? "bg-field" : "bg-ink/10"]}></span>{/each}
+									</dd>
 								</div>
-							{/if}
-							{#if checklist && checklist.stage !== selected.stage}
-								<div class="bg-tour-soft text-tour mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-tour)]">
-									<span class="min-w-0 flex-1 basis-60 py-1">Viewing earlier {stageLabels[checklist.stage]} work. The opportunity is still in {stageLabels[selected.stage]}.</span>
-									<button type="button" class="control -ml-3" data-variant="ghost" data-size="sm" disabled={pending} onclick={() => (inspectedStage = "")}><ArrowLeft size={15} aria-hidden="true" />Return to current checklist</button>
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(ContactRound, "Clients")}
+									<dd class="flex min-h-10 flex-wrap items-center gap-1.5 py-1.5">
+										{#each linked as client (client.id)}
+											<a href={`/registry?client=${encodeURIComponent(client.id)}`} class="chip pl-0.5">
+												<span class="grid size-5 shrink-0 place-items-center rounded-sm bg-current/12" aria-hidden="true"><UserRound size={12} strokeWidth={2.25} /></span>
+												<span class="truncate">{client.name}</span>
+											</a>
+										{:else}<span class="text-muted">No clients</span>{/each}
+									</dd>
 								</div>
-							{/if}
-						</div>
-						{#if checklist}
-							<ul class="mt-3 space-y-0.5">
-								{#each checklist.items as item, index (`${checklist.id}:${item.id}`)}
-									<ChecklistItem
-										{item}
-										{checklist}
-										today={workspace.businessToday}
-										busy={pending}
-										first={index === 0}
-										last={index === checklist.items.length - 1}
-										dragging={checklistDrag === index}
-										drop={checklistDropAt === index ? "above" : checklistDropAt === index + 1 ? "below" : null}
-										save={saveStep}
-										rename={(title) => rename(item, title)}
-										remove={() => removeItem(item)}
-										move={(offset) => reorder(index, offset > 0 ? index + 2 : index - 1)}
-										dragstart={(event) => checklistDragStart(event, index)}
-										dragover={(event) => checklistDragOver(event, index)}
-										dropItem={() => void checklistDrop()}
-										dragend={clearChecklistDrag} />
-								{:else}<li class="text-muted px-2.5 py-4 text-sm">No items in this stage’s checklist.</li>{/each}
-							</ul>
-							{#if adding}
-								<div class="mt-0.5 flex items-center gap-2 py-1 pr-1 pl-2.5">
-									<span class="border-muted/40 size-5 shrink-0 rounded-full border-[1.5px] border-dashed" aria-hidden="true"></span>
-									<input
-										class="field min-h-8 rounded-lg px-2 py-1"
-										aria-label="New checklist item"
-										placeholder="Describe the item, then press Enter"
-										maxlength="200"
-										disabled={pending}
-										{@attach (input) => input.focus()}
-										onkeydown={(event) => {
-											if (event.key === "Enter") {
-												event.preventDefault();
-												void addItem(event.currentTarget);
-											}
-											if (event.key === "Escape") {
-												event.preventDefault();
-												event.stopPropagation();
-												adding = false;
-											}
-										}}
-										onblur={(event) => {
-											if (!event.currentTarget.value.trim() && !pending) adding = false;
-										}} />
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(Tags, "Tags")}
+									<dd class="flex min-h-10 flex-wrap items-center gap-1.5 py-1.5">
+										{#each tags as tag (tag.id)}
+											<span class="chip" data-dot style:--dot={tag.color}>{tag.name}</span>
+										{:else}<span class="text-muted">None</span>{/each}
+									</dd>
 								</div>
-							{:else}
-								<button type="button" class="text-action mt-0.5 flex min-h-9 w-full items-center gap-3 px-2.5" disabled={pending || !ready} onclick={() => (adding = true)}>
-									<span class="flex size-5 items-center justify-center"><Plus size={16} aria-hidden="true" /></span>Add item
-								</button>
-							{/if}
-						{:else}<p class="text-muted px-2.5 py-6 text-sm">Loading this stage’s checklist…</p>{/if}
-					</section>
-				</div>
-				{#if !editing}
-					<div class="min-w-0 space-y-7 px-4 pt-7 pb-8 sm:px-8 @min-[48rem]/opportunity:pt-0">
-						<section aria-labelledby="references-heading">
-							<h3 id="references-heading" class="mb-2.5 flex items-baseline gap-2 text-sm font-semibold">References<span class="chip tabular-nums">{references.length}</span></h3>
-							{#if references.length}
-								<ReferenceList {workspace} {references} openOpportunity={(id) => (workspace.opportunities.some((row) => row.id === id) ? (open(id), true) : false)} remove={removeReference} />
-							{:else}
-								<p class="text-muted border-hairline rounded-xl border border-dashed px-3 py-3 text-xs">No references yet. Add links to listings, documents, or related records.</p>
-							{/if}
-							{#if referenceAdding}
-								<form
-									onsubmit={(event) => {
-										event.preventDefault();
-										void saveReferenceAdd();
-									}}>
-									<div class="bg-paper/50 grid min-w-0 gap-2 rounded-xl border border-transparent p-2">
-										<Select label="New reference kind" bind:value={referenceDraft.kind} options={referenceKinds} onchange={() => (referenceDraft.destination = "")} />
-										<input class="field" aria-label="New reference label" placeholder="Label" bind:value={referenceDraft.label} required maxlength="200" />
-										{#if referenceDraft.kind === "url"}<input class="field" type="url" aria-label="New reference link" bind:value={referenceDraft.destination} required maxlength="2000" placeholder="https://" />{:else}<Select
-												label="New reference record"
-												bind:value={referenceDraft.destination}
-												required
-												options={referenceTargets(workspace, referenceDraft.kind)} />{/if}
-										<div class="flex flex-wrap items-center justify-between gap-2">
-											<p class="text-muted flex items-center gap-1.5 text-xs"><Link2 size={13} aria-hidden="true" />HTTP and HTTPS links only.</p>
-											<div class="flex gap-2">
-												<button type="button" class="control" data-size="sm" disabled={pending} onclick={() => (referenceAdding = false)}>Cancel</button>
-												<button class="control" data-size="sm" data-variant="primary" disabled={pending}>{pending ? "Saving…" : "Add reference"}</button>
-											</div>
-										</div>
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(Banknote, "Budget")}
+									<dd class="flex min-h-10 items-center">
+										{#if inlineEditing === "budget"}
+											<input
+												class="field w-40 tabular-nums"
+												inputmode="decimal"
+												placeholder="125000.50"
+												aria-label="Budget (USD)"
+												maxlength="20"
+												bind:value={inlineDraft}
+												disabled={pending}
+												{@attach (input) => {
+													input.focus();
+													input.select();
+												}}
+												onkeydown={(event) => {
+													if (event.key === "Enter") {
+														event.preventDefault();
+														void commitInline();
+													}
+													if (event.key === "Escape") {
+														event.preventDefault();
+														inlineEditing = "";
+														inlineDraft = "";
+													}
+												}}
+												onblur={() => {
+													if (inlineEditing === "budget") void commitInline();
+												}} />
+										{:else}
+											<span class="group/inline flex min-w-0 items-center gap-0.5">
+												<span class={["min-w-0 wrap-anywhere", selected.budgetCents == null && "text-muted"]}>{selected.budgetCents == null ? "Not set" : money.format(selected.budgetCents / 100)}</span>
+												<button type="button" class="control pointer-fine:opacity-0 pointer-fine:group-hover/inline:opacity-100 pointer-fine:focus-visible:opacity-100" data-variant="ghost" data-size="sm" data-icon aria-label="Edit budget" title="Edit budget" disabled={pending} onclick={() => startInline("budget")}
+													><PencilLine size={13} aria-hidden="true" /></button>
+											</span>
+										{/if}
+									</dd>
+								</div>
+								<div class="col-span-2 grid grid-cols-subgrid">
+									{@render property(MapPin, "Address")}
+									<dd class="flex min-h-10 items-center">
+										{#if inlineEditing === "address"}
+											<input
+												class="field min-w-0"
+												aria-label="Property address"
+												maxlength="1000"
+												bind:value={inlineDraft}
+												disabled={pending}
+												{@attach (input) => {
+													input.focus();
+													input.select();
+												}}
+												onkeydown={(event) => {
+													if (event.key === "Enter") {
+														event.preventDefault();
+														void commitInline();
+													}
+													if (event.key === "Escape") {
+														event.preventDefault();
+														inlineEditing = "";
+														inlineDraft = "";
+													}
+												}}
+												onblur={() => {
+													if (inlineEditing === "address") void commitInline();
+												}} />
+										{:else}
+											<span class="group/inline flex min-w-0 items-center gap-0.5">
+												<span class={["min-w-0 wrap-anywhere", !selected.address && "text-muted"]}>{selected.address || "Not set"}</span>
+												<button type="button" class="control pointer-fine:opacity-0 pointer-fine:group-hover/inline:opacity-100 pointer-fine:focus-visible:opacity-100" data-variant="ghost" data-size="sm" data-icon aria-label="Edit address" title="Edit address" disabled={pending} onclick={() => startInline("address")}
+													><PencilLine size={13} aria-hidden="true" /></button>
+											</span>
+										{/if}
+									</dd>
+								</div>
+							</dl>
+						{/if}
+					</div>
+					<div class="border-hairline bg-paper/30 min-w-0 border-y @min-[48rem]/opportunity:col-start-2 @min-[48rem]/opportunity:row-span-2 @min-[48rem]/opportunity:row-start-1 @min-[48rem]/opportunity:border-y-0 @min-[48rem]/opportunity:border-l">
+						<section
+							class="px-2 pt-5 pb-6 sm:px-6 @min-[48rem]/opportunity:sticky @min-[48rem]/opportunity:top-[3.5625rem] @min-[48rem]/opportunity:max-h-[calc(min(92dvh,64rem)-3.5625rem)] @min-[48rem]/opportunity:overflow-y-auto @min-[48rem]/opportunity:px-3 @min-[48rem]/opportunity:pt-6"
+							aria-label="Inspected-stage checklist"
+							aria-busy={pending}>
+							<div class="px-2.5">
+								<div class="flex items-baseline justify-between gap-3">
+									<h3 class="font-display text-xl tracking-tight">{stageLabels[checklist?.stage ?? selected.stage]} checklist</h3>
+									{#if checklist?.items.length}<span class="chip shrink-0 tabular-nums"><span class="sr-only">Complete: </span>{done} of {checklist.items.length}</span>{/if}
+								</div>
+								{#if checklist?.items.length}
+									<div class="mt-2.5 flex gap-1" aria-hidden="true">
+										{#each checklist.items as item (item.id)}<span class={["h-1 flex-1 rounded-full transition-colors duration-300", item.completedAt ? "bg-field" : "bg-ink/10"]}></span>{/each}
 									</div>
-								</form>
-							{:else}
-								<button type="button" class="text-action mt-2" disabled={pending || references.length >= 50} onclick={startReferenceAdd}><Plus size={16} aria-hidden="true" />Add reference</button>
-							{/if}
-						</section>
-						<section>
-							<div role="tablist" aria-label="Notes and history" tabindex="-1" class="tabs" data-slide style:--tab-count={tabs.length} style:--tab-index={tabs.findIndex(({ id }) => id === tab)} onkeydown={switchTab}>
-								{#each tabs as { id, label } (id)}
-									{@const count = id === "history" ? changes.length : 0}
-									<button type="button" role="tab" id={`opportunity-tab-${id}`} aria-selected={tab === id} aria-controls={`opportunity-panel-${id}`} tabindex={tab === id ? 0 : -1} class="tab -mb-px flex items-center gap-1.5 transition-colors" onclick={() => (tab = id)}
-										>{label}{#if count}<span class="chip tabular-nums">{count}</span>{/if}</button>
-								{/each}
-							</div>
-							<div id={`opportunity-panel-${tab}`} role="tabpanel" aria-labelledby={`opportunity-tab-${tab}`} class="-mx-3 pt-3">
-								{#if tab === "notes"}
-									<OpportunityNotes {workspace} {remote} opportunityId={selected.id} notes={selected.notes} bind:pending saved={() => announce("Notes saved.")} />
-								{:else}
-									<OpportunityHistory {workspace} {changes} />
+								{/if}
+								{#if checklist && checklist.stage !== selected.stage}
+									<div class="bg-tour-soft text-tour mt-4 flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl py-1.5 pr-1.5 pl-4 text-sm [--action-color:var(--color-tour)]">
+										<span class="min-w-0 flex-1 basis-60 py-1">Viewing earlier {stageLabels[checklist.stage]} work. The opportunity is still in {stageLabels[selected.stage]}.</span>
+										<button type="button" class="control -ml-3" data-variant="ghost" data-size="sm" disabled={pending} onclick={() => (inspectedStage = "")}><ArrowLeft size={15} aria-hidden="true" />Return to current checklist</button>
+									</div>
 								{/if}
 							</div>
+							{#if checklist}
+								<ul class="mt-3 space-y-0.5">
+									{#each checklist.items as item, index (`${checklist.id}:${item.id}`)}
+										<ChecklistItem
+											{item}
+											{checklist}
+											today={workspace.businessToday}
+											busy={pending}
+											first={index === 0}
+											last={index === checklist.items.length - 1}
+											dragging={checklistDrag === index}
+											drop={checklistDropAt === index ? "above" : checklistDropAt === index + 1 ? "below" : null}
+											save={saveStep}
+											rename={(title) => rename(item, title)}
+											remove={() => removeItem(item)}
+											move={(offset) => reorder(index, offset > 0 ? index + 2 : index - 1)}
+											dragstart={(event) => checklistDragStart(event, index)}
+											dragover={(event) => checklistDragOver(event, index)}
+											dropItem={() => void checklistDrop()}
+											dragend={clearChecklistDrag} />
+									{:else}<li class="text-muted px-2.5 py-4 text-sm">No items in this stage’s checklist.</li>{/each}
+								</ul>
+								{#if adding}
+									<div class="mt-0.5 flex items-center gap-2 py-1 pr-1 pl-2.5">
+										<span class="border-muted/40 size-5 shrink-0 rounded-full border-[1.5px] border-dashed" aria-hidden="true"></span>
+										<input
+											class="field min-h-8 rounded-lg px-2 py-1"
+											aria-label="New checklist item"
+											placeholder="Describe the item, then press Enter"
+											maxlength="200"
+											disabled={pending}
+											{@attach (input) => input.focus()}
+											onkeydown={(event) => {
+												if (event.key === "Enter") {
+													event.preventDefault();
+													void addItem(event.currentTarget);
+												}
+												if (event.key === "Escape") {
+													event.preventDefault();
+													event.stopPropagation();
+													adding = false;
+												}
+											}}
+											onblur={(event) => {
+												if (!event.currentTarget.value.trim() && !pending) adding = false;
+											}} />
+									</div>
+								{:else}
+									<button type="button" class="text-action mt-0.5 flex min-h-9 w-full items-center gap-3 px-2.5" disabled={pending || !ready} onclick={() => (adding = true)}>
+										<span class="flex size-5 items-center justify-center"><Plus size={16} aria-hidden="true" /></span>Add item
+									</button>
+								{/if}
+							{:else}<p class="text-muted px-2.5 py-6 text-sm">Loading this stage’s checklist…</p>{/if}
 						</section>
 					</div>
-				{/if}
+					{#if !editing}
+						<div class="min-w-0 space-y-7 px-4 pt-7 pb-8 sm:px-8 @min-[48rem]/opportunity:pt-0">
+							<section aria-labelledby="references-heading">
+								<h3 id="references-heading" class="mb-2.5 flex items-baseline gap-2 text-sm font-semibold">References<span class="chip tabular-nums">{references.length}</span></h3>
+								{#if references.length}
+									<ReferenceList {workspace} {references} openOpportunity={(id) => (workspace.opportunities.some((row) => row.id === id) ? (open(id), true) : false)} remove={removeReference} />
+								{:else}
+									<p class="text-muted border-hairline rounded-xl border border-dashed px-3 py-3 text-xs">No references yet. Add links to listings, documents, or related records.</p>
+								{/if}
+								{#if referenceAdding}
+									<form
+										onsubmit={(event) => {
+											event.preventDefault();
+											void saveReferenceAdd();
+										}}>
+										<div class="bg-paper/50 grid min-w-0 gap-2 rounded-xl border border-transparent p-2">
+											<Select label="New reference kind" bind:value={referenceDraft.kind} options={referenceKinds} onchange={() => (referenceDraft.destination = "")} />
+											<input class="field" aria-label="New reference label" placeholder="Label" bind:value={referenceDraft.label} required maxlength="200" />
+											{#if referenceDraft.kind === "url"}<input class="field" type="url" aria-label="New reference link" bind:value={referenceDraft.destination} required maxlength="2000" placeholder="https://" />{:else}<Select
+													label="New reference record"
+													bind:value={referenceDraft.destination}
+													required
+													options={referenceTargets(workspace, referenceDraft.kind)} />{/if}
+											<div class="flex flex-wrap items-center justify-between gap-2">
+												<p class="text-muted flex items-center gap-1.5 text-xs"><Link2 size={13} aria-hidden="true" />HTTP and HTTPS links only.</p>
+												<div class="flex gap-2">
+													<button type="button" class="control" data-size="sm" disabled={pending} onclick={() => (referenceAdding = false)}>Cancel</button>
+													<button class="control" data-size="sm" data-variant="primary" disabled={pending}>{pending ? "Saving…" : "Add reference"}</button>
+												</div>
+											</div>
+										</div>
+									</form>
+								{:else}
+									<button type="button" class="text-action mt-2" disabled={pending || references.length >= 50} onclick={startReferenceAdd}><Plus size={16} aria-hidden="true" />Add reference</button>
+								{/if}
+							</section>
+							{#key selected.id}
+								<div class="[--gutter:0]">
+									<ActivitySection bind:this={activity} id="opportunity" {entries} client={called} timeZone={workspace.settings?.timezone ?? "America/Los_Angeles"} failure={record?.failure} onedit={(id, text) => record?.edit(id, text)} ondelete={(id) => void record?.remove(id)}>
+										{#snippet action()}
+											{#if contactClients.length}<button type="button" class="control" data-variant="primary" data-size="sm" onclick={() => logging.open(true)}><NotebookPen size={15} aria-hidden="true" />Log contact</button>{/if}
+										{/snippet}
+										{#snippet empty()}
+											{#if record?.query.loading && !record.query.current}
+												<p class="text-muted py-6 text-center" role="status">Loading Activity…</p>
+											{:else if record?.query.error}
+												<p class="text-urgent py-6 text-center" role="alert">Activity could not load. <button type="button" class="text-action" onclick={() => record?.query.refresh()}>Try again</button></p>
+											{:else}
+												<p class="border-hairline text-muted rounded-xl border border-dashed px-4 py-6 text-center">Nothing here yet. Add a note below{contactClients.length ? ", or log your first contact about this opportunity" : ""}.</p>
+											{/if}
+										{/snippet}
+										<NoteComposer pinned={false} placeholder="Add a note about this opportunity…" onpost={postNote} />
+									</ActivitySection>
+								</div>
+							{/key}
+						</div>
+					{/if}
+				</div>
 			</div>
+			<section class={[subPaneClass, "sticky top-[3.5625rem] max-h-[calc(min(92dvh,64rem)-3.5625rem-2px)] self-start [--gutter:--spacing(4)] sm:[--gutter:--spacing(8)]"]} data-active={!!logging.current} inert={!logging.current} aria-labelledby="opportunity-log-heading">
+				{#if contactClients.length}
+					<LogContactPane
+						panel={logging as SubPanel<unknown>}
+						back={selected.title}
+						headingId="opportunity-log-heading"
+						client={called}
+						clients={contactClients}
+						opportunities={[]}
+						about={selected}
+						timeZone={workspace.settings?.timezone ?? "America/Los_Angeles"}
+						userId={workspace.identity.effectiveUserId}
+						onlog={logContact} />
+				{/if}
+			</section>
 		</div>
 	</dialog>
 {/if}

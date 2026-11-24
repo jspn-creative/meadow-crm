@@ -422,6 +422,13 @@
 			@apply cursor-not-allowed opacity-60;
 		}
 	}
+	/* A field's label above its control, always one label gap away. Grid gap reaches any child, so an inline label or a wrapped control cannot collapse the space the way sibling margins do. */
+	.labeled {
+		@apply gap-label grid min-w-0 content-start;
+	}
+	.field-label {
+		@apply text-muted text-xs font-medium;
+	}
 	.field {
 		@apply px-3 py-2;
 		&::placeholder {

@@ -143,19 +143,31 @@ Mapping (Paid ad chosen 2026-11-13 and recorded in REG-20; the rest still recomm
 
 All of these fit one entry shape: when, who, kind, channel and direction for contact, outcome, one summary line, and optional detail fields. TCPA consent entries are dropped: they are boilerplate, and Consent already records the current state. A STOP reply is kept, because it explains why texting is off.
 
+### Applied import, 2026-11-24
+
+`scripts/client-activity-import.ts prepare` read production read-only for 468 surviving clients and parsed 2,986 dated entries for 408 of them. It dropped 235 TCPA consent entries and planned 2,754 Activity rows: 1,797 imported contacts, 954 imported notes, and 3 Meadow-era notes. Of the 426 clients with notes text, 423 matched the import, 2 were edited in Meadow, and 1 had Meadow text only; no opportunity had notes text. A second preparation on the day of deployment produced byte-identical SQL and the same counts as the first.
+
+Alchemy applied `20261124200000_import_client_activity` on deploy. The script's `verify` mode matched all 2,754 rows, with zero row differences, zero unexpected rows, zero skipped rows, and zero changed client or opportunity rows. A second deploy applied `20261124210000_damp_punisher`, which drops `notes` from `clients` and `opportunities`. A read-only check afterwards still matched all 2,754 rows and found zero client or opportunity differences apart from the dropped column. The private backup is outside the repository.
+
+The drop migration was renamed from its generated timestamp so that it sorts after the import, which still reads `notes` on a fresh database. `verify` compares whole client and opportunity rows with the backup, so it now reports every row as different because of the dropped column. `prepare` no longer finds Meadow-era notes text to carry over. Do not replay the migration manually.
+
 Who an imported entry belongs to is limited by the export. Every contact is assigned to Jayden, all 1,719 outbound texts come from one number, and typed notes and calls carry no author, so BoldTrail can't tell Jayden from Janae or from its own call team. The client is the actor of inbound texts, Zillow messages, and STOP replies. Everything else on the business's side is attributed to BoldTrail; outbound texts whose body repeats a template (1,434) are automated, and the 285 one-off texts were probably typed by a person but still show BoldTrail. Meadow-era entries are always attributed to the user who logged or wrote them.
 
 ## Activity feed
 
-The client's and the opportunity's feed is called Activity, not Notes, because most entries aren't notes (chosen 2026-11-13). Note and logged contact are still proposed vocabulary entries; History stays the name of a record's saved changes, now one of Activity's sources. [client-activity-mockup.html](client-activity-mockup.html) sketches the shapes and wording with fictional data.
+The client's and the opportunity's list is called Activity, not Notes, because most entries aren't notes (chosen 2026-11-13). The developer settled its behavior on 2026-11-15 in the ACT requirements, with Note and Logged contact in the Vocabulary; History stays the name of a record's saved changes, now one of Activity's sources. [client-activity-mockup.html](client-activity-mockup.html) sketches the shapes and wording with fictional data.
 
-One feed per client and per opportunity, oldest first and newest at the bottom like Linear, merging three sources:
+One Activity per client and per opportunity, oldest first and newest at the bottom like Linear, merging three sources:
 
 1. History: the existing `history` table, rendered as quiet one-line events ("Janae changed the lead source from Website to Zillow").
-2. Notes: posted messages with author and time, replacing the single editable `notes` field. Imported notes are parsed into typed entries by the patterns above rather than kept as one authorless message (chosen 2026-11-12); only unrecognized text falls back to a note from BoldTrail, marked as having no known author.
-3. Contact log: calls, texts, emails, and meetings with direction, outcome, and an optional note, logged from a "Log contact" form whose fields change with the channel. Imported BoldTrail contact lands here too.
+2. Notes: posted messages with author and time, replacing the single editable `notes` field. Imported notes are parsed into typed entries by the patterns above rather than kept as one authorless message (chosen 2026-11-12); only unrecognized text falls back to a note shown as BoldTrail.
+3. Logged contact: calls, texts, emails, meetings, and other contact with direction, outcome, and an optional note, recorded from a "Log contact" form whose fields change with the channel. Imported BoldTrail contact lands here too.
 
-History and activity stay in separate tables because they behave differently. History is a by-product: the app writes a row on every save, as a before and after per field, nobody can edit or delete it, and it stays complete enough to undo or audit a change. Activity is content: people write notes and log contact deliberately, can fix a typo or delete a mistaken entry, and each kind carries its own fields (channel, direction, outcome, body). One table would make every history row carry empty contact columns and would make the audit trail editable. The feed query reads both for the open client or opportunity and merges them by time, so users see one Activity.
+Each note belongs to one record, and a logged contact belongs to the client or to one or more of its opportunities (ACT-2). Logging contact is how a client becomes an opportunity; once one exists, contact about it goes on the opportunity, and the client keeps contact before any opportunity plus client-level matters. The client's Activity rolls up its opportunities' notes and logged contact, labeled with the opportunity title, so the whole relationship reads in one place; the opportunity shows only its own. Log contact opened from a client with open opportunities asks which one it's about and shows the opportunity's and client's key details beside the form (ACT-5).
+
+History and activity stay in separate tables because they behave differently. History is a by-product: the app writes a row on every save, as a before and after per field, nobody can edit or delete it, and it stays complete enough to undo or audit a change. Activity is content: people write notes and log contact deliberately, can fix a note's text or delete a mistaken entry (ACT-6), and each kind carries its own fields (channel, direction, outcome, body). One table would make every history row carry empty contact columns and would make the audit trail editable. Edits and deletions of notes and logged contact write History rows, so they appear in Activity too. The Activity query reads both for the open client or opportunity and merges them by time.
+
+Imported entries with no known author use the support admin's user ID, because `history` and every actor column require a real user, with an imported marker that displays them as BoldTrail (ACT-7). The client is the actor of their own inbound messages and STOP replies, so an entry's actor is either a user or the client.
 
 Presentation rules for the design pass:
 
@@ -166,27 +178,33 @@ Presentation rules for the design pass:
 - History edits collapse like Linear's: consecutive saves to one record by the same person, each within 5 minutes of the last and with nothing from anyone else between them, show as one row with the net change from the first save's before to the last save's after ("Janae changed the budget from $650k to $700k"). A field that ends where it started drops out of that row, and a row with no net change disappears. This is presentation only: every save keeps its history row, and Recent activity applies the same grouping.
 - Any entry with detail fields expands in place to show them, such as a Zillow inquiry's property and search criteria.
 - Wording is standardized as actor, past-tense verb, object: "Priya texted", "Janae called Priya · Talked", "BoldTrail sent 9 market reports", "Added from a Zillow inquiry about 418 Alder Ct", "Priya replied STOP · texting turned off". Raw BoldTrail codes (`AutoClaimed`, `phoneConversation`) never appear in summaries, only translated, and only in expanded detail when they add anything.
+- On a client, rolled-up opportunity entries carry the opportunity's title so they read as part of that engagement.
 
-"Last contacted" is the latest contact entry whose outcome reached the client; the latest attempt can sit beside it. Recent activity already aggregates history across records (DASH-9); it should share the feed's event describer so each row leads with the event ("New opportunity created", "Contact preferences updated") and the record name, with an expandable before and after.
+### Client and opportunity views
+
+Tasks 3 and 4 shipped the design that the developer accepted in the prototype. The client drawer is `src/lib/registry/ClientEditor.svelte`. The Pipeline's opportunity dialog is `src/lib/pipeline/PipelineView.svelte`, and an opportunity opened from a client is `src/lib/pipeline/OpportunityPanel.svelte`. Both read `getActivity` through `src/lib/activity/record-activity.svelte.ts`, which also posts, edits, and deletes notes and logs contact. Each write shows at once and rolls back with a message if it fails.
+
+- The client panel is one scroller: the header with Call, Text, Email, and Log contact, then Last contacted and Latest attempt, People, Opportunities, Details, and Activity. The note composer is pinned under the scroller. While a details section is open, the save bar takes its place. The notes field is gone from the client and the opportunity; task 6 moved its text into Activity.
+- Activity has two views, shared by every record and kept in the browser. Conversation shows notes and logged contact as a chat, with the client's words on the left and the business's on the right. Everything shows the whole list on its spine. Both open on the newest 12 rows, with a control for the earlier ones.
+- In a client's Conversation, consecutive messages about the same opportunities sit on one faint band in the opportunity type's color. A band about several opportunities gives each its own stretch of the width, in its color. The opportunities' titles show on hover or focus, and always on touch screens. An opportunity's own Activity has no bands, because every entry is about it. Everything still labels each rolled-up entry with a chip.
+- Latest attempt shows beside Last contacted unless it is the same contact (ACT-9). The server derives both from the client's logged contact and the contact on their opportunities, imported contacts included. Logging or deleting contact refreshes them and the Registry's Last contacted column. Log contact shows them only for the client whose dialog is open.
+- The Registry's Last contacted column sorts with never-contacted clients last in both directions. Its filter takes calendar days like Created, and a client never reached matches no date.
+- Recent activity uses Activity's describer in `src/lib/activity/describe.ts`. Each row leads with the event, worded as in Activity, then the record name and time. Consecutive saves to one record by one person group as they do in Activity. Imported entries stay out of Recent activity.
+- Activity's Meadow era starts at the client import of 2026-10-30, so it reads "In Meadow · since Oct 30, 2026" rather than the date of the first Meadow entry.
+- An opportunity opened from the client's Opportunities rows is a sub-panel of the client's drawer. Back or Escape returns to the client, and the breadcrumb stays Registry / client / opportunity. Open full view opens the Pipeline's opportunity dialog over the drawer, so the client is still there when it closes. Its Log contact is one more level, and Escape steps back one level at a time.
+- Log contact is a sub-panel of the record's dialog, not a second dialog. In the client drawer, the client slides aside, the drawer widens to fit the key details, and the breadcrumb ends in Log contact. In the Pipeline's dialog, Log contact stays in view under the dialog's header wherever the dialog was scrolled. Back, Escape, or a click outside returns to the record.
+- From a client, "What was this about?" lists the open opportunities, New opportunity, and No opportunity. New opportunity needs only a type and a title, asked as "What should we call this opportunity?", and it starts as a New lead with the client. The Pipeline's full form was not reused, because it would open a dialog over the sub-panel. From an opportunity, the form asks nothing and shows each of its clients' key details.
+- On touch screens, a message's edit and delete actions show for the tapped message only.
+- The Feedback tool keeps clear of a modal dialog's controls until someone drags it: beside a side dialog when the window has room, otherwise above the dialog's pinned bar.
+
+Decided 2026-11-24: one logged contact can cover several opportunities (ACT-2), the views are Conversation and Everything (Vocabulary), and Latest attempt hides when it is the same contact (ACT-9).
+
+Last contacted and the latest attempt sit together on the client (ACT-9), so a run of unanswered calls is visible beside the last real conversation. Recent activity already aggregates history across records (DASH-9); it shares Activity's event describer so each row leads with the event ("New opportunity created", "Contact preferences updated") and the record name, with an expandable before and after, and now includes notes and logged contact.
 
 ## Client IDs
 
 Imported clients are `import-client-<source row>` so the import can replace exactly its own rows (`id GLOB 'import-client-*'`, DATA-10); app-created clients use UUIDs. The ID appears in `?client=` URLs and duplicate flags, where it works like any other ID since it is URL-safe. The developer chose to leave them on 2026-11-12. Changing it means rewriting every foreign key and invalidating browser bookmarks, and it ends the import's ability to replace itself, which no longer matters much since a rerun would discard the business's edits anyway. Targeted scripts, such as parsing the untouched `Agent Notes` into activity, don't depend on it.
 
-## Proposed tasks
+## Planned work
 
-One worktree, in order. Each depends on the decisions asked on 2026-11-12.
-
-1. Correct imported archive states with a reviewed data migration: restore the 113 active clients, then apply the decided tiers (active, archive, or delete); it touches only `archived_at` on unedited imported clients and opportunities and records history.
-2. Correct imported lead sources from the raw `Source`, adding any newly decided lead source to `src/lib/data/lead-sources.ts`, the vocabulary, and Registry facets.
-3. Add an `activity` table (notes and contact log entries, with author, kind, channel, direction, outcome, occurred-at, body, and JSON detail) and a feed query that returns one client's or opportunity's activity merged with its `history`.
-4. Add Activity to the vocabulary (replacing the Record entry's history section), then build the Activity feed on the client with a note composer and a "Log contact" form, plus "Last contacted" on the client and in the Registry; then the same feed on opportunities.
-5. Parse BoldTrail `Agent Notes` into one activity row per entry with a script that dry-runs by default and inserts with stable IDs, dropping TCPA consent and marking automated entries so the feed can collapse them.
-6. Rewrite Recent activity on the shared event describer: event headline, record name, actor, time, and an expandable diff.
-7. Store realtor-confirmed past deals from `closed-deals.csv` on their clients and include them in opportunity counts, without creating Closed opportunities; add the missing listed clients first.
-
-## Design pass prompt
-
-To run after the decisions are recorded:
-
-> Take a design pass at the client dialog in meadow-crm (`src/lib/registry/ClientEditor.svelte` and what it composes). Read `AGENTS.md`, `DESIGN.md`, `docs/notes/client-activity.md`, and the REG and REC requirements first, and load the Svelte and Tailwind guidance. Improve the dialog's layout, hierarchy, and every edit form inside it, and prototype the Activity feed described in the note, following its presentation rules and `docs/notes/client-activity-mockup.html` for entry shapes, wording, and states, but not for visual design: the BoldTrail and Meadow era dividers, one shape per kind across both eras, two-way contact as standalone bubbles, automation collapsed into runs that expand, back-and-forth edits grouped into one net change or hidden when reverted, expandable detail, and notes clamped as cards; plus "Last contacted" and a "Log contact" form that changes with the channel. Use realistic fictional content covering each entry kind in both eras, including a long typed needs list, a run of 14 automated texts, and a STOP reply. Compare layouts with `VariantPicker` per `src/lib/dev/README.md`; keep data fictional and local (`vp run dev:local` with the identity stub), and don't build schema or server changes. Stop for my review in the browser.
+The Activity feed is the current milestone in [tasks.md](../tasks.md). Archive corrections are complete (DATA-14 to DATA-16). Correcting imported lead sources (REG-20's Paid ad is decided but not yet in `src/lib/data/lead-sources.ts`), storing realtor-confirmed past deals, and importing the missing listed clients are later work there.

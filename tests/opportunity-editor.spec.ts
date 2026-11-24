@@ -85,13 +85,15 @@ test("opportunity modal keyboard and scrolling work at phone, tablet and desktop
 		const dialog = page.getByRole("dialog");
 		await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
 		await dialog.getByRole("button", { name: "Edit opportunity", exact: true }).click();
-		await dialog.getByLabel("Notes", { exact: true }).fill("Responsive retained draft");
+		await dialog
+			.getByLabel("Property address (optional)", { exact: true })
+			.fill("Responsive retained draft");
 		await dialog.getByRole("button", { name: "Add reference", exact: true }).scrollIntoViewIfNeeded();
 		expect(await dialog.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
 		expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 		await page.screenshot({ path: `test-results/editor-${width}.png` });
 		await page.setViewportSize({ width: width === 1440 ? 1023 : 1024, height: 900 });
-		await expect(dialog.getByLabel("Notes", { exact: true })).toHaveValue(
+		await expect(dialog.getByLabel("Property address (optional)", { exact: true })).toHaveValue(
 			"Responsive retained draft",
 		);
 		await page.setViewportSize({ width, height: 900 });

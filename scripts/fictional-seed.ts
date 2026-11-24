@@ -1,6 +1,8 @@
 import type { D1Database, D1PreparedStatement } from "@cloudflare/workers-types";
+import type { activity } from "../src/lib/server/db/schema.ts";
 
 const receiptId = "fictional-seed-v1";
+const activityReceiptId = "fictional-activity-v1";
 const relativeDate = (today: string, offset: number) => {
 	const date = new Date(`${today}T12:00:00Z`);
 	date.setUTCDate(date.getUTCDate() + offset);
@@ -14,8 +16,18 @@ export async function seedFictional(db: D1Database, today: string) {
 		new Date(`${today}T12:00:00Z`).toISOString().slice(0, 10) !== today
 	)
 		throw new Error("Use a valid YYYY-MM-DD fixture date.");
-	if (await db.prepare("SELECT id FROM mutation_receipts WHERE id = ?").bind(receiptId).first())
-		return;
+	const previous = await db
+		.prepare("SELECT result FROM mutation_receipts WHERE id = ?")
+		.bind(receiptId)
+		.first<string>("result");
+	if (!previous) await seedFictionalRecords(db, today);
+	await seedFictionalActivity(
+		db,
+		previous ? (JSON.parse(previous) as { today: string }).today : today,
+	);
+}
+
+async function seedFictionalRecords(db: D1Database, today: string) {
 	const now = `${today}T12:00:00.000Z`;
 	const statements: D1PreparedStatement[] = [];
 	const clients: {
@@ -76,7 +88,7 @@ export async function seedFictional(db: D1Database, today: string) {
 		statements.push(
 			db
 				.prepare(
-					"INSERT INTO clients (id, name, lead_source, notes, preferences, preferred_contact_method, referred_by_client_id, referred_by_name, archived_at, fictional, created_at, updated_at) VALUES (?, ?, ?, 'Fictional local scenario', ?, ?, ?, ?, ?, 1, ?, ?)",
+					"INSERT INTO clients (id, name, lead_source, preferences, preferred_contact_method, referred_by_client_id, referred_by_name, archived_at, fictional, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
 				)
 				.bind(
 					`fictional-client-${client.id}`,
@@ -201,7 +213,7 @@ export async function seedFictional(db: D1Database, today: string) {
 		statements.push(
 			db
 				.prepare(
-					"INSERT INTO opportunities (id, title, type, stage, timeline, budget_cents, notes, archived_at, fictional, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'Fictional local scenario', ?, 1, ?, ?)",
+					"INSERT INTO opportunities (id, title, type, stage, timeline, budget_cents, archived_at, fictional, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)",
 				)
 				.bind(
 					id,
@@ -316,19 +328,230 @@ export async function seedFictional(db: D1Database, today: string) {
 	await db.batch(statements);
 }
 
+type DemoActivity = Pick<typeof activity.$inferSelect, "kind" | "body"> &
+	Partial<
+		Pick<
+			typeof activity.$inferSelect,
+			"channel" | "channelLabel" | "direction" | "outcome" | "detail" | "automated"
+		>
+	> & {
+		id: string;
+		offset: number;
+		imported?: boolean;
+		client?: string;
+		opportunities?: string[];
+	};
+
+const demoActivity: DemoActivity[] = [
+	{
+		id: "willow-needs",
+		kind: "note",
+		offset: -365,
+		imported: true,
+		client: "mira",
+		body: "Mira would like to sell after the holidays. Ask about repairs before choosing a date.",
+	},
+	{
+		id: "willow-report",
+		kind: "note",
+		offset: -360,
+		imported: true,
+		client: "mira",
+		body: "Sent a market report for Example City",
+		detail: {
+			event: { summary: "sent a market report for Example City", automation: "market-report" },
+		},
+	},
+	{
+		id: "willow-intro",
+		kind: "contact",
+		offset: -359,
+		imported: true,
+		client: "mira",
+		channel: "text",
+		direction: "outgoing",
+		automated: true,
+		body: "Hi Mira, are you still looking for help with a sale?",
+	},
+	{
+		id: "willow-reply",
+		kind: "contact",
+		offset: -357,
+		imported: true,
+		client: "mira",
+		channel: "text",
+		direction: "incoming",
+		body: "Yes, please call me after 4.",
+	},
+	{
+		id: "willow-voicemail",
+		kind: "contact",
+		offset: -356,
+		imported: true,
+		client: "mira",
+		channel: "call",
+		direction: "outgoing",
+		outcome: "voicemail",
+		body: "Left a number to call back.",
+	},
+	{
+		id: "willow-zillow",
+		kind: "contact",
+		offset: -350,
+		imported: true,
+		client: "mira",
+		channel: "zillow",
+		direction: "incoming",
+		body: "Is the Juniper Court house still available?",
+		detail: { fields: [{ label: "Property", value: "18 Example Juniper Court" }] },
+	},
+	{
+		id: "maple-note",
+		kind: "note",
+		offset: -6,
+		client: "ada",
+		body: "Ada and Eli want to see homes near a bus route.",
+	},
+	{
+		id: "maple-call",
+		kind: "contact",
+		offset: -5,
+		opportunities: ["maple"],
+		channel: "call",
+		direction: "outgoing",
+		outcome: "talked",
+		body: "Agreed to meet on Saturday.",
+	},
+	{
+		id: "willow-sale-note",
+		kind: "note",
+		offset: -4,
+		opportunities: ["willow"],
+		body: "Take a second look at the porch before estimating repair costs.",
+	},
+	{
+		id: "willow-meeting",
+		kind: "contact",
+		offset: -3,
+		opportunities: ["willow", "birch"],
+		channel: "meeting",
+		direction: "outgoing",
+		outcome: "met",
+		body: "Discussed the home sale and the family's estate sale in one visit.",
+	},
+	{
+		id: "willow-returned-email",
+		kind: "contact",
+		offset: -2,
+		client: "mira",
+		channel: "email",
+		direction: "outgoing",
+		outcome: "bounced",
+		body: "The property summary came back undelivered.",
+	},
+	{
+		id: "willow-card",
+		kind: "contact",
+		offset: -1,
+		client: "mira",
+		channel: "other",
+		channelLabel: "Mailed card",
+		direction: "outgoing",
+		body: "Sent a handwritten thank-you card.",
+	},
+];
+
+async function seedFictionalActivity(db: D1Database, today: string) {
+	if (
+		await db.prepare("SELECT id FROM mutation_receipts WHERE id = ?").bind(activityReceiptId).first()
+	)
+		return;
+	const now = `${today}T12:00:00.000Z`;
+	const statements: D1PreparedStatement[] = [];
+	for (const row of demoActivity) {
+		const id = `fictional-activity-${row.id}`;
+		const clientId = row.client ? `fictional-client-${row.client}` : null;
+		const opportunityIds = (row.opportunities ?? []).map((id) => `fictional-opportunity-${id}`);
+		const at = `${relativeDate(today, row.offset)}T12:00:00.000Z`;
+		const author = row.imported ? "support-admin" : "business-realtor";
+		statements.push(
+			db
+				.prepare(
+					`INSERT INTO activity (id, client_id, opportunity_id, kind, channel, channel_label, direction, outcome, occurred_at, body, detail, actor_user_id, effective_user_id, client_is_actor, imported, automated, fictional, created_at, updated_at)
+			SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?
+			WHERE (? IS NULL OR EXISTS (SELECT 1 FROM clients WHERE id = ? AND fictional = 1))
+			AND (SELECT count(*) FROM opportunities WHERE fictional = 1 AND id IN (SELECT value FROM json_each(?))) = ?`,
+				)
+				.bind(
+					id,
+					clientId,
+					row.kind === "note" ? (opportunityIds[0] ?? null) : null,
+					row.kind,
+					row.channel ?? null,
+					row.channelLabel ?? null,
+					row.direction ?? null,
+					row.outcome ?? null,
+					at,
+					row.body,
+					JSON.stringify(row.detail ?? {}),
+					author,
+					author,
+					Number(row.direction === "incoming"),
+					Number(Boolean(row.imported)),
+					Number(Boolean(row.automated)),
+					at,
+					at,
+					clientId,
+					clientId,
+					JSON.stringify(opportunityIds),
+					opportunityIds.length,
+				),
+		);
+		if (row.kind === "contact")
+			for (const oppId of opportunityIds)
+				statements.push(
+					db
+						.prepare("INSERT INTO activity_opportunities SELECT id, ? FROM activity WHERE id = ?")
+						.bind(oppId, id),
+				);
+	}
+	statements.push(
+		db
+			.prepare(
+				`INSERT INTO history (id, record_kind, record_id, actor_user_id, effective_user_id, action, data, fictional, created_at)
+			 SELECT 'fictional-mira-activity-history', 'client', id, 'business-assistant', 'business-assistant', 'edit',
+			 '{"before":{"preferredContactMethod":"call"},"after":{"preferredContactMethod":"text"}}', 1, ?
+			 FROM clients WHERE id = 'fictional-client-mira' AND fictional = 1`,
+			)
+			.bind(`${relativeDate(today, -8)}T12:00:00.000Z`),
+		db
+			.prepare(
+				"INSERT INTO mutation_receipts (id, actor_user_id, effective_user_id, payload_hash, result, created_at) VALUES (?, 'local-seed', 'business-realtor', 'fictional-activity-v1', ?, ?)",
+			)
+			.bind(activityReceiptId, JSON.stringify({ today }), now),
+	);
+	await db.batch(statements);
+}
+
 export async function resetFictional(db: D1Database) {
 	// A local reset must not silently delete user-created records or sever their links to a fixture.
 	const protectedLinks = await db
 		.prepare(`SELECT 1 AS found FROM opportunity_clients oc JOIN opportunities o ON o.id = oc.opportunity_id JOIN clients c ON c.id = oc.client_id WHERE o.fictional = 0 AND c.fictional = 1
 		UNION ALL SELECT 1 FROM tasks t LEFT JOIN clients c ON c.id = t.client_id LEFT JOIN opportunities o ON o.id = t.opportunity_id WHERE t.fictional = 0 AND (c.fictional = 1 OR o.fictional = 1)
 		UNION ALL SELECT 1 FROM record_references r JOIN opportunities owner ON owner.id = r.opportunity_id LEFT JOIN clients c ON c.id = r.target_client_id LEFT JOIN opportunities o ON o.id = r.target_opportunity_id WHERE owner.fictional = 0 AND (c.fictional = 1 OR o.fictional = 1)
-		UNION ALL SELECT 1 FROM client_relationships r JOIN clients owner ON owner.id = r.client_id WHERE r.related_client_id IN (SELECT id FROM clients WHERE fictional = 1) AND owner.fictional = 0 LIMIT 1`)
+		UNION ALL SELECT 1 FROM client_relationships r JOIN clients owner ON owner.id = r.client_id WHERE r.related_client_id IN (SELECT id FROM clients WHERE fictional = 1) AND owner.fictional = 0
+		UNION ALL SELECT 1 FROM activity a WHERE a.fictional = 0 AND (
+			a.client_id IN (SELECT id FROM clients WHERE fictional = 1)
+			OR a.opportunity_id IN (SELECT id FROM opportunities WHERE fictional = 1)
+			OR EXISTS (SELECT 1 FROM activity_opportunities links JOIN opportunities o ON o.id = links.opportunity_id WHERE links.activity_id = a.id AND o.fictional = 1)
+		) LIMIT 1`)
 		.first();
 	if (protectedLinks)
 		throw new Error(
 			"Fictional reset refused: user-created records reference fixtures. Remove those links explicitly first.",
 		);
 	await db.batch([
+		db.prepare("DELETE FROM activity WHERE fictional = 1"),
 		db.prepare(
 			"DELETE FROM client_key_dates WHERE client_id IN (SELECT id FROM clients WHERE fictional = 1)",
 		),
@@ -371,6 +594,6 @@ export async function resetFictional(db: D1Database) {
 		),
 		db.prepare("DELETE FROM opportunities WHERE fictional = 1"),
 		db.prepare("DELETE FROM clients WHERE fictional = 1"),
-		db.prepare("DELETE FROM mutation_receipts WHERE id = ?").bind(receiptId),
+		db.prepare("DELETE FROM mutation_receipts WHERE id IN (?, ?)").bind(receiptId, activityReceiptId),
 	]);
 }

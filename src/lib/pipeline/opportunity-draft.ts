@@ -16,7 +16,6 @@ export type OpportunityDraft = {
 	timeline: string;
 	address: string;
 	budget: string;
-	notes: string;
 	references: ReferenceDraft[];
 };
 
@@ -40,7 +39,6 @@ export function opportunityDraft(
 		timeline: row?.timeline ?? "",
 		address: row?.address ?? "",
 		budget: row?.budgetCents == null ? "" : (row.budgetCents / 100).toFixed(2),
-		notes: row?.notes ?? "",
 		references: workspace.references
 			.filter((reference) => reference.opportunityId === id)
 			.map((reference) => ({
@@ -83,7 +81,6 @@ export function draftInput(draft: OpportunityDraft) {
 		timeline: (draft.timeline || null) as Workspace["opportunities"][number]["timeline"],
 		address: draft.address || null,
 		budgetCents,
-		notes: draft.notes,
 		references: draft.references.map((reference) =>
 			reference.kind === "url"
 				? { kind: "url" as const, label: reference.label, url: reference.destination }

@@ -102,10 +102,10 @@
 				void mutate("save");
 			}}>
 			<fieldset disabled={pending || !!stale} class="min-w-0 space-y-5">
-				<label for={`${heading}-title`} class="block space-y-1.5"><span class="text-muted text-xs font-medium">Title</span><input id={`${heading}-title`} class="field" bind:value={title} required maxlength="200" /></label>
+				<label for={`${heading}-title`} class="labeled"><span class="field-label">Title</span><input id={`${heading}-title`} class="field" bind:value={title} required maxlength="200" /></label>
 				<div class="grid min-w-0 gap-4 @min-[24rem]/task:grid-cols-2">
-					<label for={`${heading}-date`} class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Date</span><input id={`${heading}-date`} class="field" type="date" bind:value={date} required /></label>
-					<label for={`${heading}-due`} class="block min-w-0 space-y-1.5"><span class="text-muted text-xs font-medium">Due date (optional)</span><input id={`${heading}-due`} class="field" type="date" bind:value={dueDate} /></label>
+					<label for={`${heading}-date`} class="labeled"><span class="field-label">Date</span><input id={`${heading}-date`} class="field" type="date" bind:value={date} required /></label>
+					<label for={`${heading}-due`} class="labeled"><span class="field-label">Due date (optional)</span><input id={`${heading}-due`} class="field" type="date" bind:value={dueDate} /></label>
 				</div>
 				<section class="space-y-2" aria-label="References">
 					<h3 class="text-muted text-xs font-medium">References</h3>

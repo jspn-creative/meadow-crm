@@ -1,4 +1,5 @@
 import {
+	getActivity,
 	getWorkspace,
 	addChecklistItem,
 	archiveOpportunity,
@@ -28,6 +29,7 @@ export function identityKey(identity: Workspace["identity"]) {
 }
 
 // The remote query owns confirmed records and temporary overlays; projections never store another copy.
+// Each of these saves writes History, and a command refreshes only the queries the client names, so every one also names `getActivity` to refresh whichever Activity is open.
 export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 	const scope = query.ready ? identityKey(query.current.identity) : null;
 	let disposed = false;
@@ -43,6 +45,7 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		async move(input: StageMove) {
 			current();
 			await moveStage(input).updates(
+				getActivity,
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					opportunities: snapshot.opportunities.map((row) =>
@@ -54,6 +57,7 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		async saveStep(input: Parameters<typeof saveChecklistStep>[0]) {
 			current();
 			await saveChecklistStep(input).updates(
+				getActivity,
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					checklists: snapshot.checklists.map((list) =>
@@ -78,6 +82,7 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		async archive(input: ArchiveOpportunity) {
 			current();
 			await archiveOpportunity(input).updates(
+				getActivity,
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
@@ -87,6 +92,7 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		async restore(input: RestoreOpportunity) {
 			current();
 			await restoreOpportunity(input).updates(
+				getActivity,
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
@@ -103,8 +109,8 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 				),
 			}));
 			try {
-				// Manage the override ourselves: passing it to updates() would request a full workspace reload.
-				const confirmed = await pinOpportunity(input).updates();
+				// Manage the override ourselves: passing it to updates() would request a full workspace reload. Naming getActivity refreshes only the open Activity.
+				const confirmed = await pinOpportunity(input).updates(getActivity);
 				const snapshot = current();
 				query.set({
 					...snapshot,
@@ -129,6 +135,7 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		async delete(input: DeleteOpportunity) {
 			current();
 			await deleteOpportunity(input).updates(
+				getActivity,
 				query.withOverride((snapshot) => ({
 					...snapshot,
 					opportunities: snapshot.opportunities.filter((row) => row.id !== input.id),
@@ -137,19 +144,19 @@ export function workspaceData(query: ReturnType<typeof getWorkspace>) {
 		},
 		async addChecklistItem(input: AddChecklistItem) {
 			current();
-			await addChecklistItem(input).updates(query);
+			await addChecklistItem(input).updates(query, getActivity);
 		},
 		async removeChecklistItem(input: RemoveChecklistItem) {
 			current();
-			await removeChecklistItem(input).updates(query);
+			await removeChecklistItem(input).updates(query, getActivity);
 		},
 		async renameChecklistItem(input: RenameChecklistItem) {
 			current();
-			await renameChecklistItem(input).updates(query);
+			await renameChecklistItem(input).updates(query, getActivity);
 		},
 		async reorderChecklistItems(input: ReorderChecklistItems) {
 			current();
-			await reorderChecklistItems(input).updates(query);
+			await reorderChecklistItems(input).updates(query, getActivity);
 		},
 		dispose() {
 			disposed = true;

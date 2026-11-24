@@ -1,4 +1,5 @@
 import * as v from "valibot";
+import { callOutcomes, contactDirections, meetingOutcomes } from "./db/schema.ts";
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(120), v.regex(/^[a-zA-Z0-9_-]+$/));
 const revision = v.pipe(v.number(), v.integer(), v.minValue(1));
@@ -44,11 +45,83 @@ const opportunityDetails = {
 	budgetCents: v.optional(
 		v.nullable(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER))),
 	),
-	notes: v.optional(v.pipe(v.string(), v.maxLength(20000))),
 	references: v.optional(v.pipe(v.array(reference), v.maxLength(50))),
 };
 
 export const workspaceInput = v.strictObject({ archived: v.optional(v.boolean(), false) });
+
+export const activityOwnerInput = v.union([
+	v.strictObject({ clientId: id }),
+	v.strictObject({ opportunityId: id }),
+]);
+export const lastContactInput = v.strictObject({ clientId: id });
+const activityBody = v.pipe(v.string(), v.trim(), v.maxLength(20000));
+const activityWrite = { id, requestId: id };
+export const postNoteInput = v.strictObject({
+	...activityWrite,
+	owner: activityOwnerInput,
+	body: v.pipe(activityBody, v.minLength(1)),
+});
+const contact = {
+	...activityWrite,
+	owner: activityOwnerInput,
+	opportunityIds: v.optional(
+		v.pipe(
+			v.array(id),
+			v.maxLength(50),
+			v.check((ids) => new Set(ids).size === ids.length, "Choose each opportunity once."),
+		),
+		[],
+	),
+	newOpportunity: v.optional(
+		v.strictObject({
+			id,
+			type,
+			title: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(200)),
+		}),
+	),
+	direction: v.picklist(contactDirections),
+	occurredAt: v.pipe(
+		v.string(),
+		v.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+		v.check((value) => {
+			const date = new Date(value);
+			return Number.isFinite(date.getTime()) && date.toISOString() === value;
+		}, "Choose a valid contact time."),
+	),
+	body: v.optional(activityBody, ""),
+};
+const bounced = v.optional(v.literal("bounced"));
+export const logContactInput = v.pipe(
+	v.variant("channel", [
+		v.strictObject({ ...contact, channel: v.literal("call"), outcome: v.picklist(callOutcomes) }),
+		v.strictObject({
+			...contact,
+			channel: v.literal("meeting"),
+			outcome: v.picklist(meetingOutcomes),
+		}),
+		v.strictObject({ ...contact, channel: v.literal("text"), outcome: bounced }),
+		v.strictObject({ ...contact, channel: v.literal("email"), outcome: bounced }),
+		v.strictObject({
+			...contact,
+			channel: v.literal("other"),
+			channelLabel: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(40)),
+		}),
+	]),
+	v.check(
+		({ owner, opportunityIds, newOpportunity }) =>
+			"clientId" in owner
+				? !newOpportunity || !opportunityIds.includes(newOpportunity.id)
+				: !opportunityIds.length && !newOpportunity,
+		"Choose opportunities from the client.",
+	),
+);
+export const deleteActivityInput = v.strictObject({ ...activityWrite, revision });
+export const editActivityNoteInput = v.strictObject({
+	...activityWrite,
+	revision,
+	body: activityBody,
+});
 
 // Read-only query input for the Registry table. Validates URL-driven pagination, filtering, and sorting without changing any record.
 // Strict validation rejects malformed API input; URL normalization in the view applies sensible defaults before calling the server.
@@ -64,6 +137,10 @@ const filterCount = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(10
 const countFilter = v.variant("op", [
 	v.strictObject({ op: v.picklist(["eq", "gte", "lte"]), value: filterCount }),
 	v.strictObject({ op: v.literal("between"), min: filterCount, max: filterCount }),
+]);
+const dateFilter = v.variant("op", [
+	v.strictObject({ op: v.picklist(["onOrAfter", "onOrBefore"]), date: filterDate }),
+	v.strictObject({ op: v.literal("between"), from: filterDate, to: filterDate }),
 ]);
 export const consentChannels = ["call", "text", "email", "mail"] as const;
 const clientFilters = {
@@ -99,12 +176,9 @@ const clientFilters = {
 		]),
 	),
 	/** Calendar days in the business's timezone, inclusive. */
-	created: v.optional(
-		v.variant("op", [
-			v.strictObject({ op: v.picklist(["onOrAfter", "onOrBefore"]), date: filterDate }),
-			v.strictObject({ op: v.literal("between"), from: filterDate, to: filterDate }),
-		]),
-	),
+	created: v.optional(dateFilter),
+	/** Calendar days in the business's timezone, inclusive; clients never reached match none. */
+	lastContacted: v.optional(dateFilter),
 };
 export const clientFiltersInput = v.strictObject(clientFilters);
 export const clientSortIds = [
@@ -116,6 +190,7 @@ export const clientSortIds = [
 	"opportunities",
 	"referredBy",
 	"created",
+	"lastContacted",
 ] as const;
 export const clientsQueryInput = v.strictObject({
 	...clientFilters,
@@ -231,7 +306,6 @@ export const saveClientInput = v.strictObject({
 	consentText: v.optional(v.boolean()),
 	consentEmail: v.optional(v.boolean()),
 	consentMail: v.optional(v.boolean()),
-	notes: v.optional(v.pipe(v.string(), v.maxLength(20000))),
 	flagged: v.optional(v.boolean()),
 	flagNote: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(2000))),
 	people: v.optional(v.array(personInput)),

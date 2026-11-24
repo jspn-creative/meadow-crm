@@ -1,4 +1,11 @@
-import { CalendarPlus, Handshake, Layers, ShieldCheck, UserRoundPlus } from "@lucide/svelte";
+import {
+	CalendarPlus,
+	Handshake,
+	Layers,
+	PhoneCall,
+	ShieldCheck,
+	UserRoundPlus,
+} from "@lucide/svelte";
 
 // The Registry's filter builder fields. Tags and lead source have their own faceted filters; these cover the rest. Each lives in the URL as `field=op:value[:value]`, and a filter still missing its value stays visible but is not sent to the server.
 
@@ -12,12 +19,20 @@ export const channelLabels: Record<Channel, string> = {
 };
 
 type CountOp = "eq" | "gte" | "lte" | "between";
+type DateField = "created" | "lastContacted";
+type DateOp = "onOrAfter" | "onOrBefore" | "between";
 export type BuilderFilter =
 	| { field: "opportunities" | "allOpportunities"; op: CountOp; a: number | null; b: number | null }
 	| { field: "consent"; op: "allows" | "blocks"; channels: Channel[] }
 	| { field: "referredBy"; op: "set" | "empty" | "contains"; text: string }
-	| { field: "created"; op: "onOrAfter" | "onOrBefore" | "between"; a: string; b: string };
+	| { field: DateField; op: DateOp; a: string; b: string };
 export type BuilderField = BuilderFilter["field"];
+
+const dateOperators = [
+	{ value: "onOrAfter", label: "on or after" },
+	{ value: "onOrBefore", label: "on or before" },
+	{ value: "between", label: "between" },
+];
 
 const countOperators = [
 	{ value: "gte", label: "at least" },
@@ -71,12 +86,16 @@ export const builderFields = [
 		label: "Created",
 		short: "Created",
 		icon: CalendarPlus,
-		operators: [
-			{ value: "onOrAfter", label: "on or after" },
-			{ value: "onOrBefore", label: "on or before" },
-			{ value: "between", label: "between" },
-		],
+		operators: dateOperators,
 		hint: "When the client was added",
+	},
+	{
+		field: "lastContacted",
+		label: "Last contacted",
+		short: "Last contacted",
+		icon: PhoneCall,
+		operators: dateOperators,
+		hint: "When the client was last reached",
 	},
 ] as const satisfies readonly {
 	field: BuilderField;
@@ -119,6 +138,7 @@ export function newFilter(field: BuilderField): BuilderFilter {
 		case "referredBy":
 			return { field, op: "set", text: "" };
 		case "created":
+		case "lastContacted":
 			return { field, op: "onOrAfter", a: "", b: "" };
 	}
 }
@@ -142,9 +162,10 @@ export function parseFilter(field: BuilderField, raw: string | null): BuilderFil
 		case "referredBy":
 			return { field, op: op as "set" | "empty" | "contains", text: rest.join(":").slice(0, 200) };
 		case "created":
+		case "lastContacted":
 			return {
 				field,
-				op: op as "onOrAfter" | "onOrBefore" | "between",
+				op: op as DateOp,
 				a: date(rest[0]),
 				b: date(rest[1]),
 			};
@@ -163,6 +184,7 @@ export function serializeFilter(filter: BuilderFilter): string {
 		case "referredBy":
 			return filter.op === "contains" ? `contains:${filter.text}` : filter.op;
 		case "created":
+		case "lastContacted":
 			return [filter.op, filter.a, ...(filter.op === "between" ? [filter.b] : [])].join(":");
 	}
 }
@@ -186,6 +208,7 @@ export function serverFilter(filter: BuilderFilter) {
 			if (filter.op !== "contains") return { op: filter.op };
 			return filter.text.trim() ? { op: "contains" as const, text: filter.text.trim() } : undefined;
 		case "created":
+		case "lastContacted":
 			if (!filter.a) return undefined;
 			if (filter.op !== "between") return { op: filter.op, date: filter.a };
 			if (!filter.b) return undefined;
@@ -223,6 +246,7 @@ export function filterSummary(filter: BuilderFilter): string | undefined {
 		case "referredBy":
 			return filter.op === "contains" ? `“${filter.text.trim()}”` : undefined;
 		case "created":
+		case "lastContacted":
 			return filter.op === "between"
 				? `${day(filter.a < filter.b ? filter.a : filter.b)} – ${day(filter.a < filter.b ? filter.b : filter.a)}`
 				: day(filter.a);

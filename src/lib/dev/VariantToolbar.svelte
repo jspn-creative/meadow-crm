@@ -4,8 +4,10 @@
 	interface Props {
 		groups: VariantGroup[];
 		storageKey: string;
+		/** Position utilities for the undragged toolbar. */
+		dock?: string;
 	}
-	let { groups, storageKey }: Props = $props();
+	let { groups, storageKey, dock = "right-4 bottom-4" }: Props = $props();
 	let pos = $state<{ x: number; y: number } | null>(null);
 	let panelOpen = $state(true);
 	let isDragging = $state(false);
@@ -104,7 +106,7 @@
 	class={[
 		"fixed z-[999999] flex cursor-grab touch-none text-xs text-white shadow-2xl backdrop-blur-md select-none active:cursor-grabbing",
 		panelOpen ? "w-max max-w-[calc(100vw-2rem)] flex-col items-stretch gap-1 rounded-2xl border border-neutral-700/80 bg-neutral-900/90 p-2" : "items-center rounded-full border border-neutral-700/80 bg-neutral-900/90 p-1.5",
-		pos ? null : "right-4 bottom-4",
+		pos ? null : dock,
 	]}>
 	{#if panelOpen}
 		<div class="flex items-center gap-1.5 px-1.5">

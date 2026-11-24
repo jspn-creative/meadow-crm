@@ -59,7 +59,6 @@ test("full opportunity edits preserve cents, visited work, references and attrib
 		timeline: "3-6-mo",
 		address: "123 Fictional Lane",
 		budgetCents: 12500050,
-		notes: "Fictional notes",
 		references: [
 			{ kind: "url", label: "Document", url: "https://example.com/document" },
 			{ kind: "client", label: "Client", targetId: clientIds[0] },
@@ -522,7 +521,10 @@ test("successful and concurrent retries commit once and reject altered payload o
 	).toBe(1);
 	expect(
 		await db
-			.prepare("SELECT actor_user_id, effective_user_id FROM history WHERE action = 'edit'")
+			.prepare(
+				"SELECT actor_user_id, effective_user_id FROM history WHERE record_id = ? AND action = 'edit'",
+			)
+			.bind(opportunityId)
 			.first(),
 	).toEqual({ actor_user_id: "support-admin", effective_user_id: "business-assistant" });
 	await expect(assistant.saveOpportunity({ ...value, title: "Different payload" })).rejects.toThrow(

@@ -72,7 +72,6 @@ type Client = {
 	addresses: string[];
 	leadSource: string | null;
 	tags: string[];
-	notes: string;
 	importedData: { label: string; value: string }[];
 	created: string;
 	updated: string;
@@ -116,6 +115,7 @@ for (const row of csv) {
 }
 const clients: Client[] = [];
 const skipped = { testRecord: 0, noContact: 0, missingName: 0 };
+// `notes` is mapped so it stays out of imported data: Activity holds that text, from scripts/client-activity-import.ts.
 const mappedColumns = new Set([
 	"source_row",
 	"first_name",
@@ -223,11 +223,6 @@ for (const [source, rows] of groups) {
 		skipped.noContact++;
 		continue;
 	}
-	const notes: string[] = [];
-	for (const row of rows) {
-		const note = value(row, "notes");
-		if (note && !notes.includes(note)) notes.push(note);
-	}
 	const importedData = Object.keys(first)
 		.filter((key) => !mappedColumns.has(key))
 		.flatMap((key) => {
@@ -311,7 +306,6 @@ for (const [source, rows] of groups) {
 		addresses: address ? [address] : [],
 		leadSource,
 		tags: [...new Set(tagNames)],
-		notes: notes.join("\n"),
 		importedData,
 		created,
 		updated,
@@ -439,7 +433,6 @@ try {
 				id: client.id,
 				name: client.name,
 				lead_source: client.leadSource,
-				notes: client.notes,
 				imported_data: JSON.stringify(client.importedData),
 				consent_call: client.dnc ? 0 : 1,
 				consent_text: client.dnc ? 0 : 1,

@@ -61,7 +61,6 @@ test("a client saved with every field round-trips through the workspace", async 
 		consentText: false,
 		consentEmail: true,
 		consentMail: false,
-		notes: "Fictional notes",
 		people: [
 			{
 				id: crypto.randomUUID(),
@@ -107,7 +106,6 @@ test("a client saved with every field round-trips through the workspace", async 
 		consentText: false,
 		consentEmail: true,
 		consentMail: false,
-		notes: "Fictional notes",
 		revision: 2,
 	});
 	expect(client.people.map((person) => person.name)).toEqual(["Ada Maple", "Eli Maple"]);

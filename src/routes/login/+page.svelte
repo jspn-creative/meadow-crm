@@ -85,7 +85,7 @@
 
 <svelte:head><title>Login · Meadow Lane</title></svelte:head>
 
-<div class="flex min-h-[calc(100dvh-6rem)] items-center justify-center px-5 py-12 sm:px-8 lg:min-h-[calc(100dvh-1.5rem)] lg:px-10">
+<div class="px-page flex min-h-[calc(100dvh-6rem)] items-center justify-center py-12 lg:min-h-[calc(100dvh-1.5rem)]">
 	<div bind:this={panel} class="w-full max-w-sm [view-transition-name:login-panel]">
 		{#if choosing}
 			<section aria-labelledby="login-heading">

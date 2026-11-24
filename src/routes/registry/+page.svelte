@@ -7,11 +7,11 @@
 	import { columnOrderingFeature, columnVisibilityFeature, createTable, rowSortingFeature, tableFeatures } from "@tanstack/svelte-table";
 	import { bulkUpdateClients, createClient, getClientFacets, getClientIds, getClients, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
+	import PipelineView from "#lib/pipeline/PipelineView.svelte";
+	import SectionCrumb, { type PanelSection } from "#lib/registry/SectionCrumb.svelte";
 	import ClientFlagHoverCard from "#lib/registry/ClientFlagHoverCard.svelte";
 	import { Flag } from "@lucide/svelte";
-	import { flagChangeLabel } from "#lib/registry/flag-history.js";
 	import { leadSources } from "#lib/data/lead-sources.js";
-	import { userFirstName as person } from "#lib/data/users.js";
 	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
 	import { formatPhone } from "#lib/registry/format.js";
 	import { builderField, builderFields, channelLabels, channels, filterSummary, needsValue, newFilter, parseFilter, serializeFilter, serverFilter, type BuilderField, type BuilderFilter, type Channel } from "#lib/registry/filters.js";
@@ -28,8 +28,8 @@
 	import { opportunityDraft, type OpportunityDraft } from "#lib/pipeline/opportunity-draft.js";
 
 	type ClientRow = Awaited<ReturnType<typeof getClients>>["clients"][number];
-	type SortId = "default" | "name" | "address" | "leadSource" | "tags" | "opportunities" | "referredBy" | "created";
-	type ColumnId = "name" | "contact" | "address" | "leadSource" | "tags" | "opportunities" | "consent" | "referredBy" | "created";
+	type SortId = "default" | "name" | "address" | "leadSource" | "tags" | "opportunities" | "lastContacted" | "referredBy" | "created";
+	type ColumnId = "name" | "contact" | "address" | "leadSource" | "tags" | "opportunities" | "lastContacted" | "consent" | "referredBy" | "created";
 
 	// --- Columns -------------------------------------------------------------
 	// Name is the row's anchor: it stays first and visible. The rest can be hidden or moved, per browser.
@@ -40,13 +40,14 @@
 		leadSource: { header: "Lead source", sort: ["Sort A to Z", "Sort Z to A"] },
 		tags: { header: "Tags", sort: ["Sort A to Z", "Sort Z to A"] },
 		opportunities: { header: "Opportunities", sort: ["Fewest first", "Most first"], end: true },
+		lastContacted: { header: "Last contacted", sort: ["Longest ago first", "Most recent first"] },
 		consent: { header: "Consent" },
 		referredBy: { header: "Referred by", sort: ["Sort A to Z", "Sort Z to A"] },
 		created: { header: "Created", sort: ["Oldest first", "Newest first"] },
 	};
 	const columnIds = Object.keys(columnMeta) as ColumnId[];
 	const movableIds = columnIds.filter((id) => id !== "name");
-	const defaultHidden: Partial<Record<ColumnId, boolean>> = { referredBy: false, created: false };
+	const defaultHidden: Partial<Record<ColumnId, boolean>> = { consent: false, referredBy: false, created: false };
 	const columns = columnIds.map((id) => ({ id, header: columnMeta[id].header, accessorFn: (row: ClientRow) => row.id, enableHiding: id !== "name" }));
 
 	// Column visibility and order are per-browser view options, so they live in localStorage rather than the URL.
@@ -103,7 +104,7 @@
 	// Filters and sorting are shallow navigations: the URL and history change without rerunning loads, resetting scroll, or animating the shell. The shallow URL is the current one until a full navigation clears it.
 	let url = $derived(page.shallow?.url ?? page.url);
 	// Normalize before sending to the server so malformed URL values fall back to defaults instead of reaching the validator.
-	const sortIds = ["name", "address", "leadSource", "tags", "opportunities", "referredBy", "created"] as const;
+	const sortIds = ["name", "address", "leadSource", "tags", "opportunities", "lastContacted", "referredBy", "created"] as const;
 	const idPattern = /^[a-zA-Z0-9_-]{1,120}$/;
 	function readParams() {
 		const sp = url.searchParams;
@@ -446,7 +447,13 @@
 		const preview = flagPreview;
 		untrack(() => preview?.reconcile(saved));
 	});
-	const tableFade = overflowFade({ axis: "both", sides: "end", fadePercent: 6 });
+	// The sticky heading and client column stay solid; rows fade beneath them.
+	const tableFade = overflowFade({
+		axis: "both",
+		sides: { x: "both", y: "end" },
+		fadePercent: 6,
+		leftInset: (box) => box.querySelector<HTMLElement>("thead th[data-select-zone]")?.offsetWidth ?? 0,
+	});
 	// Rows tint through --row-bg in opaque colours, since cells sit at fractional widths: each cell paints the tint and spills it one pixel right, so no light seam shows between cells and the sticky client cell hides the columns scrolling beneath it.
 	const cell = "border-hairline border-b bg-(--row-bg) px-4 py-2.5 align-middle shadow-[1px_0_0_var(--row-bg)] transition-colors duration-120 group-last/row:border-b-0 motion-reduce:transition-none";
 	const stickyName = $derived(["sticky left-0 pl-4", scrolledX && "shadow-[inset_-1px_0_0_var(--color-hairline),1px_0_0_var(--row-bg)]!"]);
@@ -471,6 +478,8 @@
 	let requestId = $state("");
 	let newName = $state("");
 	let draft = $state<ClientDraft | null>(null);
+	/** The client editor's section in view, as the breadcrumb's last step. */
+	let clientSection = $state<PanelSection>({ name: "", forward: true });
 	let creatingOpportunity = $state<OpportunityDraft | null>(null);
 	let fresh = $state(false);
 	let pending = $state(false);
@@ -503,7 +512,8 @@
 			lastHandledClientId = null;
 			return;
 		}
-		if (clientIdFromUrl === lastHandledClientId || !ready) return;
+		// The dialog binds after onMount sets ready; opening before then would mark the client handled without showing it.
+		if (clientIdFromUrl === lastHandledClientId || !ready || !dialog) return;
 		const record = workspace.clients.find((client) => client.id === clientIdFromUrl);
 		if (!record) return;
 		lastHandledClientId = clientIdFromUrl;
@@ -513,7 +523,8 @@
 	});
 	let record = $derived(draft ? workspace.clients.find((client) => client.id === draft?.id) : undefined);
 	let linked = $derived(draft ? workspace.links.filter((link) => link.clientId === draft?.id) : []);
-	let changes = $derived(draft ? workspace.history.filter((change) => change.recordKind === "client" && change.recordId === draft?.id) : []);
+	/** The opportunity opened in full from the drawer, in the Pipeline's own dialog over it. */
+	let fullOpportunity = $state<string | null>(null);
 	async function openPanel() {
 		flagPreview?.close();
 		opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -551,7 +562,6 @@
 		opener?.focus();
 		opener = null;
 	}
-	const timeFormat = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: workspace.settings?.timezone ?? "America/Los_Angeles" }));
 </script>
 
 <svelte:head><title>Registry · Meadow Lane</title></svelte:head>
@@ -640,19 +650,19 @@
 	</form>
 {/snippet}
 
-{#snippet createdEditor(filter: Extract<BuilderFilter, { field: "created" }>, close: () => void)}
+{#snippet dateEditor(filter: Extract<BuilderFilter, { field: "created" | "lastContacted" }>, close: () => void)}
 	<form
 		class="flex flex-wrap items-center gap-2"
 		onsubmit={(event) => {
 			event.preventDefault();
 			close();
 		}}>
-		<label class="sr-only" for="created-a">{filter.op === "between" ? "From" : "Date"}</label>
-		<input id="created-a" class="field min-h-9 w-auto" type="date" value={filter.a} onchange={(event) => setFilter({ ...filter, a: event.currentTarget.value })} />
+		<label class="sr-only" for={`${filter.field}-a`}>{filter.op === "between" ? "From" : "Date"}</label>
+		<input id={`${filter.field}-a`} class="field min-h-9 w-auto" type="date" value={filter.a} onchange={(event) => setFilter({ ...filter, a: event.currentTarget.value })} />
 		{#if filter.op === "between"}
 			<span class="text-muted">and</span>
-			<label class="sr-only" for="created-b">To</label>
-			<input id="created-b" class="field min-h-9 w-auto" type="date" value={filter.b} onchange={(event) => setFilter({ ...filter, b: event.currentTarget.value })} />
+			<label class="sr-only" for={`${filter.field}-b`}>To</label>
+			<input id={`${filter.field}-b`} class="field min-h-9 w-auto" type="date" value={filter.b} onchange={(event) => setFilter({ ...filter, b: event.currentTarget.value })} />
 		{/if}
 		<button class="control" data-size="sm" data-icon aria-label="Done"><Check size={16} aria-hidden="true" /></button>
 	</form>
@@ -736,7 +746,7 @@
 					{#if filter.field === "opportunities" || filter.field === "allOpportunities"}{@render countEditor(filter, close)}
 					{:else if filter.field === "consent"}{@render consentEditor(filter)}
 					{:else if filter.field === "referredBy"}{@render referredEditor(filter, close)}
-					{:else if filter.field === "created"}{@render createdEditor(filter, close)}{/if}
+					{:else if filter.field === "created" || filter.field === "lastContacted"}{@render dateEditor(filter, close)}{/if}
 				{/snippet}
 			{/each}
 			{#if availableFields.length}
@@ -955,6 +965,9 @@
 													{:else}{@render empty()}{/if}
 												{:else if column.id === "created"}
 													<time class="text-muted whitespace-nowrap tabular-nums" datetime={c.createdAt}>{dateFormat.format(new Date(c.createdAt))}</time>
+												{:else if column.id === "lastContacted"}
+													{#if c.lastContactedAt}<time class="whitespace-nowrap tabular-nums" datetime={c.lastContactedAt}>{dateFormat.format(new Date(c.lastContactedAt))}</time>
+													{:else}<span class="text-muted whitespace-nowrap">Never</span>{/if}
 												{/if}
 											</td>
 										{/each}
@@ -1109,17 +1122,23 @@
 		if (pending) event.preventDefault();
 	}}
 	aria-labelledby="client-panel-heading"
-	class="dialog"
+	class="dialog overflow-hidden transition-[max-width] duration-300 ease-(--ease-shell) open:flex open:flex-col motion-reduce:transition-none sm:has-data-[layout=logging]:max-w-[60rem] sm:has-data-[layout=stacked]:max-w-[40rem]"
 	data-placement="side">
-	<header class="bg-canvas/95 border-hairline sticky top-0 z-20 flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
+	<header class="bg-canvas/95 border-hairline z-20 flex shrink-0 items-center gap-2 border-b px-4 py-2.5 sm:px-6">
 		<span class="text-muted flex min-w-0 items-center gap-1.5 text-sm">
 			<ContactRound size={14} class="shrink-0" aria-hidden="true" />Registry<span aria-hidden="true">/</span>
-			<span class="text-ink truncate font-medium">{creating ? "New client" : record?.archivedAt ? "Archived client" : "Client"}</span>
+			{#if creating || !draft}
+				<span class="text-ink truncate font-medium">{creating ? "New client" : "Client"}</span>
+			{:else}
+				<span class={["truncate transition-colors", !clientSection.name && "text-ink font-medium"]}>{record?.name || draft.name || "Client"}{record?.archivedAt ? " (archived)" : ""}</span>
+				<SectionCrumb section={clientSection} />
+			{/if}
 		</span>
 		<button type="button" class="icon-action ml-auto" data-autofocus={!creating || undefined} aria-label="Close" disabled={pending} onclick={() => dialog?.close()}><X size={17} aria-hidden="true" /></button>
 	</header>
-	<div class="px-4 pt-5 pb-6 sm:px-6">
-		{#if saved}<p role="status" class="bg-success-soft text-success mb-4 rounded-xl px-3.5 py-2 text-sm">{saved}</p>{/if}
+	<!-- The client editor lays out its own panes and scrollers; the create form is short and scrolls here. -->
+	<div class={["flex min-h-0 flex-1 flex-col", creating && "overflow-y-auto px-4 pt-5 pb-6 sm:px-6"]}>
+		{#if saved}<p role="status" class={["bg-success-soft text-success shrink-0 rounded-xl px-3.5 py-2 text-sm", creating ? "mb-4" : "mx-4 mt-3 sm:mx-6"]}>{saved}</p>{/if}
 		{#if creating}
 			<h2 id="client-panel-heading" class="font-display mb-5 text-3xl tracking-tight">New client</h2>
 			<form
@@ -1139,8 +1158,7 @@
 				})}>
 				<input {...createClient.fields.id.as("hidden", clientId)} />
 				<input {...createClient.fields.requestId.as("hidden", requestId)} />
-				<label class="block space-y-1.5"
-					><span class="text-muted text-xs font-medium">Client name</span><input class="field" {...createClient.fields.name.as("text")} oninput={(event) => (newName = event.currentTarget.value)} data-autofocus required maxlength="200" autocomplete="off" placeholder="A person, or a couple such as The Millers" /></label>
+				<label class="labeled"><span class="field-label">Client name</span><input class="field" {...createClient.fields.name.as("text")} oninput={(event) => (newName = event.currentTarget.value)} data-autofocus required maxlength="200" autocomplete="off" placeholder="A person, or a couple such as The Millers" /></label>
 				{#each createClient.fields.allIssues() ?? [] as issue (issue)}<p class="text-urgent" role="alert">{issue.message}</p>{/each}
 				{#if failure}<p class="text-urgent" role="alert">{failure}</p>{/if}
 				<div class="flex flex-wrap gap-2">
@@ -1150,10 +1168,10 @@
 			</form>
 		{:else if draft}
 			{#key draft.id}
-				<ClientEditor bind:draft bind:pending {workspace} {remote} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")}>
-					{#snippet opportunities()}
-						<div class="mb-2 flex min-h-8 items-center justify-between gap-3">
-							<h3 class="font-display text-lg">Opportunities</h3>
+				<ClientEditor bind:draft bind:pending bind:section={clientSection} {workspace} {remote} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")} onpopout={(id) => (fullOpportunity = id)}>
+					{#snippet opportunities(open: (id: string) => void)}
+						<div class="mb-2 flex min-h-6 items-center justify-between gap-3">
+							<h3 class="font-display text-base">Opportunities</h3>
 							<button type="button" class="text-action" aria-label="New opportunity" disabled={pending} onclick={newOpportunity}><Plus size={14} aria-hidden="true" />New</button>
 						</div>
 						<ul class="space-y-1">
@@ -1161,10 +1179,10 @@
 								{@const opportunity = workspace.opportunities.find((row) => row.id === link.opportunityId)}
 								{#if opportunity}
 									<li>
-										<a class="work-row hover:bg-highlight flex min-h-10 items-center gap-3 px-3 py-1.5 transition-colors" href={`/pipeline?opportunity=${opportunity.id}`}>
+										<button type="button" class="work-row hover:bg-highlight flex min-h-10 w-full items-center gap-3 px-3 py-1.5 text-left transition-colors" onclick={() => open(opportunity.id)}>
 											<span class="item-title min-w-0 flex-1 truncate">{opportunity.title}</span>
 											<span class="chip shrink-0" data-tone={stageTones[opportunity.stage]}>{stageLabels[opportunity.stage]}</span>
-										</a>
+										</button>
 									</li>
 								{/if}
 							{:else}
@@ -1174,29 +1192,23 @@
 					{/snippet}
 				</ClientEditor>
 			{/key}
-			<details class="border-hairline mt-1 border-t pt-4 text-sm">
-				<summary class="text-muted cursor-pointer">History <span>· {changes.length} {changes.length === 1 ? "change" : "changes"}</span></summary>
-				<ol class="mt-3 space-y-2.5 pl-4">
-					{#each changes as change (change.id)}
-						<li class="min-w-0">
-							<details>
-								<summary class="cursor-pointer"
-									><span class="font-medium capitalize">{flagChangeLabel(change.action, change.data) ?? change.action}</span>
-									<span class="text-muted text-xs"
-										><time datetime={change.createdAt}>{timeFormat.format(new Date(change.createdAt))}</time> · {person(change.actorUserId)}{#if change.actorUserId !== change.effectiveUserId}
-											(acting as {person(change.effectiveUserId)}){/if}</span
-									></summary>
-								<pre class="text-muted border-hairline mt-1.5 rounded-lg border p-3 text-xs wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>
-							</details>
-						</li>
-					{:else}<li class="text-muted">No changes recorded.</li>{/each}
-				</ol>
-			</details>
 		{/if}
 	</div>
 </dialog>
 
 <ClientFlagHoverCard bind:this={flagPreview} />
+
+{#if fullOpportunity}
+	{@const id = fullOpportunity}
+	{#key id}
+		<PipelineView
+			opportunity={id}
+			dialogOnly
+			onclose={() => {
+				if (fullOpportunity === id) fullOpportunity = null;
+			}} />
+	{/key}
+{/if}
 
 {#if creatingOpportunity}
 	<CreateOpportunityDialog
