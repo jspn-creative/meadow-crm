@@ -19,3 +19,15 @@ export function formatCalendarDate(value: string) {
 	const date = new Date(`${value}T00:00:00Z`);
 	return Number.isNaN(date.getTime()) ? value : calendarFormat.format(date);
 }
+
+/** Preferences is free text. Its lines, or failing that its sentences, read as a list. */
+export function preferenceItems(value: string) {
+	const lines = value
+		.split(/\n+/)
+		.map((line) => line.replace(/^\s*[-•*]\s+/, "").trim())
+		.filter(Boolean);
+	// A title such as "Dr." does not end a sentence.
+	return lines.length === 1
+		? lines[0]!.split(/(?<!\b(?:Mr|Mrs|Ms|Dr|St|Jr|Sr)\.)(?<=[.!?])\s+(?=[A-Z0-9"“])/)
+		: lines;
+}

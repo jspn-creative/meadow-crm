@@ -7,11 +7,10 @@
 	import { columnOrderingFeature, columnVisibilityFeature, createTable, rowSortingFeature, tableFeatures } from "@tanstack/svelte-table";
 	import { bulkUpdateClients, createClient, getClientFacets, getClientIds, getClients, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
+	import SectionCrumb, { type PanelSection } from "#lib/registry/SectionCrumb.svelte";
 	import ClientFlagHoverCard from "#lib/registry/ClientFlagHoverCard.svelte";
 	import { Flag } from "@lucide/svelte";
-	import { flagChangeLabel } from "#lib/registry/flag-history.js";
 	import { leadSources } from "#lib/data/lead-sources.js";
-	import { userFirstName as person } from "#lib/data/users.js";
 	import { clientDraft, newClientDraft, type ClientDraft } from "#lib/registry/client-draft.js";
 	import { formatPhone } from "#lib/registry/format.js";
 	import { builderField, builderFields, channelLabels, channels, filterSummary, needsValue, newFilter, parseFilter, serializeFilter, serverFilter, type BuilderField, type BuilderFilter, type Channel } from "#lib/registry/filters.js";
@@ -471,6 +470,8 @@
 	let requestId = $state("");
 	let newName = $state("");
 	let draft = $state<ClientDraft | null>(null);
+	/** The client editor's section in view, as the breadcrumb's last step. */
+	let clientSection = $state<PanelSection>({ name: "", forward: true });
 	let creatingOpportunity = $state<OpportunityDraft | null>(null);
 	let fresh = $state(false);
 	let pending = $state(false);
@@ -551,7 +552,6 @@
 		opener?.focus();
 		opener = null;
 	}
-	const timeFormat = $derived(new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: workspace.settings?.timezone ?? "America/Los_Angeles" }));
 </script>
 
 <svelte:head><title>Registry · Meadow Lane</title></svelte:head>
@@ -1109,17 +1109,23 @@
 		if (pending) event.preventDefault();
 	}}
 	aria-labelledby="client-panel-heading"
-	class="dialog"
+	class="dialog overflow-hidden transition-[max-width] duration-300 ease-(--ease-shell) open:flex open:flex-col motion-reduce:transition-none sm:has-data-[layout=logging]:max-w-[60rem] sm:has-data-[layout=stacked]:max-w-[40rem]"
 	data-placement="side">
-	<header class="bg-canvas/95 border-hairline sticky top-0 z-20 flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
+	<header class="bg-canvas/95 border-hairline z-20 flex shrink-0 items-center gap-2 border-b px-4 py-2.5 sm:px-6">
 		<span class="text-muted flex min-w-0 items-center gap-1.5 text-sm">
 			<ContactRound size={14} class="shrink-0" aria-hidden="true" />Registry<span aria-hidden="true">/</span>
-			<span class="text-ink truncate font-medium">{creating ? "New client" : record?.archivedAt ? "Archived client" : "Client"}</span>
+			{#if creating || !draft}
+				<span class="text-ink truncate font-medium">{creating ? "New client" : "Client"}</span>
+			{:else}
+				<span class={["truncate transition-colors", !clientSection.name && "text-ink font-medium"]}>{record?.name || draft.name || "Client"}{record?.archivedAt ? " (archived)" : ""}</span>
+				<SectionCrumb section={clientSection} />
+			{/if}
 		</span>
 		<button type="button" class="icon-action ml-auto" data-autofocus={!creating || undefined} aria-label="Close" disabled={pending} onclick={() => dialog?.close()}><X size={17} aria-hidden="true" /></button>
 	</header>
-	<div class="px-4 pt-5 pb-6 sm:px-6">
-		{#if saved}<p role="status" class="bg-success-soft text-success mb-4 rounded-xl px-3.5 py-2 text-sm">{saved}</p>{/if}
+	<!-- The client editor lays out its own panes and scrollers; the create form is short and scrolls here. -->
+	<div class={["flex min-h-0 flex-1 flex-col", creating && "overflow-y-auto px-4 pt-5 pb-6 sm:px-6"]}>
+		{#if saved}<p role="status" class={["bg-success-soft text-success shrink-0 rounded-xl px-3.5 py-2 text-sm", creating ? "mb-4" : "mx-4 mt-3 sm:mx-6"]}>{saved}</p>{/if}
 		{#if creating}
 			<h2 id="client-panel-heading" class="font-display mb-5 text-3xl tracking-tight">New client</h2>
 			<form
@@ -1139,8 +1145,7 @@
 				})}>
 				<input {...createClient.fields.id.as("hidden", clientId)} />
 				<input {...createClient.fields.requestId.as("hidden", requestId)} />
-				<label class="block space-y-1.5"
-					><span class="text-muted text-xs font-medium">Client name</span><input class="field" {...createClient.fields.name.as("text")} oninput={(event) => (newName = event.currentTarget.value)} data-autofocus required maxlength="200" autocomplete="off" placeholder="A person, or a couple such as The Millers" /></label>
+				<label class="labeled"><span class="field-label">Client name</span><input class="field" {...createClient.fields.name.as("text")} oninput={(event) => (newName = event.currentTarget.value)} data-autofocus required maxlength="200" autocomplete="off" placeholder="A person, or a couple such as The Millers" /></label>
 				{#each createClient.fields.allIssues() ?? [] as issue (issue)}<p class="text-urgent" role="alert">{issue.message}</p>{/each}
 				{#if failure}<p class="text-urgent" role="alert">{failure}</p>{/if}
 				<div class="flex flex-wrap gap-2">
@@ -1150,10 +1155,10 @@
 			</form>
 		{:else if draft}
 			{#key draft.id}
-				<ClientEditor bind:draft bind:pending {workspace} {remote} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")}>
+				<ClientEditor bind:draft bind:pending bind:section={clientSection} {workspace} {remote} history={changes} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")}>
 					{#snippet opportunities()}
-						<div class="mb-2 flex min-h-8 items-center justify-between gap-3">
-							<h3 class="font-display text-lg">Opportunities</h3>
+						<div class="mb-2 flex min-h-6 items-center justify-between gap-3">
+							<h3 class="font-display text-base">Opportunities</h3>
 							<button type="button" class="text-action" aria-label="New opportunity" disabled={pending} onclick={newOpportunity}><Plus size={14} aria-hidden="true" />New</button>
 						</div>
 						<ul class="space-y-1">
@@ -1174,24 +1179,6 @@
 					{/snippet}
 				</ClientEditor>
 			{/key}
-			<details class="border-hairline mt-1 border-t pt-4 text-sm">
-				<summary class="text-muted cursor-pointer">History <span>· {changes.length} {changes.length === 1 ? "change" : "changes"}</span></summary>
-				<ol class="mt-3 space-y-2.5 pl-4">
-					{#each changes as change (change.id)}
-						<li class="min-w-0">
-							<details>
-								<summary class="cursor-pointer"
-									><span class="font-medium capitalize">{flagChangeLabel(change.action, change.data) ?? change.action}</span>
-									<span class="text-muted text-xs"
-										><time datetime={change.createdAt}>{timeFormat.format(new Date(change.createdAt))}</time> · {person(change.actorUserId)}{#if change.actorUserId !== change.effectiveUserId}
-											(acting as {person(change.effectiveUserId)}){/if}</span
-									></summary>
-								<pre class="text-muted border-hairline mt-1.5 rounded-lg border p-3 text-xs wrap-anywhere whitespace-pre-wrap">{JSON.stringify(change.data, null, 2)}</pre>
-							</details>
-						</li>
-					{:else}<li class="text-muted">No changes recorded.</li>{/each}
-				</ol>
-			</details>
 		{/if}
 	</div>
 </dialog>

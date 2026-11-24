@@ -3,6 +3,8 @@
 	import { dev } from "$app/env";
 	import VariantToolbar from "./VariantToolbar.svelte";
 	import { handleVariantKeys, variantRegistry } from "./variants.svelte.js";
+	/** Where the toolbar rests until dragged, as position utilities, such as above a view's pinned bar. */
+	let { dock = "right-4 bottom-4" }: { dock?: string } = $props();
 	onMount(() => {
 		variantRegistry.hosts += 1;
 	});
@@ -18,5 +20,5 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if dev && variantRegistry.sets.length > 0}
-	<VariantToolbar groups={variantRegistry.sets} storageKey="variant-picker:host:pos" />
+	<VariantToolbar groups={variantRegistry.sets} storageKey="variant-picker:host:pos" {dock} />
 {/if}

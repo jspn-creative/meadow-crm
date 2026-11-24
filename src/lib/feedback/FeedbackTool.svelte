@@ -30,15 +30,27 @@
 	let message = $state("");
 	let confirmingClear = $state<string | null>(null);
 
-	// Stored as distance from the bottom-right corner, so a window resize keeps the tool beside that corner and opening the panel grows it into the page.
-	let position = $state({ right: 16, bottom: 16 });
+	// Stored as distance from the bottom-right corner, so a window resize keeps the tool beside that corner and opening the panel grows it into the page. Until it is dragged it sits at the shell's edge inset, like the brand and account chip.
+	let position = $state<{ right: number; bottom: number } | null>(null);
 	let width = $state(0);
 	let height = $state(0);
 	let viewportWidth = $state(0);
 	let viewportHeight = $state(0);
 	const clamp = (value: number, limit: number) => Math.max(margin, Math.min(value, Math.max(margin, limit - margin)));
-	let right = $derived(clamp(position.right, viewportWidth - width));
-	let bottom = $derived(clamp(position.bottom, viewportHeight - height));
+	let right = $derived(position && clamp(position.right, viewportWidth - width));
+	let bottom = $derived(position && clamp(position.bottom, viewportHeight - height));
+
+	// Until dragged inside a modal dialog, the tool keeps clear of the dialog's own controls: beside a side dialog when the window has room, otherwise above the dialog's pinned bar, such as a note composer.
+	let clearance = $state<{ right: number; bottom: number } | null>(null);
+	function measure(host: Element) {
+		if (!(host instanceof HTMLDialogElement)) return (clearance = null);
+		const gap = 12;
+		const box = host.getBoundingClientRect();
+		const bar = [...host.querySelectorAll("[data-pinned-bar]")].at(-1)?.getBoundingClientRect();
+		if (host.dataset.placement === "side" && box.left >= width + 2 * gap) clearance = { right: innerWidth - box.left + gap, bottom: innerHeight - box.bottom };
+		else if (bar?.height) clearance = { right: innerWidth - box.right + gap, bottom: innerHeight - bar.top + gap };
+		else clearance = null;
+	}
 
 	let drag: { x: number; y: number; right: number; bottom: number; moved: boolean } | null = null;
 	let suppressClick = false;
@@ -59,9 +71,13 @@
 
 	/** A modal dialog makes the rest of the page inert, so the tool moves inside the topmost one and stays usable. Its layers are manual popovers so that they sit in the top layer, positioned against the viewport rather than the dialog; moving a popover closes it, so each move shows them again. */
 	function followModalDialog(element: HTMLElement) {
+		const resize = new ResizeObserver(() => element.parentElement && measure(element.parentElement));
 		const sync = () => {
 			const host = [...document.querySelectorAll("dialog:modal")].at(-1) ?? document.body;
+			measure(host);
 			if (element.parentElement === host) return;
+			resize.disconnect();
+			resize.observe(host);
 			host.append(element);
 			for (const layer of element.querySelectorAll<HTMLElement>("[popover]")) layer.showPopover();
 		};
@@ -70,6 +86,7 @@
 		sync();
 		return () => {
 			observer.disconnect();
+			resize.disconnect();
 			element.remove();
 		};
 	}
@@ -78,7 +95,8 @@
 
 	function startDrag(event: PointerEvent) {
 		if (event.button || (event.target as Element).closest("[data-no-drag]")) return;
-		drag = { x: event.clientX, y: event.clientY, right, bottom, moved: false };
+		const box = (event.currentTarget as Element).closest("[popover]")!.getBoundingClientRect();
+		drag = { x: event.clientX, y: event.clientY, right: right ?? viewportWidth - box.right, bottom: bottom ?? viewportHeight - box.bottom, moved: false };
 		(event.currentTarget as Element).setPointerCapture(event.pointerId);
 	}
 	function moveDrag(event: PointerEvent) {
@@ -201,8 +219,8 @@
 					bind:offsetWidth={width}
 					bind:offsetHeight={height}
 					class="fixed inset-auto m-0 overflow-visible border-0 bg-transparent p-0"
-					style:right="{right}px"
-					style:bottom="{bottom}px"
+					style:right={right === null ? (clearance ? `${clearance.right}px` : "var(--spacing-edge)") : `${right}px`}
+					style:bottom={bottom === null ? (clearance ? `${clearance.bottom}px` : "var(--spacing-edge)") : `${bottom}px`}
 					onkeydown={(event) => {
 						if (event.key !== "Escape" || !open) return;
 						// An open dialog would otherwise close along with the panel.

@@ -42,7 +42,7 @@ Call `variantSetting(id, options, config?)` during component initialization, not
 
 ## Shared host and controls
 
-Mount `<VariantHost />` once in the root layout for multiple pickers or any settings. All live groups appear in registration order in one draggable, collapsible toolbar, and individual picker toolbars disappear. No registered groups means no host toolbar. Preserve routed content separately when declaring a snippet named `children` in a layout to avoid shadowing its children prop.
+Mount `<VariantHost />` once in the root layout for multiple pickers or any settings. All live groups appear in registration order in one draggable, collapsible toolbar, and individual picker toolbars disappear. No registered groups means no host toolbar. The toolbar rests at the bottom right until dragged; pass position utilities such as `<VariantHost dock="right-4 bottom-24" />` when a view pins its own controls there. Preserve routed content separately when declaring a snippet named `children` in a layout to avoid shadowing its children prop.
 
 - Drag the toolbar background to move it; option controls do not initiate dragging.
 - Focus the toolbar and use arrow keys to move it by 8 px (Shift: 24 px); Escape toggles collapse. Dropdown keys retain native select behavior.

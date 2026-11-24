@@ -64,7 +64,7 @@ The developer confirmed every requirement here on 2026-11-05. A requirement mark
 - DASH-6 Upcoming shows the realtor's tasks whose date or due date falls in the next several days.
 - DASH-7 Key dates shows clients' birthdays and key dates coming up in the next few weeks.
 - DASH-8 Pipeline summary counts opportunities per stage and links to the board.
-- DASH-9 Recent activity lists the latest changes across records, drawn from their history.
+- DASH-9 Recent activity lists the latest History, notes, and logged contact across records, worded the same way as Activity.
 - DASH-10 Widgets show existing records rather than keeping copies, and link to them. Counts are real, and widgets link into filtered views as well as single records.
 - DASH-11 Each widget has loading, error, and empty states, and an empty state says what to do next.
 - DASH-12 Recent activity's empty state may be playful, such as four milestones from the birth of the universe to today, as long as it never looks like business history.
@@ -78,7 +78,7 @@ The developer confirmed every requirement here on 2026-11-05. A requirement mark
 - PIPE-5 The types are Buyer, Seller, Estate Sale, and Construction, with no "other". An engagement that fits none is recorded against the closest type with a note. Types are fixed for now, but implemented so another type can be added later without a redesign.
 - PIPE-6 An opportunity's type is chosen when it is created and never changes. An opportunity created with the wrong type is deleted and created again.
 - PIPE-7 An Estate Sale opportunity is a referral relationship and may sit in one stage its whole life. Construction work stays on the same board so the realtor's side work is visible alongside everything else.
-- PIPE-8 An opportunity has a title, type, stage, optional timeline, optional property address, optional budget or target price in USD, its clients, notes, references, checklists, and an archive state.
+- PIPE-8 An opportunity has a title, type, stage, optional timeline, optional property address, optional budget or target price in USD, its clients, references, checklists, Activity, and an archive state.
 - PIPE-9 The title is what the business calls the work: "Miller home search" until a property is picked, then the address.
 - PIPE-10 A client is not required.
 - PIPE-11 The timeline (1-3 mo, 3-6 mo, 6+ mo) is shown on the card and used to filter and sort. It never blocks a stage change or judges an opportunity.
@@ -108,7 +108,7 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 ### Registry (REG)
 
 - REG-1 The Registry lists every client in a dense, sortable table. A client opens in a side panel.
-- REG-2 Keyword search is instant and covers name, contact details, address, notes, and tags.
+- REG-2 Keyword search is instant and covers name, contact details, address, and tags. It does not search Activity.
 - REG-3 Tags and lead source have searchable faceted filters alongside a filter builder for opportunity counts, Consent, Referred by, and Created. Opportunity-count filters offer both current (non-archived) opportunities and all opportunities (archived included). The archived toggle opens the explicit archived view.
 - REG-4 Search and filters live in the URL so a view can be shared or bookmarked, along with the archived toggle and sorting. Reloading, Back, and Forward restore the view; invalid values fall back to defaults. Typing in search replaces the current history entry rather than adding one per keystroke, and adding or removing a filter adds one. Selections and record content never go in the URL.
 - REG-5 The developer prefers perpetual scrolling over pagination where sensible. The current adaptation loads 50 clients at a time, with no pagination or page-size control; it retains loaded rows rather than virtualizing them. Virtualization remains a performance follow-up, not an implemented feature. Sorting or filtering starts again at the top.
@@ -116,10 +116,10 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - REG-7 Several clients can be selected to apply tags or archive them at once. The header checkbox selects the clients currently shown; a "Select all matching clients" link then extends the selection to every match.
 - REG-8 The number of selected clients is shown. Changing search, filters, archived state, or sorting clears the selection; loading more rows preserves it. The current implementation limits each bulk change to 2,000 clients and labels that limit when results exceed it.
 - REG-9 A bulk change applies to every selected client it can, then says which clients were skipped and why. An Undo action shown right after the change reverses the change, skipping clients edited since that action rather than overwriting newer work. Each client's history records both the change and its undo. Archived clients can be selected and restored too.
-- REG-10 A client can be deleted, and only from the Registry. Before deleting, a notice lists the client's opportunities, each with a choice to delete it, archive it, or leave it alone, and the tasks linked directly to the client, each with a choice to delete it or leave it alone. Whatever is left alone loses its link to the client.
+- REG-10 A client can be deleted, and only from the Registry. Before deleting, a notice lists the client's opportunities, each with a choice to delete it, archive it, or leave it alone, and the tasks linked directly to the client, each with a choice to delete it or leave it alone. Whatever is left alone loses its link to the client. The client's own notes and logged contact are deleted with it; entries on its opportunities follow each opportunity's choice.
 - REG-11 Each client shows their opportunities inline, so the Registry is also a way into the Pipeline.
 - REG-12 A client is a person, or several people such as a married couple, whom the business treats as one relationship. Each person has a name, a birthday, and any number of labeled phone numbers and email addresses.
-- REG-13 A client has its people, any number of addresses, a lead source, Referred by, relationships, key dates, preferences, consent, a preferred contact method, notes, tags, created and updated timestamps, and an archive state. These fields are meant to give later features, such as nurture follow-ups, referral tracking, and Phone, the data they need.
+- REG-13 A client has its people, any number of addresses, a lead source, Referred by, relationships, key dates, preferences, consent, a preferred contact method, tags, Activity, Last contacted, created and updated timestamps, and an archive state. These fields are meant to give later features, such as nurture follow-ups, referral tracking, and Phone, the data they need.
 - REG-14 An address can be of any kind, whether or not the client owns it. Each has a label and a marker for whether the client owns it.
 - REG-15 Referred by belongs to the Referral lead source: choosing Referral asks who, either an existing client, linked, or a typed name when the referrer is not a client, such as a lender or another agent. A new referral must name its referrer; imported referrals without one can be filled in later. Any other lead source has no Referred by.
 - REG-16 A relationship is a labeled link between two clients, such as parent, sibling, or colleague.
@@ -132,6 +132,20 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - REG-23 The Registry highlights flagged client rows and displays their flag note in a hover card matching the style guide's Overlays → Hover card pattern. The note is also accessible by keyboard and touch, and a flag without a note still has a visible flag indicator.
 - REG-24 When no specific sorting method is chosen, flagged clients appear first, with clients ordered by name within the flagged and unflagged groups. An explicitly chosen sort, including name A–Z, takes precedence over flag-first ordering; clearing sorting restores the default.
 
+### Activity (ACT)
+
+Decided by the developer on 2026-11-15. Research and presentation rules are in [the client activity note](./notes/client-activity.md#activity-feed).
+
+- ACT-1 Clients and opportunities each show Activity in their detail view: one list, oldest first with the newest at the bottom, merging History, notes, and logged contact. It replaces their notes field and history section.
+- ACT-2 Each note belongs to one record. A logged contact belongs to the client or to one or more of the client's opportunities, when one call or meeting covers several. Contact before an opportunity exists, and client-level matters such as how to pronounce a name, go on the client; contact about an opportunity goes on that opportunity. A client's Activity also shows its opportunities' notes and logged contact, labeled with the opportunity's title; an opportunity's Activity shows only its own.
+- ACT-3 A note is plain text posted by a user, shown with its author and time. Its author is the user who wrote it, and as whom when impersonating.
+- ACT-4 Log contact records a channel (Call, Text, Email, Meeting, or Other with a short label), a direction (outgoing or incoming), when it happened, an optional note, and an outcome where the channel has one: Call is Talked, Left voicemail, No answer, or Wrong number; Meeting is Met or No-show; Text and Email can be marked Bounced. These choices are a starting point the developer expects to refine.
+- ACT-5 When Log contact is opened from a client with open opportunities, it asks which opportunities the contact is about, preselecting the only one and offering No opportunity, and shows the chosen opportunities' and the client's key details beside the form. It can also start a new opportunity from its type and title, created with the contact as a New lead with the client.
+- ACT-6 Either business user can edit the text of a note or of a logged contact's note, or delete the whole entry. A logged contact's channel, direction, outcome, and time are not editable. Edits and deletions appear in Activity as History. History and imported entries can't be edited or deleted.
+- ACT-7 Imported BoldTrail notes are parsed into typed entries (texts, calls, typed notes, Zillow inquiries, and status events), dropping TCPA consent boilerplate; text that matches no pattern becomes a note. The client is the actor of their own inbound messages and STOP replies. Entries with no known author are stored under the support admin account and shown as BoldTrail.
+- ACT-8 The existing notes text on clients and opportunities moves into Activity: imported text as ACT-7 describes, and text written in Meadow as notes by the user who wrote it, according to History. The notes field is then removed.
+- ACT-9 Last contacted is the latest logged contact that reached the client, including contact logged on their opportunities: a call that talked, a meeting that happened, any incoming contact, or a sent text or email that didn't bounce. The latest attempt is shown beside it, unless it is the same contact. Both appear on the client, and Last contacted is a Registry column that can be sorted and filtered.
+
 ## Tasks (TASK)
 
 - TASK-1 Tasks are work on the realtor's task list. A task can stand alone or link to a client or an opportunity.
@@ -142,7 +156,7 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 
 ## Records (REC)
 
-- REC-1 Clients, opportunities, and tasks are records. Each opens in its own detail view with a references section and a history section.
+- REC-1 Clients, opportunities, and tasks are records. Each opens in its own detail view with a references section. Clients and opportunities show their history in Activity; a task has its own history section.
 - REC-2 A reference is a linked record, a web link, or an uploaded file. Its kind sets how it looks. Web links and files can be given a friendly name; a linked record shows its own name. Related records and uploads live in the references section rather than in sections of their own.
 - REC-3 History records what changed, when, by whom, and as whom when impersonating.
 - REC-4 A saved change appears immediately and rolls back with a message if saving fails. If someone else changed the record first, the later save is refused and the screen shows their version so the edit can be redone.
@@ -150,7 +164,7 @@ Checklists belong to the Pipeline. They are rough guidelines for each stage, not
 - REC-6 Both users' screens stay current: views refresh on navigation and focus, poll while visible, pause while hidden, and recompute dates at the business's midnight. Refreshing never discards an unsaved edit.
 - REC-7 Removing a reference never changes the record it points to. Web links must be http or https. An archived record stays reachable from the references that link to it.
 - REC-8 Archiving an opportunity leaves its tasks on the task list.
-- REC-9 Clients and opportunities can be archived independently. Archiving keeps every field, note, link, and its history, and can be undone from an explicit archived view. Archived opportunities never appear on the board, and archived clients do not appear in the Registry by default.
+- REC-9 Clients and opportunities can be archived independently. Archiving keeps every field, link, and its Activity, and can be undone from an explicit archived view. Archived opportunities never appear on the board, and archived clients do not appear in the Registry by default.
 - REC-10 Archiving is how dead work leaves the board; Closed is reserved for engagements that were completed.
 - REC-11 A record created by mistake is deleted rather than archived. Clients can be deleted, only from the Registry. Opportunities can be deleted, along with the tasks promoted from their checklists. Tasks can be deleted, and deleting a promoted task deletes its checklist item. Delete options for anything else are settled when that work is built.
 - REC-12 A delete may look permanent to users while being kept briefly behind the scenes.

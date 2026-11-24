@@ -134,7 +134,7 @@ export const vocabulary: Term[] = [
 		term: "Record",
 		kind: "Concept",
 		meaning:
-			"Something the business stores that opens in its own detail view to be read or edited: a client from the Registry, an opportunity from its Pipeline card, a task from Today's Tasks. A record's detail view has a references section and a history section.",
+			"Something the business stores that opens in its own detail view to be read or edited: a client from the Registry, an opportunity from its Pipeline card, a task from Today's Tasks. A record's detail view has a references section; clients and opportunities show their history in Activity, and a task has a history section.",
 		not: ["entry", "object"],
 		children: [
 			{
@@ -148,14 +148,51 @@ export const vocabulary: Term[] = [
 				term: "History",
 				kind: "Field",
 				meaning:
-					"The saved list of changes to a record: what changed, when, by whom, and as whom when impersonating. Shown in the record's detail view.",
+					"The saved list of changes to a record: what changed, when, by whom, and as whom when impersonating. Shown in a client's or opportunity's Activity, and in a task's history section.",
 				not: ["audit log", "changelog"],
+			},
+			{
+				term: "Activity",
+				kind: "Field",
+				meaning:
+					"One list on a client or opportunity, oldest first, merging its History, notes, and logged contact. A client's Activity also shows its opportunities' notes and logged contact. It replaced the old notes field.",
+				not: ["notes (as its name)", "feed", "timeline (a field on opportunities)", "audit log"],
+				children: [
+					{
+						term: "Note",
+						kind: "Value",
+						meaning:
+							"Plain text a user posts to a record's Activity, shown with its author and time. Either business user can edit or delete it. Imported BoldTrail text no pattern recognizes also becomes a note.",
+						not: ["comment", "message", "memo"],
+					},
+					{
+						term: "Logged contact",
+						kind: "Value",
+						meaning:
+							"A call, text, email, meeting, or other contact with a client, recorded with Log contact: its channel, direction, outcome, when it happened, and an optional note. Only its note is editable; the whole entry can be deleted. Imported BoldTrail texts, calls, and Zillow messages are logged contact too.",
+						not: ["interaction", "touchpoint", "communication", "activity (the whole list)"],
+					},
+					{
+						term: "Conversation",
+						kind: "Value",
+						meaning:
+							"The Activity view that shows only notes and logged contact, as a chat: the client's words on one side and the business's on the other. On a client, messages about the same opportunity are grouped on a faint band in its color. Each user's choice of view is saved in their browser.",
+						not: ["chat", "thread", "messages"],
+					},
+					{
+						term: "Everything",
+						kind: "Value",
+						meaning:
+							"The Activity view that shows the whole list, History and imported events included, along one line.",
+						not: ["timeline (a field on opportunities)", "feed", "all activity"],
+					},
+				],
 			},
 			{
 				term: "Archive",
 				kind: "Action",
 				meaning:
-					"Hide a client or opportunity from default views while keeping every field, link, and its history; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. A record created by mistake is deleted, not archived.",
+					"Hide a client or opportunity from default views while keeping every field, link, and its Activity; it can be restored. Archiving is how dead work leaves the board; Closed is reserved for completed engagements. A record created by mistake is deleted, not archived.",
 				not: ["delete", "remove", "close"],
 			},
 			{
@@ -230,7 +267,7 @@ export const vocabulary: Term[] = [
 						term: "Recent activity",
 						kind: "Widget",
 						meaning:
-							"On the assistant's dashboard: the latest changes across records, drawn from their history.",
+							"On the assistant's dashboard: the latest History, notes, and logged contact across records, worded as in Activity.",
 						not: ["feed", "audit log"],
 					},
 				],
@@ -390,6 +427,13 @@ export const vocabulary: Term[] = [
 						meaning:
 							"Whether a client may be contacted by call, text, email, and mail. On for every client by default; the assistant turns channels off, and turning all of them off marks the client as not to be contacted.",
 						not: ["contact permissions", "opt-in", "do-not-contact flag"],
+					},
+					{
+						term: "Last contacted",
+						kind: "Field",
+						meaning:
+							"When a client was last reached, from the latest logged contact that reached them on the client or any of their opportunities: a call that talked, a meeting that happened, any incoming contact, or a sent text or email that didn't bounce. The latest attempt is shown beside it, unless it is the same contact.",
+						not: ["last touch", "last activity"],
 					},
 					{
 						term: "Lead source",
