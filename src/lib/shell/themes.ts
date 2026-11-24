@@ -17,6 +17,8 @@ export const fonts = [
 	},
 	{ id: "fraunces", label: "Fraunces", display: "Fraunces", body: "Figtree" },
 	{ id: "young-serif", label: "Young Serif", display: "Young Serif", body: "Work Sans" },
+	{ id: "barlow", label: "Barlow", display: "Barlow Semi Condensed", body: "Barlow" },
+	{ id: "instrument", label: "Instrument", display: "Instrument Serif", body: "Instrument Sans" },
 ] as const;
 
 export type ThemeId = (typeof themes)[number]["id"];

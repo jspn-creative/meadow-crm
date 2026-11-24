@@ -297,4 +297,16 @@
 		--font-body-tracking: -0.02em;
 		letter-spacing: var(--font-body-tracking);
 	}
+	[data-font="barlow"] {
+		--font-display: "Barlow Semi Condensed", system-ui, sans-serif;
+		--font-sans: "Barlow", system-ui, sans-serif;
+		--font-body-tracking: 0.005em;
+		letter-spacing: var(--font-body-tracking);
+	}
+	[data-font="instrument"] {
+		--font-display: "Instrument Serif", Georgia, serif;
+		--font-sans: "Instrument Sans", system-ui, sans-serif;
+		--font-body-tracking: normal;
+		letter-spacing: var(--font-body-tracking);
+	}
 }
