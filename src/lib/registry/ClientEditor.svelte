@@ -318,7 +318,7 @@
 {/snippet}
 
 {#snippet row(label: string, value: Snippet)}
-	<div class="grid min-w-0 gap-x-4 py-1 leading-[1.4] @min-[22rem]/details:grid-cols-[7rem_minmax(0,1fr)]">
+	<div class="grid min-w-0 items-baseline gap-x-4 py-1 leading-[1.4] @min-[22rem]/details:grid-cols-[7rem_minmax(0,1fr)]">
 		<dt class="text-muted">{label}</dt>
 		<dd class="min-w-0 wrap-anywhere">{@render value()}</dd>
 	</div>
@@ -671,7 +671,7 @@
 						{#if clientRecord?.importedData.length}
 							<details class="min-w-0">
 								<summary class="text-muted cursor-pointer">Imported data <span class="font-normal">· {clientRecord.importedData.length} fields from the previous CRM, read-only</span></summary>
-								<dl class="mt-2 text-xs">
+								<dl class="mt-2 text-xs [&_dt]:leading-[1.1]">
 									{#each clientRecord.importedData as item (item.label)}
 										{#snippet importedValue()}<span class="whitespace-pre-wrap">{item.value}</span>{/snippet}
 										{@render row(item.label, importedValue)}

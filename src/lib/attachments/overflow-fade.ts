@@ -10,13 +10,16 @@ export type FadeSides = "both" | "start" | "end";
 
 export type OverflowCheckOptions = {
 	axis: FadeAxis;
-	sides?: FadeSides;
+	sides?: OverflowFadeOptions["sides"];
 	onOverflow?: (state: OverflowState) => void;
 };
 
 export type OverflowFadeOptions = {
 	axis: FadeAxis;
-	sides?: FadeSides;
+	/** Which edges fade, for both axes or per axis, such as `{ x: "both", y: "end" }` under a sticky header. */
+	sides?: FadeSides | { x?: FadeSides; y?: FadeSides };
+	/** Self-scrolled mode only: pixels at the left of the element that stay fully visible before the left fade begins, such as a sticky first column. Read on every update. */
+	leftInset?: (element: HTMLElement) => number;
 	/** Fade size as percent of the scrollable dimension (default 10). */
 	fadePercent?: number;
 	/**
@@ -41,23 +44,25 @@ const THROTTLE_MS = 100;
 const FADE_TRANSITION_MS = 400;
 const DEFAULT_FADE_PERCENT = 10;
 
-function activeEdges(axis: FadeAxis, sides: FadeSides = "both"): EdgeFlags {
+type EdgeSides = OverflowFadeOptions["sides"];
+
+function activeEdges(axis: FadeAxis, sides: EdgeSides = "both"): EdgeFlags {
 	const wantY = axis === "y" || axis === "both";
 	const wantX = axis === "x" || axis === "both";
-	const checkStart = sides !== "end";
-	const checkEnd = sides !== "start";
+	const sidesY = typeof sides === "object" ? (sides.y ?? "both") : sides;
+	const sidesX = typeof sides === "object" ? (sides.x ?? "both") : sides;
 	return {
-		top: wantY && checkStart,
-		bottom: wantY && checkEnd,
-		left: wantX && checkStart,
-		right: wantX && checkEnd,
+		top: wantY && sidesY !== "end",
+		bottom: wantY && sidesY !== "start",
+		left: wantX && sidesX !== "end",
+		right: wantX && sidesX !== "start",
 	};
 }
 
 function checkOverflow(
 	element: HTMLElement,
 	axis: FadeAxis,
-	sides: FadeSides = "both",
+	sides: EdgeSides = "both",
 ): OverflowState {
 	const state: OverflowState = {
 		overflowLeft: false,
@@ -195,6 +200,7 @@ function setupMaskCSS(element: HTMLElement, axis: FadeAxis, animate = true) {
 	element.style.setProperty("--fade-bottom", "100");
 	element.style.setProperty("--fade-left", "0");
 	element.style.setProperty("--fade-right", "100");
+	element.style.setProperty("--fade-left-inset", "0px");
 	// Driven masks update on every scroll frame via rAF, so transitioning the
 	// custom properties would lag a full animation behind the scroll position and
 	// repaint the whole masked layer each frame. Track scroll 1:1 instead.
@@ -207,9 +213,12 @@ function setupMaskCSS(element: HTMLElement, axis: FadeAxis, animate = true) {
 		black calc(var(--fade-top) * 1%),
 		black calc(var(--fade-bottom) * 1%),
 		transparent 100%)`;
+	// The left fade starts after the inset, so a sticky first column stays solid while columns fade beneath it.
 	const horizontal = `linear-gradient(to right,
-		transparent 0%,
-		black calc(var(--fade-left) * 1%),
+		black 0px,
+		black var(--fade-left-inset),
+		transparent var(--fade-left-inset),
+		black calc(var(--fade-left-inset) + var(--fade-left) * 1%),
 		black calc(var(--fade-right) * 1%),
 		transparent 100%)`;
 
@@ -238,7 +247,7 @@ function updateMaskFades(
 	target: HTMLElement,
 	source: HTMLElement,
 	axis: FadeAxis,
-	sides: FadeSides,
+	sides: EdgeSides,
 	fadePercent: number,
 	cache?: Map<string, string>,
 ) {
@@ -308,7 +317,7 @@ function updateDrivenMask(
 	target: HTMLElement,
 	source: HTMLElement,
 	axis: FadeAxis,
-	sides: FadeSides,
+	sides: EdgeSides,
 	fadePercent: number,
 	cache?: Map<string, string>,
 	startInset = 0,
@@ -380,7 +389,11 @@ export function overflowFade(options: OverflowFadeOptions) {
 			const { destroy } = createOverflowChecker(element, {
 				axis,
 				sides,
-				onOverflow: () => updateMaskFades(element, element, axis, sides, fadePercent),
+				onOverflow: () => {
+					if (options.leftInset)
+						element.style.setProperty("--fade-left-inset", px(options.leftInset(element)));
+					updateMaskFades(element, element, axis, sides, fadePercent);
+				},
 			});
 
 			return () => {

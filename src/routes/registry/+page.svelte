@@ -47,7 +47,7 @@
 	};
 	const columnIds = Object.keys(columnMeta) as ColumnId[];
 	const movableIds = columnIds.filter((id) => id !== "name");
-	const defaultHidden: Partial<Record<ColumnId, boolean>> = { referredBy: false, created: false };
+	const defaultHidden: Partial<Record<ColumnId, boolean>> = { consent: false, referredBy: false, created: false };
 	const columns = columnIds.map((id) => ({ id, header: columnMeta[id].header, accessorFn: (row: ClientRow) => row.id, enableHiding: id !== "name" }));
 
 	// Column visibility and order are per-browser view options, so they live in localStorage rather than the URL.
@@ -447,7 +447,13 @@
 		const preview = flagPreview;
 		untrack(() => preview?.reconcile(saved));
 	});
-	const tableFade = overflowFade({ axis: "both", sides: "end", fadePercent: 6 });
+	// The sticky heading and client column stay solid; rows fade beneath them.
+	const tableFade = overflowFade({
+		axis: "both",
+		sides: { x: "both", y: "end" },
+		fadePercent: 6,
+		leftInset: (box) => box.querySelector<HTMLElement>("thead th[data-select-zone]")?.offsetWidth ?? 0,
+	});
 	// Rows tint through --row-bg in opaque colours, since cells sit at fractional widths: each cell paints the tint and spills it one pixel right, so no light seam shows between cells and the sticky client cell hides the columns scrolling beneath it.
 	const cell = "border-hairline border-b bg-(--row-bg) px-4 py-2.5 align-middle shadow-[1px_0_0_var(--row-bg)] transition-colors duration-120 group-last/row:border-b-0 motion-reduce:transition-none";
 	const stickyName = $derived(["sticky left-0 pl-4", scrolledX && "shadow-[inset_-1px_0_0_var(--color-hairline),1px_0_0_var(--row-bg)]!"]);
