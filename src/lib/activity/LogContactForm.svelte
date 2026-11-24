@@ -3,7 +3,9 @@
 	import { Ban, Check, Mail, Megaphone, MessageSquare, Phone, Users } from "@lucide/svelte";
 	import { stageLabels, stageTones, timelineLabels, typeLabels, typeStyles } from "#lib/pipeline/labels.js";
 	import { formatPhone, preferenceItems } from "#lib/registry/format.js";
-	import { activityDates, channelNoun, outcomeLabels } from "./feed.js";
+	import type { ClientFacts } from "./client-facts.js";
+	import { channelNoun, outcomeLabels } from "./describe.js";
+	import { activityDates } from "./feed.js";
 	import type { ActivityOpportunity, Channel, ContactEntry, Direction, Outcome } from "./types.js";
 
 	type LogChannel = Exclude<Channel, "zillow">;
@@ -12,11 +14,8 @@
 
 	let {
 		client,
-		clientName,
+		clients,
 		opportunities,
-		facts,
-		lastContacted,
-		latestAttempt,
 		timeZone,
 		userId,
 		channel: initialChannel = "call",
@@ -25,14 +24,12 @@
 		onlog,
 		oncancel,
 	}: {
-		/** The name the client goes by in sentences. */
+		/** The name the client, or an opportunity's clients, go by in sentences. */
 		client: string;
-		clientName: string;
+		/** Whom the contact was with, with the key details shown beside the form. */
+		clients: ClientFacts[];
 		/** The client's open opportunities; with any, the form asks which of them the contact covered. */
 		opportunities: OpenOpportunity[];
-		facts: { phone?: string; email?: string; prefers?: string; preferences?: string; consent: Record<"call" | "text" | "email" | "mail", boolean> };
-		lastContacted?: ContactEntry;
-		latestAttempt?: ContactEntry;
 		timeZone: string;
 		userId: string;
 		/** The channel to open on, such as Call after the user tapped the client's number. */
@@ -41,7 +38,8 @@
 		creatable?: boolean;
 		/** Logged from an opportunity: the contact is about it, so the form asks nothing and shows its key details. */
 		about?: OpenOpportunity;
-		onlog: (entry: ContactEntry, created?: { id: string; type: OpportunityType; title: string }) => void;
+		/** Saves the contact, about the given opportunities; resolves false when it failed, which keeps the form as it was. */
+		onlog: (entry: ContactEntry, about: ActivityOpportunity[], created?: { id: string; type: OpportunityType; title: string }) => Promise<boolean>;
 		oncancel: () => void;
 	} = $props();
 
@@ -64,6 +62,9 @@
 	let newType = $state<OpportunityType>("buyer");
 	let newTitle = $state("");
 	const newId = crypto.randomUUID();
+	// One ID per opening, so logging again after a failure retries the same contact rather than adding a second.
+	const entryId = crypto.randomUUID();
+	let logging = $state(false);
 	let channel = $state<LogChannel>(untrack(() => initialChannel));
 	let label = $state("");
 	let direction = $state<Direction>("outgoing");
@@ -79,14 +80,23 @@
 
 	let outcomes = $derived<Outcome[]>(channel === "call" ? ["talked", "voicemail", "no-answer", "wrong-number"] : channel === "meeting" ? ["met", "no-show"] : []);
 	let canBounce = $derived((channel === "text" || channel === "email") && direction === "outgoing");
-	let preferences = $derived(preferenceItems(facts.preferences ?? ""));
+	const names = (list: ClientFacts[]) =>
+		list.length < 2
+			? (list[0]?.name ?? "")
+			: `${list
+					.slice(0, -1)
+					.map((row) => row.name)
+					.join(", ")} and ${list.at(-1)!.name}`;
 	let selected = $derived(subject ? [subject] : opportunities.filter((opportunity) => about.includes(opportunity.id)));
 	let asked = $derived(!subject && (opportunities.length > 0 || creatable));
 	let answered = $derived(!asked || general || about.length > 0 || creating);
 	// A meeting has no direction: both sides were there.
 	let directed = $derived(channel !== "meeting");
 	let incoming = $derived(directed && direction === "incoming");
-	let blocked = $derived(!incoming && (channel === "call" || channel === "text" || channel === "email") && !facts.consent[channel]);
+	let withoutConsent = $derived.by(() => {
+		const reached = channel;
+		return !incoming && (reached === "call" || reached === "text" || reached === "email") ? clients.filter((row) => !row.consent[reached]) : [];
+	});
 	let notePrompt = $derived(channel === "call" || channel === "meeting" ? "What was said, and what happens next" : incoming ? `What ${client} wrote` : channel === "other" ? "What happened" : "What you sent");
 	let submitLabel = $derived(channel === "other" ? "Log contact" : `Log ${channel}`);
 
@@ -99,14 +109,16 @@
 		if (!outcomes.includes(outcome)) outcome = outcomes[0] ?? "talked";
 		if (!canBounce) bounced = false;
 	}
-	function submit(event: SubmitEvent) {
+	async function submit(event: SubmitEvent) {
 		event.preventDefault();
-		if (!answered) return;
+		if (!answered || logging) return;
 		const created = creating ? { id: newId, type: newType, title: newTitle.trim() } : undefined;
-		const ids = [...selected.map((opportunity) => opportunity.id), ...(created ? [created.id] : [])];
-		onlog(
+		const about = [...selected.map(({ id, title, type }) => ({ id, title, type })), ...(created ? [created] : [])];
+		const ids = about.map((opportunity) => opportunity.id);
+		logging = true;
+		await onlog(
 			{
-				id: crypto.randomUUID(),
+				id: entryId,
 				kind: "contact",
 				at: new Date(when).toISOString(),
 				actor: incoming ? { kind: "client" } : { kind: "user", userId },
@@ -118,8 +130,10 @@
 				outcome: outcomes.length ? outcome : bounced ? "bounced" : undefined,
 				note: note.trim() || undefined,
 			},
+			about,
 			created,
 		);
+		logging = false;
 	}
 	const recap = (entry: ContactEntry) => `${dates.short(entry.at)} · ${channelNoun(entry)}${entry.outcome ? `, ${outcomeLabels[entry.outcome].toLowerCase()}` : ""}`;
 </script>
@@ -230,9 +244,9 @@
 				<label class="flex min-h-9 items-center gap-3"><input class="check" type="checkbox" bind:checked={bounced} /><span>It bounced, so it never reached {client}</span></label>
 			{/if}
 
-			{#if blocked}
+			{#if withoutConsent.length}
 				<p class="bg-urgent-soft text-urgent flex items-start gap-2 rounded-xl px-3 py-2 text-xs" role="status">
-					<Ban size={13} class="mt-px shrink-0" aria-hidden="true" />Consent is off for {channel === "call" ? "calls" : channel === "text" ? "texts" : "email"} to {client}. Log it if it happened, and check Consent before the next one.
+					<Ban size={13} class="mt-px shrink-0" aria-hidden="true" />Consent is off for {channel === "call" ? "calls" : channel === "text" ? "texts" : "email"} to {clients.length === 1 ? client : names(withoutConsent)}. Log it if it happened, and check Consent before the next one.
 				</p>
 			{/if}
 
@@ -242,8 +256,8 @@
 			</div>
 
 			<div class="flex flex-wrap gap-2">
-				<button class="control" data-variant="primary" disabled={!answered} title={answered ? undefined : "Choose what this was about first"}>{submitLabel}</button>
-				<button type="button" class="control" data-variant="ghost" onclick={oncancel}>Cancel</button>
+				<button class="control" data-variant="primary" disabled={!answered || logging} aria-busy={logging} title={answered ? undefined : "Choose what this was about first"}>{logging ? "Logging…" : submitLabel}</button>
+				<button type="button" class="control" data-variant="ghost" disabled={logging} onclick={oncancel}>Cancel</button>
 			</div>
 		</form>
 
@@ -267,34 +281,40 @@
 				<section class="surface min-w-0 p-4" data-tone={look.tone}>
 					<p class="flex items-center gap-1.5 text-xs leading-none font-medium text-(--action-color)"><look.icon size={12} aria-hidden="true" />New {typeLabels[newType]} opportunity</p>
 					<p class={["font-display mt-2 text-base/tight wrap-anywhere", !newTitle.trim() && "text-muted"]}>{newTitle.trim() || "Untitled"}</p>
-					<p class="text-muted mt-3 text-xs leading-[1.4]">Created with this contact as a New lead, with {clientName} as its client. Add its timeline, budget, and property on the opportunity.</p>
+					<p class="text-muted mt-3 text-xs leading-[1.4]">Created with this contact as a New lead, with {names(clients)} as its client. Add its timeline, budget, and property on the opportunity.</p>
 				</section>
 			{/if}
-			<section class="work-row min-w-0 p-4">
-				<p class="text-muted text-xs leading-none font-medium">Client</p>
-				<p class="font-display mt-2 text-base/tight wrap-anywhere">{clientName}</p>
-				<dl class="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-xs leading-[1.4]">
-					{#if facts.phone}{@render fact("Phone", formatPhone(facts.phone))}{/if}
-					{#if facts.email}{@render fact("Email", facts.email)}{/if}
-					{#if facts.prefers}{@render fact("Prefers", facts.prefers)}{/if}
-					<div class="contents">
-						<dt class="text-muted">Consent</dt>
-						<dd class="flex flex-wrap gap-x-2.5 gap-y-1">
-							{#each ["call", "text", "email", "mail"] as const as key (key)}
-								<span class={["inline-flex items-center gap-0.5 capitalize", !facts.consent[key] && "text-muted line-through"]}
-									>{#if facts.consent[key]}<Check size={11} class="text-success" aria-hidden="true" />{/if}{key}<span class="sr-only">{facts.consent[key] ? " allowed" : " not allowed"}</span></span>
-							{/each}
-						</dd>
-					</div>
-					{@render fact("Last contacted", lastContacted ? recap(lastContacted) : "Never")}
-					{#if latestAttempt !== lastContacted}{@render fact("Latest attempt", latestAttempt ? recap(latestAttempt) : "None yet")}{/if}
-				</dl>
-				{#if preferences.length}
-					<ul class="border-hairline text-muted mt-3 list-disc space-y-1.5 border-t pt-3 pl-4 text-xs leading-[1.4]">
-						{#each preferences as item}<li>{item}</li>{/each}
-					</ul>
-				{/if}
-			</section>
+			{#each clients as facts (facts.id)}
+				{@const preferences = preferenceItems(facts.preferences)}
+				<section class="work-row min-w-0 p-4">
+					<p class="text-muted text-xs leading-none font-medium">Client</p>
+					<p class="font-display mt-2 text-base/tight wrap-anywhere">{facts.name}</p>
+					<dl class="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-xs leading-[1.4]">
+						{#if facts.phone}{@render fact("Phone", formatPhone(facts.phone))}{/if}
+						{#if facts.email}{@render fact("Email", facts.email)}{/if}
+						{#if facts.prefers}{@render fact("Prefers", facts.prefers)}{/if}
+						<div class="contents">
+							<dt class="text-muted">Consent</dt>
+							<dd class="flex flex-wrap gap-x-2.5 gap-y-1">
+								{#each ["call", "text", "email", "mail"] as const as key (key)}
+									<span class={["inline-flex items-center gap-0.5 capitalize", !facts.consent[key] && "text-muted line-through"]}
+										>{#if facts.consent[key]}<Check size={11} class="text-success" aria-hidden="true" />{/if}{key}<span class="sr-only">{facts.consent[key] ? " allowed" : " not allowed"}</span></span>
+								{/each}
+							</dd>
+						</div>
+						{#if facts.contact}
+							{@const { lastContacted, latestAttempt } = facts.contact}
+							{@render fact("Last contacted", lastContacted ? recap(lastContacted) : "Never")}
+							{#if latestAttempt?.id !== lastContacted?.id}{@render fact("Latest attempt", latestAttempt ? recap(latestAttempt) : "None yet")}{/if}
+						{/if}
+					</dl>
+					{#if preferences.length}
+						<ul class="border-hairline text-muted mt-3 list-disc space-y-1.5 border-t pt-3 pl-4 text-xs leading-[1.4]">
+							{#each preferences as item}<li>{item}</li>{/each}
+						</ul>
+					{/if}
+				</section>
+			{/each}
 		</aside>
 	</div>
 </div>

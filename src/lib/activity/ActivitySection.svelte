@@ -12,10 +12,11 @@
 		timeZone,
 		meadowSince,
 		readonly = false,
-		conversation = true,
 		opportunityHref,
+		failure = "",
 		onedit,
 		ondelete,
+		action,
 		empty,
 		children,
 	}: {
@@ -29,14 +30,16 @@
 		timeZone: string;
 		meadowSince?: string;
 		readonly?: boolean;
-		/** Offer Conversation beside Everything. Saved Activity is History alone until notes and logged contact are stored, so it has no conversation to narrow to. */
-		conversation?: boolean;
 		opportunityHref?: (id: string) => string | undefined;
-		onedit?: (id: string, text: string) => void;
+		/** The latest failed write, shown above the feed. */
+		failure?: string;
+		onedit?: (id: string, text: string) => Promise<boolean> | void;
 		ondelete?: (id: string) => void;
+		/** A control beside the heading, such as Log contact. */
+		action?: Snippet;
 		/** Shown in place of the feed while there are no entries. */
 		empty: Snippet;
-		/** Anything that follows the feed, such as a note about what is not stored yet. */
+		/** Anything that follows the feed, such as a note composer. */
 		children?: Snippet;
 	} = $props();
 
@@ -68,16 +71,18 @@
 
 <section id={`${id}-activity`} class="border-hairline min-w-0 border-t px-(--gutter) pt-5 pb-6" aria-labelledby={`${id}-activity-heading`} data-section="Activity">
 	<div class="mb-4 flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-		<h3 id={`${id}-activity-heading`} class="font-display text-lg leading-none">Activity</h3>
-		{#if conversation && entries.length}
+		<h3 id={`${id}-activity-heading`} class="font-display mr-auto text-lg leading-none">Activity</h3>
+		{@render action?.()}
+		{#if entries.length}
 			<div class="segmented *:min-h-7 *:px-2.5 *:text-xs pointer-coarse:*:min-h-11" role="group" aria-label="Activity shows">
 				<button type="button" aria-pressed={view === "chat"} onclick={() => setView("chat")}><MessagesSquare size={13} aria-hidden="true" />Conversation</button>
 				<button type="button" aria-pressed={view === "timeline"} onclick={() => setView("timeline")}><ListTree size={13} aria-hidden="true" />Everything</button>
 			</div>
 		{/if}
 	</div>
+	{#if failure}<p class="bg-urgent-soft text-urgent mb-4 rounded-xl px-3 py-2 text-xs" role="alert">{failure}</p>{/if}
 	{#if entries.length}
-		<ActivityFeed bind:this={feed} {entries} {client} {opportunities} {timeZone} {meadowSince} {readonly} appearance={conversation ? view : "timeline"} recent={12} {opportunityHref} {onedit} {ondelete} />
+		<ActivityFeed bind:this={feed} {entries} {client} {opportunities} {timeZone} {meadowSince} {readonly} appearance={view} recent={12} {opportunityHref} {onedit} {ondelete} />
 	{:else}
 		{@render empty()}
 	{/if}

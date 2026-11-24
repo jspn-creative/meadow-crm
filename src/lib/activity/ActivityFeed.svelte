@@ -4,7 +4,8 @@
 	import { Bot, ChartLine, ChevronDown, ChevronUp, CircleDot, House, Mail, Megaphone, MessageSquare, MessageSquareOff, Pencil, PencilLine, Phone, StickyNote, Trash2, UserPlus, Users } from "@lucide/svelte";
 	import { typeStyles } from "#lib/pipeline/labels.js";
 	import { userFirstName, userName } from "#lib/data/users.js";
-	import { activityDates, actorName, buildFeed, channelNoun, describeContact, emphasize, outcomeLabels, type FeedRow, type Line, type QuietIcon } from "./feed.js";
+	import { actorName, channelNoun, describeContact, describeNote, emphasize, outcomeLabels, type Line } from "./describe.js";
+	import { activityDates, buildFeed, type FeedRow, type QuietIcon } from "./feed.js";
 	import type { ActivityEntry, ActivityOpportunity, Actor, Channel, ContactEntry, Detail, NoteEntry } from "./types.js";
 
 	let {
@@ -34,9 +35,10 @@
 		meadowSince?: string;
 		/** Where an opportunity's label links, such as its Pipeline card; without it the label is plain text. */
 		opportunityHref?: (id: string) => string | undefined;
-		/** Saved Activity before notes and logged contact are stored: nothing can be edited or deleted. */
+		/** Nothing can be edited or deleted. */
 		readonly?: boolean;
-		onedit?: (id: string, text: string) => void;
+		/** Saves a note's new text; false when it failed, which reopens the editor on the same text. */
+		onedit?: (id: string, text: string) => Promise<boolean> | void;
 		ondelete?: (id: string) => void;
 	} = $props();
 
@@ -112,7 +114,7 @@
 	const toggle = (id: string) => (expanded.has(id) ? expanded.delete(id) : expanded.add(id));
 	const clampable = (body: string) => body.length > 320 || body.split("\n").length > 5;
 	// Only Meadow's own notes and logged contact can change; History and imported entries are a record of what happened.
-	const editable = (entry: NoteEntry | ContactEntry) => !readonly && !entry.imported;
+	const editable = (entry: NoteEntry | ContactEntry) => !readonly && !entry.imported && !entry.pending;
 
 	/** Scroll an entry into view and mark it briefly, such as the call behind Last contacted. */
 	export async function reveal(id: string) {
@@ -123,11 +125,13 @@
 		row.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 		flashed = id;
 	}
-	function save(event: SubmitEvent) {
+	// The new text shows at once; a failed save brings the editor back with the draft.
+	async function save(event: SubmitEvent) {
 		event.preventDefault();
 		if (!editing) return;
-		onedit?.(editing.id, editing.text.trim());
+		const draft = { ...editing, text: editing.text.trim() };
 		editing = null;
+		if ((await onedit?.(draft.id, draft.text)) === false && !editing) editing = draft;
 	}
 </script>
 
@@ -253,7 +257,15 @@
 		{@const text = entry.kind === "note" ? entry.body : entry.note}
 		{@const edited = entry.kind === "note" ? entry.editedAt : entry.noteEditedAt}
 		{@const noun = entry.kind === "note" ? "note" : entry.channel === "other" ? "logged contact" : `logged ${channelNoun(entry).toLowerCase()}`}
-		<li class={["group flex items-start gap-2.5 outline-none", side === "business" && "flex-row-reverse", continues ? "pt-2" : "pt-5"]} tabindex="-1" data-voice={side} data-entry={row.id} data-flash={flashed === row.id || undefined} onanimationend={() => (flashed = "")}>
+		<li
+			class={["group flex items-start gap-2.5 transition-opacity outline-none data-pending:opacity-60", side === "business" && "flex-row-reverse", continues ? "pt-2" : "pt-5"]}
+			tabindex="-1"
+			aria-busy={entry.pending || undefined}
+			data-pending={entry.pending || undefined}
+			data-voice={side}
+			data-entry={row.id}
+			data-flash={flashed === row.id || undefined}
+			onanimationend={() => (flashed = "")}>
 			{#if continues}<span class="w-7 shrink-0" aria-hidden="true"></span>{:else}{@render avatar(entry.actor)}{/if}
 			<div class={["flex min-w-0 flex-col gap-1.5", side === "business" ? "items-end" : "items-start", busy ? "flex-1" : "max-w-[min(85%,34rem)]"]}>
 				<p class={["text-muted flex min-h-5 flex-wrap items-center gap-x-1.5 gap-y-1 px-1 text-xs leading-none", side === "business" && "justify-end"]}>
@@ -367,7 +379,16 @@
 				{@const Icon = entry.stop ? MessageSquareOff : channelIcons[entry.channel]}
 				{@const voice = entry.actor.kind === "client" ? "client" : "business"}
 				{@const noun = entry.channel === "other" ? "logged contact" : `logged ${channelNoun(entry).toLowerCase()}`}
-				<li class={[rowClass, "group py-2.5 outline-none"]} tabindex="-1" data-weight="contact" data-voice={voice} data-entry={row.id} data-flash={flashed === row.id || undefined} onanimationend={() => (flashed = "")}>
+				<li
+					class={[rowClass, "group py-2.5 transition-opacity outline-none data-pending:opacity-60"]}
+					tabindex="-1"
+					aria-busy={entry.pending || undefined}
+					data-pending={entry.pending || undefined}
+					data-weight="contact"
+					data-voice={voice}
+					data-entry={row.id}
+					data-flash={flashed === row.id || undefined}
+					onanimationend={() => (flashed = "")}>
 					<span class={markerClass}><span class={discClass}><Icon size={12} aria-hidden="true" /></span></span>
 					<div class="min-w-0">
 						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -392,12 +413,12 @@
 			{:else}
 				{@const entry = row.entry}
 				{@const open = expanded.has(row.id)}
-				<li class={[rowClass, "group py-2.5 outline-none"]} tabindex="-1" data-weight="note" data-entry={row.id} data-flash={flashed === row.id || undefined} onanimationend={() => (flashed = "")}>
+				<li class={[rowClass, "group py-2.5 transition-opacity outline-none data-pending:opacity-60"]} tabindex="-1" aria-busy={entry.pending || undefined} data-pending={entry.pending || undefined} data-weight="note" data-entry={row.id} data-flash={flashed === row.id || undefined} onanimationend={() => (flashed = "")}>
 					<span class={markerClass}><span class={discClass}><StickyNote size={12} aria-hidden="true" /></span></span>
 					<div class="min-w-0">
 						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
 							<p class="min-w-0 flex-1 basis-48">
-								{#if entry.title}<span class="font-medium">{entry.title}</span>{:else}<span class="font-medium">{actorName(entry.actor, client)}</span> added a note{/if}
+								{@render sentence(describeNote(entry, client))}
 							</p>
 							{@render rowActions(entry, entry.body, "note")}
 							{@render stamp(entry.at)}

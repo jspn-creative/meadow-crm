@@ -1,4 +1,4 @@
-// The shapes Activity renders. Prototype only: nothing here is stored yet, so these are a proposal for the Activity query's rows rather than a schema.
+// The shapes Activity renders, mapped from `getActivity` rows in `entries.ts`.
 
 /** Zillow is import-only: Log contact never offers it. */
 export type Channel = "call" | "text" | "email" | "meeting" | "other" | "zillow";
@@ -29,6 +29,10 @@ type EntryBase = {
 	opportunityIds?: string[];
 	/** The business user the actor was impersonating. */
 	actingAs?: string;
+	/** A stored note's or logged contact's revision, which an edit or deletion must match. */
+	revision?: number;
+	/** Shown before the server has confirmed it. */
+	pending?: boolean;
 };
 
 export type NoteEntry = EntryBase & {

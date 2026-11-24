@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { untrack, type Snippet } from "svelte";
-	import { dev } from "$app/env";
 	import { SvelteSet } from "svelte/reactivity";
 	import { ArrowLeft, Ban, Cake, Check, Flag, Mail, MessageSquare, Maximize2, NotebookPen, Pencil, Phone, Plus, X } from "@lucide/svelte";
-	import { saveClient } from "#lib/crm.remote.js";
+	import { getActivity, getLastContact, saveClient } from "#lib/crm.remote.js";
 	import type { Workspace } from "#lib/data/workspace.js";
 	import { notToBeContacted } from "#lib/data/consent.js";
 	import { userFirstName } from "#lib/data/users.js";
@@ -11,13 +10,16 @@
 	import { leadSources, referralSource } from "#lib/data/lead-sources.js";
 	import { overflowFade } from "#lib/attachments/overflow-fade.js";
 	import ActivitySection from "#lib/activity/ActivitySection.svelte";
-	import LogContactForm from "#lib/activity/LogContactForm.svelte";
-	import { activityDates, channelNoun, contactSummary, outcomeLabels } from "#lib/activity/feed.js";
-	import { savedActivity } from "#lib/activity/saved.js";
+	import LogContactPane from "#lib/activity/LogContactPane.svelte";
+	import NoteComposer from "#lib/activity/NoteComposer.svelte";
+	import { calledName as callName, clientFacts } from "#lib/activity/client-facts.js";
+	import type { ActivityLookup } from "#lib/activity/entries.js";
+	import { channelNoun, outcomeLabels } from "#lib/activity/describe.js";
+	import { activityDates } from "#lib/activity/feed.js";
+	import { RecordActivity, type NewOpportunity } from "#lib/activity/record-activity.svelte.js";
 	import { mainPaneClass, SubPanel, subPaneClass } from "#lib/activity/sub-panel.svelte.js";
-	import type { ActivityEntry, ActivityOpportunity, ContactEntry } from "#lib/activity/types.js";
-	import VariantHost from "#lib/dev/VariantHost.svelte";
-	import { variantSetting } from "#lib/dev/variants.svelte.js";
+	import type { ActivityOpportunity, ContactEntry } from "#lib/activity/types.js";
+	import OpportunityPanel from "#lib/pipeline/OpportunityPanel.svelte";
 	import { clientDraft, clientSaveInput, type ClientDraft } from "./client-draft.js";
 	import { formatCalendarDate, formatPhone, preferenceItems } from "./format.js";
 	import PreferencesEditor from "./PreferencesEditor.svelte";
@@ -31,43 +33,29 @@
 		fresh = false,
 		opportunities,
 		pending = $bindable(false),
-		preview,
-		history = [],
 		section = $bindable({ name: "", forward: true }),
-		oncreateopportunity,
-		opportunity,
 		onpopout,
 	}: {
 		draft: ClientDraft;
 		workspace: Pick<Workspace, "clients" | "referenceClients" | "tags" | "identity" | "links" | "opportunities" | "settings">;
 		remote?: ReturnType<typeof import("#lib/crm.remote.js").getWorkspace>;
-		/** Saved History, shown read-only in Activity until notes and logged contact are stored. */
-		history?: Workspace["history"];
-		/** Explicitly supplied by the development-only, client-side preview. Never mixed into saved clients. */
-		preview?: { entries: ActivityEntry[]; meadowSince: string };
 		/** Other queries showing this client, such as the Registry list, refreshed with the save. */
 		updates?: Parameters<ReturnType<typeof saveClient>["updates"]>;
 		saved: () => void;
 		/** A client just created from a name: start with their first person open for editing. */
 		fresh?: boolean;
-		/** The client's opportunities, shown between their contact details and the rest. With an `opportunity` snippet, it receives a function that opens one in the drawer. */
-		opportunities?: Snippet<[open?: (id: string) => void]>;
+		/** The client's opportunities, shown between their contact details and the rest. It receives a function that opens one in the drawer. */
+		opportunities?: Snippet<[open: (id: string) => void]>;
 		pending?: boolean;
 		/** The section scrolled under the top of the panel, such as Activity, for the dialog's breadcrumb; empty while the client's header shows. */
 		section?: PanelSection;
-		/** Lets Log contact start a new opportunity for this client. Only the development preview passes it until logged contact is stored. */
-		oncreateopportunity?: (opportunity: Workspace["opportunities"][number]) => void;
-		/** One of the client's opportunities, opened in the drawer as a sub-panel. It reads the client's sample Activity and changes it through `actions`, and names its own sub-panel, such as Log contact, through `crumb`. Only the development preview passes it so far. */
-		opportunity?: Snippet<[{ id: string; entries: ActivityEntry[]; actions: OpportunityActions; crumb: (name: string) => void }]>;
 		/** Leaves the drawer's opportunity for its full dialog, over the client. */
 		onpopout?: (id: string) => void;
 	} = $props();
-	type OpportunityActions = { add: (entry: ActivityEntry) => void; edit: (id: string, text: string) => void; remove: (id: string) => void };
 
 	// The details read as a profile; each section switches to its fields on its own, and one save covers every open section.
-	type Section = "flag" | "details" | "people" | "addresses" | "relationships" | "keyDates" | "notes";
+	type Section = "flag" | "details" | "people" | "addresses" | "relationships" | "keyDates";
 	const editing = new SvelteSet<Section>();
-	let previewSaved = untrack(() => structuredClone($state.snapshot(draft)));
 	let announcement = $state("");
 	let failure = $state("");
 	let conflict = $state(false);
@@ -164,7 +152,6 @@
 	}
 	function cancel() {
 		if (clientRecord) draft = clientDraft(clientRecord);
-		else if (preview) draft = structuredClone(previewSaved);
 		editing.clear();
 		failure = "";
 		conflict = false;
@@ -189,15 +176,7 @@
 	}
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
-		if (conflict || pending) return;
-		if (dev && preview) {
-			previewSaved = structuredClone($state.snapshot(draft));
-			editing.clear();
-			record("updated the client details");
-			announcement = "Client details updated in this preview only.";
-			return;
-		}
-		if (!remote) return;
+		if (conflict || pending || !remote) return;
 		failure = "";
 		refreshFailed = false;
 		const body = clientSaveInput(draft, "");
@@ -208,7 +187,8 @@
 		}
 		pending = true;
 		try {
-			const result = await saveClient({ ...body, requestId }).updates(remote, ...updates);
+			// A command refreshes only the queries the client names, so the save names getActivity for the History row it writes.
+			const result = await saveClient({ ...body, requestId }).updates(remote, ...updates, getActivity);
 			draft = { ...draft, revision: Number(result.revision), flagNote: body.flagNote };
 			refreshFailed = result.refreshFailed === true;
 			editing.clear();
@@ -227,8 +207,6 @@
 	}
 
 	// --- Activity ---------------------------------------------------------------
-	// A saved client shows its History and notes field, read-only. Sample data, from the development preview or the dev-only "Activity data" setting, is fictional: every change below lives in memory until the dialog closes, and nothing is saved.
-	const activitySource = dev && !untrack(() => preview) ? variantSetting("client-activity-data", ["Saved", "Sample"], { label: "Activity data" }) : undefined;
 	const shellFade = overflowFade({ axis: "y", fadePercent: 12 });
 	// The current section is the last one whose top has reached the top of the scroller.
 	function trackSection(scroller: HTMLElement) {
@@ -256,27 +234,25 @@
 	let dates = $derived(activityDates(timeZone));
 	let userId = $derived(workspace.identity.effectiveUserId);
 	// The name sentences use: the first person's first name, or the client's name when it holds several people.
-	let calledName = $derived(draft.people.length === 1 ? (draft.people[0]!.name.trim().split(/\s+/)[0] ?? draft.name) : draft.name);
+	let calledName = $derived(callName(draft));
 	let linkedOpportunities = $derived(workspace.links.filter((link) => link.clientId === draft.id).flatMap((link) => workspace.opportunities.find((row) => row.id === link.opportunityId) ?? []));
 	let openOpportunities = $derived(linkedOpportunities.filter((row) => !row.archivedAt && row.stage !== "closed"));
-	let sampleEntries = $state<ActivityEntry[] | null>(untrack(() => (dev && preview ? structuredClone($state.snapshot(preview.entries)) : null)));
-	let sampling = $derived(dev && (!!preview || activitySource?.value === "Sample"));
-	let savedEntries = $derived(clientRecord ? savedActivity(clientRecord, history, { client: clientName, tag: (id) => workspace.tags.find((tag) => tag.id === id)?.name ?? "a removed" }) : []);
-	let entries = $derived(sampling ? (sampleEntries ?? []) : savedEntries);
-	let summary = $derived(contactSummary(entries.toSorted((a, b) => Date.parse(a.at) - Date.parse(b.at))));
-	// The fixture module throws outside development, so it loads only once sample data is asked for.
-	$effect(() => {
-		if (!sampling || sampleEntries) return;
-		import("#lib/activity/prototype-fixture.js").then(({ prototypeActivity }) => {
-			sampleEntries ??= prototypeActivity(
-				calledName,
-				untrack(() => linkedOpportunities),
-			);
-		});
-	});
+	const record = new RecordActivity(
+		{ clientId: untrack(() => draft.id) },
+		{
+			identity: () => workspace.identity,
+			// A new opportunity from Log contact joins the client's Opportunities and the Registry's counts.
+			extra: () => [...(remote ? [remote] : []), ...updates],
+		},
+	);
+	const lookup: ActivityLookup = { client: (id) => clientName(id), tag: (id) => workspace.tags.find((tag) => tag.id === id)?.name ?? "a removed" };
+	let entries = $derived(record.entries(lookup));
+	// Last contacted and the latest attempt come from the server, counting contact logged on the client's opportunities too (ACT-9). Logging or deleting contact anywhere refreshes them with the Registry's rows.
+	const lastContact = getLastContact({ clientId: untrack(() => draft.id) });
+	let summary = $derived(lastContact.current ?? { lastContacted: undefined, latestAttempt: undefined });
+	let facts = $derived(clientFacts(draft, lastContact.current));
 
 	let activity: ReturnType<typeof ActivitySection> | undefined = $state();
-	let noteText = $state("");
 	// Log contact and an opportunity slide over the client as a sub-panel. Log contact opens on a channel when the user reached out from the header, and plain Log contact opens on Call. The breadcrumb names the sub-panel, and the opportunity's own, while it is open, and returns to the section the user left.
 	type Panel = { kind: "log"; channel?: "call" | "text" | "email" } | { kind: "opportunity"; id: string };
 	let beforePanel: PanelSection = { name: "", forward: true };
@@ -304,63 +280,33 @@
 		panel.close();
 		onpopout?.(id);
 	}
-	const opportunityActions: OpportunityActions = { add: (entry) => void sampleEntries?.push(entry), edit: editEntry, remove: deleteEntry };
 	const who = (entry: ContactEntry) => (entry.actor.kind === "user" ? `by ${userFirstName(entry.actor.userId)}` : entry.actor.kind === "client" ? `from ${calledName}` : "by BoldTrail");
 	const recap = (entry: ContactEntry) => [channelNoun(entry), entry.outcome && outcomeLabels[entry.outcome].toLowerCase(), who(entry)].filter(Boolean).join(" · ");
-	const record = (action: string, opportunityIds?: string[]) => sampleEntries?.push({ id: crypto.randomUUID(), kind: "history", at: new Date().toISOString(), actor: { kind: "user", userId }, opportunityIds, summary: action });
 
-	function editNotes() {
-		const notes = document.getElementById("client-notes");
-		notes?.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-		notes?.focus({ preventScroll: true });
-	}
+	// The drawer's opportunity: its clients' key details, with Last contacted only for this client, whose whole Activity is loaded.
+	let shownOpportunity = $derived.by(() => {
+		const value = shown;
+		return value?.kind === "opportunity" ? linkedOpportunities.find((row) => row.id === value.id) : undefined;
+	});
+	let opportunityClients = $derived(shownOpportunity ? workspace.links.filter((link) => link.opportunityId === shownOpportunity.id).flatMap((link) => (link.clientId === draft.id ? [facts] : workspace.clients.filter((client) => client.id === link.clientId).map((client) => clientFacts(client)))) : []);
+
 	async function show(id: string) {
 		await activity?.reveal(id);
 	}
-	function postNote(event: SubmitEvent) {
-		event.preventDefault();
-		const body = noteText.trim();
-		if (!body) return;
-		const id = crypto.randomUUID();
-		sampleEntries?.push({ id, kind: "note", at: new Date().toISOString(), actor: { kind: "user", userId }, body });
-		noteText = "";
-		announcement = "Note posted to sample data only.";
-		show(id);
+	async function postNote(body: string) {
+		const { id, saved } = record.post(body);
+		void show(id);
+		const posted = await saved;
+		announcement = posted ? "Note posted." : "";
+		return posted;
 	}
-	function logContact(entry: ContactEntry, created?: { id: string; type: ActivityOpportunity["type"]; title: string }) {
-		if (created) {
-			const now = new Date().toISOString();
-			oncreateopportunity?.({ ...created, stage: "new-lead", timeline: null, budgetCents: null, address: null, notes: "", archivedAt: null, pinnedAt: null, fictional: true, revision: 1, createdAt: now, updatedAt: now });
-			record(`created the opportunity ${created.title}`);
-		}
-		sampleEntries?.push(entry);
+	async function logContact(entry: ContactEntry, about: ActivityOpportunity[], created?: NewOpportunity) {
+		const { id, saved } = record.log(entry, about, created);
+		if (!(await saved)) return false;
 		panel.close();
-		announcement = created ? "Opportunity created and contact logged, in sample data only." : "Contact logged to sample data only.";
-		show(entry.id);
-	}
-	// ACT-6: only the text changes, and the edit or deletion shows up in Activity as History.
-	function editEntry(id: string, text: string) {
-		const entry = sampleEntries?.find((row) => row.id === id);
-		if (!entry || entry.imported) return;
-		const at = new Date().toISOString();
-		if (entry?.kind === "note" && text && text !== entry.body) {
-			entry.body = text;
-			entry.editedAt = at;
-			record("edited a note", entry.opportunityIds);
-		} else if (entry?.kind === "contact" && text !== (entry.note ?? "")) {
-			const action = !entry.note ? "added a note to" : text ? "edited the note on" : "removed the note from";
-			entry.note = text || undefined;
-			entry.noteEditedAt = text ? at : undefined;
-			record(`${action} a logged ${channelNoun(entry).toLowerCase()}`, entry.opportunityIds);
-		}
-		announcement = "Note updated in sample data only.";
-	}
-	function deleteEntry(id: string) {
-		const entry = sampleEntries?.find((row) => row.id === id);
-		if (!sampleEntries || !entry || entry.imported || (entry.kind !== "note" && entry.kind !== "contact")) return;
-		sampleEntries = sampleEntries.filter((row) => row.id !== id);
-		record(entry.kind === "contact" ? `deleted a logged ${channelNoun(entry).toLowerCase()}` : "deleted a note", entry.opportunityIds);
-		announcement = "Entry deleted in sample data only.";
+		announcement = created ? "Opportunity created and contact logged." : "Contact logged.";
+		void show(id);
+		return true;
 	}
 </script>
 
@@ -413,12 +359,8 @@
 <!-- Reaching out and recording it are one motion: the link starts the call, text, or email, and Log contact opens on that channel. -->
 {#snippet reach(icon: typeof Phone, label: string, href: string, allowed: boolean, channel: "call" | "text" | "email")}
 	{@const Icon = icon}
-	{#if allowed}<a class="control" data-size="sm" {href} title={sampling ? `${label} ${calledName}, then log it` : undefined} onclick={() => sampling && openPanel({ kind: "log", channel })}><Icon size={15} aria-hidden="true" />{label}</a>{:else}<button
-			type="button"
-			class="control"
-			data-size="sm"
-			disabled
-			title={`No consent to ${label.toLowerCase()}`}><Icon size={15} aria-hidden="true" />{label}</button
+	{#if allowed}<a class="control" data-size="sm" {href} title={`${label} ${calledName}, then log it`} onclick={() => openPanel({ kind: "log", channel })}><Icon size={15} aria-hidden="true" />{label}</a>{:else}<button type="button" class="control" data-size="sm" disabled title={`No consent to ${label.toLowerCase()}`}
+			><Icon size={15} aria-hidden="true" />{label}</button
 		>{/if}
 {/snippet}
 
@@ -435,24 +377,6 @@
 	{/if}
 {/snippet}
 
-{#snippet logForm()}
-	<LogContactForm
-		client={calledName}
-		clientName={draft.name}
-		opportunities={openOpportunities}
-		facts={{ phone, email, prefers: preferredMethod, preferences: draft.preferences, consent: { call: draft.consentCall, text: draft.consentText, email: draft.consentEmail, mail: draft.consentMail } }}
-		lastContacted={summary.lastContacted}
-		latestAttempt={summary.latestAttempt}
-		{timeZone}
-		{userId}
-		channel={shown?.kind === "log" ? shown.channel : undefined}
-		creatable={!!oncreateopportunity}
-		onlog={logContact}
-		oncancel={() => panel.close()} />
-{/snippet}
-
-<!-- Inside the modal dialog, so the toolbar is not made inert with the page behind it. -->
-{#if dev}<VariantHost dock="right-4 bottom-24" />{/if}
 <p class="sr-only" role="status">{announcement}</p>
 <!-- One scroller holds the header, the details, and Activity; what the user acts with stays pinned under it. -->
 <!-- The client and Log contact share one cell and trade places: the client slides aside toward the start as Log contact arrives from the end, and the dialog widens to fit its key details. -->
@@ -470,28 +394,25 @@
 							{#each appliedTags as tag (tag.id)}<span class="chip" data-dot style:--dot={tag.color}>{tag.name}{tag.retiredAt ? " (retired)" : ""}</span>{/each}
 						</div>
 					{/if}
-					{#if phone || email || sampling}
-						<div class="mt-4 flex flex-wrap items-center gap-2">
-							{#if phone}
-								{@render reach(Phone, "Call", `tel:${phone}`, draft.consentCall, "call")}
-								{@render reach(MessageSquare, "Text", `sms:${phone}`, draft.consentText, "text")}
-							{/if}
-							{#if email}{@render reach(Mail, "Email", `mailto:${email}`, draft.consentEmail, "email")}{/if}
-							<!-- Logged contact is not stored yet, so only sample data can take one. -->
-							{#if sampling}<button type="button" class="control ml-auto @max-[26rem]/shell:w-full" data-variant="primary" data-size="sm" onclick={() => openPanel({ kind: "log" })}><NotebookPen size={15} aria-hidden="true" />Log contact</button>{/if}
-						</div>
-					{/if}
-					{#if sampling}
-						<div class="work-row mt-3 p-1">
-							{#if summary.lastContacted || summary.latestAttempt}
-								{@render contactRow("Last contacted", summary.lastContacted, "never", true)}
-								<!-- ACT-9: an attempt that reached the client is already Last contacted, so it shows once. -->
-								{#if summary.latestAttempt !== summary.lastContacted}{@render contactRow("Latest attempt", summary.latestAttempt, "none yet", false)}{/if}
-							{:else}
-								<p class="text-muted px-2.5 py-2">No contact logged yet.</p>
-							{/if}
-						</div>
-					{/if}
+					<div class="mt-4 flex flex-wrap items-center gap-2">
+						{#if phone}
+							{@render reach(Phone, "Call", `tel:${phone}`, draft.consentCall, "call")}
+							{@render reach(MessageSquare, "Text", `sms:${phone}`, draft.consentText, "text")}
+						{/if}
+						{#if email}{@render reach(Mail, "Email", `mailto:${email}`, draft.consentEmail, "email")}{/if}
+						<button type="button" class="control ml-auto @max-[26rem]/shell:w-full" data-variant="primary" data-size="sm" onclick={() => openPanel({ kind: "log" })}><NotebookPen size={15} aria-hidden="true" />Log contact</button>
+					</div>
+					<div class="work-row mt-3 p-1">
+						{#if lastContact.loading && !lastContact.current}
+							<p class="text-muted px-2.5 py-2" role="status">Loading contact…</p>
+						{:else if summary.lastContacted || summary.latestAttempt}
+							{@render contactRow("Last contacted", summary.lastContacted, "never", true)}
+							<!-- ACT-9: an attempt that reached the client is already Last contacted, so it shows once. -->
+							{#if summary.latestAttempt?.id !== summary.lastContacted?.id}{@render contactRow("Latest attempt", summary.latestAttempt, "none yet", false)}{/if}
+						{:else}
+							<p class="text-muted px-2.5 py-2">No contact logged yet.</p>
+						{/if}
+					</div>
 				</header>
 
 				<form onsubmit={submit} id="client-pane-details" aria-label="Client details" class="border-hairline @container/details min-w-0 border-t px-(--gutter)" aria-busy={pending}>
@@ -589,7 +510,7 @@
 							{/if}
 						</section>
 
-						{#if opportunities}<section class="min-w-0" aria-label="Opportunities" data-section="Opportunities">{@render opportunities(opportunity ? (id) => openPanel({ kind: "opportunity", id }) : undefined)}</section>{/if}
+						{#if opportunities}<section class="min-w-0" aria-label="Opportunities" data-section="Opportunities">{@render opportunities((id) => openPanel({ kind: "opportunity", id }))}</section>{/if}
 
 						<section class="min-w-0" aria-labelledby="client-details" data-section="Details">
 							{@render sectionHead("details", "Details")}
@@ -747,10 +668,6 @@
 							</div>
 						{/if}
 
-						{#if !preview}
-							<label class="labeled"><span class="font-display text-base">Notes</span><textarea id="client-notes" class="field block field-sizing-content min-h-24 resize-none leading-[1.4]" bind:value={draft.notes} maxlength="20000" oninput={() => editing.add("notes")}></textarea></label>
-						{/if}
-
 						{#if clientRecord?.importedData.length}
 							<details class="min-w-0">
 								<summary class="text-muted cursor-pointer">Imported data <span class="font-normal">· {clientRecord.importedData.length} fields from the previous CRM, read-only</span></summary>
@@ -796,29 +713,16 @@
 					{/if}
 				</form>
 
-				<ActivitySection
-					bind:this={activity}
-					id="client"
-					{entries}
-					client={calledName}
-					opportunities={linkedOpportunities}
-					{timeZone}
-					meadowSince={preview?.meadowSince}
-					readonly={!sampling}
-					conversation={sampling}
-					opportunityHref={preview ? undefined : (id) => `/pipeline?opportunity=${id}`}
-					onedit={editEntry}
-					ondelete={deleteEntry}>
+				<ActivitySection bind:this={activity} id="client" {entries} client={calledName} opportunities={linkedOpportunities} {timeZone} failure={record.failure} opportunityHref={(id) => `/pipeline?opportunity=${id}`} onedit={(id, text) => record.edit(id, text)} ondelete={(id) => void record.remove(id)}>
 					{#snippet empty()}
-						{#if sampling && !sampleEntries}
-							<p class="text-muted py-6 text-center" role="status">Loading sample Activity…</p>
+						{#if record.query.loading && !record.query.current}
+							<p class="text-muted py-6 text-center" role="status">Loading Activity…</p>
+						{:else if record.query.error}
+							<p class="text-urgent py-6 text-center" role="alert">Activity could not load. <button type="button" class="text-action" onclick={() => record.query.refresh()}>Try again</button></p>
 						{:else}
-							<p class="border-hairline text-muted rounded-xl border border-dashed px-4 py-6 text-center">{sampling ? "Nothing here yet. Add a note below, or log your first contact." : "Nothing recorded yet. Changes to this client will appear here."}</p>
+							<p class="border-hairline text-muted rounded-xl border border-dashed px-4 py-6 text-center">Nothing here yet. Add a note below, or log your first contact.</p>
 						{/if}
 					{/snippet}
-					{#if !sampling && !preview}
-						<p class="text-muted mt-4 text-xs leading-[1.4]">Posting notes and logging contact here is coming. For now, notes are edited in <button type="button" class="text-action text-xs" onclick={editNotes}>Notes</button>, above.</p>
-					{/if}
 				</ActivitySection>
 			</div>
 
@@ -829,42 +733,34 @@
 					<button type="button" class="control" data-variant="ghost" data-size="sm" disabled={pending} onclick={cancel}>Cancel</button>
 					{#if failure && !conflict}<p class="text-urgent min-w-0 flex-1 text-xs" role="alert">{failure}</p>{/if}
 				</div>
-			{:else if sampling}
-				<form aria-label="Add a note" class="border-hairline shrink-0 border-t px-(--gutter) py-3" data-pinned-bar onsubmit={postNote}>
-					<div class="field-group items-end">
-						<textarea
-							class="field-bare field-sizing-content max-h-40 resize-none py-2 leading-[1.4]"
-							aria-label="Note"
-							rows="1"
-							placeholder={`Add a note about ${calledName}…`}
-							maxlength="20000"
-							bind:value={noteText}
-							onkeydown={(event) => {
-								if (!event.isComposing && event.key === "Enter" && (event.metaKey || event.ctrlKey)) event.currentTarget.form?.requestSubmit();
-							}}></textarea>
-						<button class="control" data-variant="primary" data-size="sm" disabled={!noteText.trim()}>Post</button>
-					</div>
-				</form>
+			{:else}
+				<NoteComposer placeholder={`Add a note about ${calledName}…`} onpost={postNote} />
 			{/if}
 		</div>
-		{#if sampling || opportunity}
-			<section class={subPaneClass} data-active={!!panel.current} inert={!panel.current} aria-labelledby={shown?.kind === "opportunity" ? undefined : "log-contact-heading"} aria-label={shown?.kind === "opportunity" ? "Opportunity" : undefined}>
-				{#if shown?.kind === "opportunity" && opportunity}
-					<!-- The opportunity stays the client's: Back returns to them, and the full dialog is one step away. -->
-					<div class="flex shrink-0 items-center justify-between gap-3 px-(--gutter) pt-4">
-						<button bind:this={panel.heading} type="button" class="text-action" onclick={() => panel.close()}><ArrowLeft size={14} aria-hidden="true" />{draft.name || "Client"}</button>
-						{#if onpopout}<button type="button" class="control" data-variant="ghost" data-size="sm" onclick={popOut}><Maximize2 size={14} aria-hidden="true" />Open full view</button>{/if}
-					</div>
-					{#key panel.key}{@render opportunity({ id: shown.id, entries: sampleEntries ?? [], actions: opportunityActions, crumb })}{/key}
-				{:else}
-					<div class="min-h-0 flex-1 [scrollbar-gutter:stable] overflow-y-auto overscroll-contain px-(--gutter) pt-4 pb-6">
-						<button type="button" class="text-action" onclick={() => panel.close()}><ArrowLeft size={14} aria-hidden="true" />{draft.name || "Client"}</button>
-						<h2 bind:this={panel.heading} id="log-contact-heading" tabindex="-1" class="font-display mt-3 mb-5 text-2xl tracking-tight outline-none">Log contact with {calledName}</h2>
-						{#key panel.key}{@render logForm()}{/key}
-					</div>
+		<section class={subPaneClass} data-active={!!panel.current} inert={!panel.current} aria-labelledby={shown?.kind === "opportunity" ? undefined : "log-contact-heading"} aria-label={shown?.kind === "opportunity" ? "Opportunity" : undefined}>
+			{#if shown?.kind === "opportunity"}
+				<!-- The opportunity stays the client's: Back returns to them, and the full dialog is one step away. -->
+				<div class="flex shrink-0 items-center justify-between gap-3 px-(--gutter) pt-4">
+					<button bind:this={panel.heading} type="button" class="text-action min-w-0" onclick={() => panel.close()}><ArrowLeft size={14} aria-hidden="true" /><span class="truncate">{draft.name || "Client"}</span></button>
+					{#if onpopout}<button type="button" class="control" data-variant="ghost" data-size="sm" onclick={popOut}><Maximize2 size={14} aria-hidden="true" />Open full view</button>{/if}
+				</div>
+				{#if shownOpportunity}
+					{#key panel.key}
+						<OpportunityPanel
+							opportunity={shownOpportunity}
+							clients={opportunityClients}
+							called={opportunityClients.length === 1 ? opportunityClients[0]!.called : opportunityClients.map((client) => client.name).join(" and ")}
+							identity={() => workspace.identity}
+							{timeZone}
+							{lookup}
+							clientActivity={record.query}
+							oncrumb={crumb} />
+					{/key}
 				{/if}
-			</section>
-		{/if}
+			{:else}
+				<LogContactPane panel={panel as SubPanel<unknown>} back={draft.name || "Client"} headingId="log-contact-heading" client={calledName} clients={[facts]} opportunities={openOpportunities} {timeZone} {userId} channel={shown?.kind === "log" ? shown.channel : undefined} creatable onlog={logContact} />
+			{/if}
+		</section>
 	</div>
 </div>
 

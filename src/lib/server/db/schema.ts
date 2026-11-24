@@ -14,6 +14,10 @@ import {
 export const opportunityTypes = ["buyer", "seller", "estate-sale", "construction"] as const;
 export const stages = ["new-lead", "active-lead", "under-contract", "closed"] as const;
 export const timelines = ["1-3-mo", "3-6-mo", "6-plus-mo"] as const;
+export const logContactChannels = ["call", "text", "email", "meeting", "other"] as const;
+export const contactDirections = ["outgoing", "incoming"] as const;
+export const callOutcomes = ["talked", "voicemail", "no-answer", "wrong-number"] as const;
+export const meetingOutcomes = ["met", "no-show"] as const;
 
 const timestamps = () => ({
 	createdAt: text("created_at").notNull(),
@@ -56,7 +60,6 @@ export const clients = sqliteTable(
 		phone: text("phone"),
 		address: text("address"),
 		leadSource: text("lead_source"),
-		notes: text("notes").notNull().default(""),
 		importedData: text("imported_data", { mode: "json" })
 			.$type<{ label: string; value: string }[]>()
 			.notNull()
@@ -269,7 +272,6 @@ export const opportunities = sqliteTable(
 		timeline: text("timeline", { enum: timelines }),
 		address: text("address"),
 		budgetCents: integer("budget_cents"),
-		notes: text("notes").notNull().default(""),
 		archivedAt: text("archived_at"),
 		pinnedAt: text("pinned_at"),
 		fictional: fixture(),
@@ -501,6 +503,87 @@ export const history = sqliteTable(
 		),
 		check("history_json", sql`json_valid(${t.data})`),
 		check("history_identity", sql`length(${t.actorUserId}) > 0 AND length(${t.effectiveUserId}) > 0`),
+	],
+);
+
+export const activity = sqliteTable(
+	"activity",
+	{
+		id: text("id").primaryKey(),
+		clientId: text("client_id").references(() => clients.id, { onDelete: "cascade" }),
+		opportunityId: text("opportunity_id").references(() => opportunities.id, { onDelete: "cascade" }),
+		kind: text("kind", { enum: ["note", "contact"] }).notNull(),
+		channel: text("channel", { enum: [...logContactChannels, "zillow"] }),
+		channelLabel: text("channel_label"),
+		direction: text("direction", { enum: contactDirections }),
+		outcome: text("outcome", { enum: [...callOutcomes, ...meetingOutcomes, "bounced"] }),
+		occurredAt: text("occurred_at").notNull(),
+		body: text("body").notNull().default(""),
+		detail: text("detail", { mode: "json" })
+			.$type<Record<string, unknown>>()
+			.notNull()
+			.default(sql`'{}'`),
+		actorUserId: text("actor_user_id").notNull(),
+		effectiveUserId: text("effective_user_id").notNull(),
+		clientIsActor: integer("client_is_actor", { mode: "boolean" }).notNull().default(false),
+		imported: integer("imported", { mode: "boolean" }).notNull().default(false),
+		automated: integer("automated", { mode: "boolean" }).notNull().default(false),
+		revision: revision(),
+		fictional: fixture(),
+		...timestamps(),
+	},
+	(t) => [
+		index("activity_client_time").on(t.clientId, t.occurredAt),
+		index("activity_opportunity_time").on(t.opportunityId, t.occurredAt),
+		check("activity_kind", sql`${t.kind} IN ('note', 'contact')`),
+		// A contact without a direct client is owned by its link rows, written in the same D1 batch.
+		check(
+			"activity_owner",
+			sql`CASE WHEN ${t.kind} = 'note' THEN (${t.clientId} IS NULL) <> (${t.opportunityId} IS NULL) ELSE ${t.opportunityId} IS NULL END`,
+		),
+		check(
+			"activity_contact_fields",
+			sql`CASE WHEN ${t.kind} = 'note' THEN ${t.channel} IS NULL AND ${t.channelLabel} IS NULL AND ${t.direction} IS NULL AND ${t.outcome} IS NULL AND length(trim(${t.body})) > 0 AND ${t.clientIsActor} = 0
+				ELSE ${t.channel} IS NOT NULL AND (${t.channel} IN ('call', 'text', 'email', 'meeting', 'other') OR (${t.channel} = 'zillow' AND ${t.imported} = 1))
+				AND ${t.direction} IS NOT NULL AND ${t.direction} IN ('outgoing', 'incoming')
+				AND (${t.clientIsActor} = 0 OR ${t.direction} = 'incoming')
+				AND CASE WHEN ${t.channel} = 'other' THEN ${t.channelLabel} IS NOT NULL AND length(trim(${t.channelLabel})) BETWEEN 1 AND 40 ELSE ${t.channelLabel} IS NULL END END`,
+		),
+		check(
+			"activity_outcome",
+			sql`CASE ${t.channel}
+				WHEN 'call' THEN ${t.outcome} IS NOT NULL AND ${t.outcome} IN ('talked', 'voicemail', 'no-answer', 'wrong-number')
+				WHEN 'meeting' THEN ${t.outcome} IS NOT NULL AND ${t.outcome} IN ('met', 'no-show')
+				WHEN 'text' THEN ${t.outcome} IS NULL OR ${t.outcome} = 'bounced'
+				WHEN 'email' THEN ${t.outcome} IS NULL OR ${t.outcome} = 'bounced'
+				ELSE ${t.outcome} IS NULL END`,
+		),
+		check("activity_detail_json", sql`json_valid(${t.detail}) AND json_type(${t.detail}) = 'object'`),
+		check(
+			"activity_identity",
+			sql`length(${t.actorUserId}) > 0 AND length(${t.effectiveUserId}) > 0`,
+		),
+		check(
+			"activity_flags",
+			sql`${t.clientIsActor} IN (0, 1) AND ${t.imported} IN (0, 1) AND ${t.automated} IN (0, 1) AND ${t.fictional} IN (0, 1)`,
+		),
+		check("activity_revision_positive", sql`${t.revision} > 0`),
+	],
+);
+
+export const activityOpportunities = sqliteTable(
+	"activity_opportunities",
+	{
+		activityId: text("activity_id")
+			.notNull()
+			.references(() => activity.id, { onDelete: "cascade" }),
+		opportunityId: text("opportunity_id")
+			.notNull()
+			.references(() => opportunities.id, { onDelete: "cascade" }),
+	},
+	(t) => [
+		primaryKey({ columns: [t.activityId, t.opportunityId] }),
+		index("activity_opportunities_opportunity").on(t.opportunityId, t.activityId),
 	],
 );
 

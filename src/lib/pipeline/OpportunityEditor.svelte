@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Link2, Plus, UsersRound, X } from "@lucide/svelte";
-	import { createOpportunityRecord, saveOpportunity } from "#lib/crm.remote.js";
+	import { createOpportunityRecord, getActivity, saveOpportunity } from "#lib/crm.remote.js";
 	import type { Workspace } from "#lib/data/workspace.js";
 	import Select, { optionsFrom } from "#lib/ui/Select.svelte";
 	import Combobox from "#lib/ui/Combobox.svelte";
@@ -30,7 +30,8 @@
 		}
 		pending = true;
 		try {
-			if (draft.revision) await saveOpportunity({ ...input, requestId, revision: draft.revision }).updates(remote);
+			// The save writes History; naming getActivity refreshes the open Activity with it.
+			if (draft.revision) await saveOpportunity({ ...input, requestId, revision: draft.revision }).updates(remote, getActivity);
 			else await createOpportunityRecord({ ...input, type: draft.type, requestId }).updates(remote);
 			saved();
 		} catch {
@@ -54,7 +55,6 @@
 		<Combobox label="Clients (optional)" placeholder="Start typing a client's name…" options={clientOptions} bind:values={draft.clientIds} disabled={pending}>
 			{#snippet chipIcon()}<span class="flex size-4 shrink-0 items-center justify-center rounded-sm bg-white"><UsersRound size={12} aria-hidden="true" /></span>{/snippet}
 		</Combobox>
-		{#if draft.revision}<label class="labeled"><span class="field-label">Notes</span><textarea class="field field-sizing-content" bind:value={draft.notes} maxlength="20000"></textarea></label>{/if}
 		<section aria-label="Edit references" class="min-w-0 space-y-2">
 			<h3 class="field-label">References</h3>
 			{#each draft.references as reference, index (reference.key)}

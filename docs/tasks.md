@@ -12,91 +12,91 @@ Activity background, presentation rules, and the BoldTrail parsing patterns are 
     - Cover every entry kind in both eras: a long typed needs list, a run of 14 automated texts, a STOP reply, rolled-up opportunity entries, and a grouped History edit. No schema, server, or remote-function changes.
     - Done when: the developer has chosen a direction in the browser, and rejected variants and experiment wiring are removed.
     - _Requirements: ACT-1, ACT-2, ACT-4, ACT-5, ACT-6, ACT-9_
-- [ ] 2. Store notes and logged contact
-  - [ ] 2.1 Add the `activity` table to `src/lib/server/db/schema.ts`
+- [x] 2. Store notes and logged contact
+  - [x] 2.1 Add the `activity` table to `src/lib/server/db/schema.ts`
     - One row per note or logged contact: `id`, `client_id` for entries on the client, `opportunity_id` for a note on an opportunity, `kind` (`note` or `contact`), `channel`, `channel_label`, `direction`, `outcome`, `occurred_at`, `body`, JSON `detail`, `actor_user_id`, `effective_user_id`, `client_is_actor`, `imported`, `automated`, `revision`, timestamps, and `fictional()`. Add CHECK constraints for the ACT-4 values and indexes on `(client_id, occurred_at)` and `(opportunity_id, occurred_at)`. A logged contact about one or more opportunities lists them in an `activity_opportunities` link table (ACT-2, decided 2026-11-24), so a note has exactly one owner and a contact has its client or its opportunities.
     - Let `Drizzle.Schema` generate the migration through `vp run dev:local`; never hand-run drizzle-kit.
     - Done when: local dev starts with the new table and `vp run check` passes.
     - _Requirements: ACT-1, ACT-3, ACT-4, ACT-7_
-  - [ ] 2.2 Add note and logged-contact mutations to the data service
+  - [x] 2.2 Add note and logged-contact mutations to the data service
     - Add `postNote`, `logContact`, `editActivityNote`, and `deleteActivity` beside `src/lib/server/data.ts:895` (`createClient`), using its request-scoped `mutation` guard, receipts, revisions, and `appendHistory` so edits and deletions write History on the owning client or opportunity.
     - `logContact` can also create the opportunity it is about from a type and title: a New lead linked to the client, in the same conditioned batch as the contact.
     - Refuse edits to `imported` rows, and refuse changes to a contact's channel, direction, outcome, or time; validate inputs in `src/lib/server/validation.ts`; expose them as remote `command`s in `src/lib/crm.remote.ts` that refresh the affected Activity query.
     - Done when: a note or contact can be posted, its text edited, and the entry deleted, each leaving History, and imported rows can't be changed.
     - _Requirements: ACT-3, ACT-4, ACT-6_
-  - [ ] 2.3 Add an Activity query that merges History with notes and logged contact
+  - [x] 2.3 Add an Activity query that merges History with notes and logged contact
     - Add `activity({ clientId } | { opportunityId })` to the data service and `getActivity` to `src/lib/crm.remote.ts:41`, returning entries oldest first; a client's result also includes its opportunities' notes and logged contact with each opportunity's title, and an opportunity's only its own.
     - Resolve actor names on the server: users by name, `imported` rows without a known author as BoldTrail, and `client_is_actor` rows as the client.
     - Done when: the query returns a fixture client's History, notes, contacts, and rolled-up opportunity entries in time order.
     - _Requirements: ACT-1, ACT-2, ACT-7_
-  - [ ] 2.4 Seed fictional notes and logged contact
+  - [x] 2.4 Seed fictional notes and logged contact
     - Extend `scripts/fictional-seed.ts` with Activity entries for fictional clients and opportunities covering every kind and both eras, marked `fictional`, replacing their `notes` text.
     - Done when: `vp run db:seed-fictional` fills Activity for the fictional records.
     - _Requirements: none_
-- [ ] 3. Bring the chosen Activity design to real client data
-  - [ ] 3.1 Render the client's Activity from `getActivity`
+- [x] 3. Bring the chosen Activity design to real client data
+  - [x] 3.1 Render the client's Activity from `getActivity`
     - Replace the prototype fixtures from task 1.1 with the query, keeping the chosen design and its presentation rules; remove the Notes section at `src/lib/registry/ClientEditor.svelte:453` and `notes` from `src/lib/registry/client-draft.ts`.
     - Done when: a fictional client's dialog shows its real Activity with no notes field.
     - _Requirements: ACT-1, ACT-2_
-  - [ ] 3.2 Post, edit, and delete notes from the client's Activity
+  - [x] 3.2 Post, edit, and delete notes from the client's Activity
     - Wire the composer and each note's edit and delete affordances to the task 2.2 commands, showing pending and failed states per REC-4 and REC-5 without losing a draft.
     - Done when: a posted, edited, or deleted note appears immediately, persists after reload, and shows its History.
     - _Requirements: ACT-3, ACT-6_
-  - [ ] 3.3 Save Log contact from the client
+  - [x] 3.3 Save Log contact from the client
     - Wire the chosen Log contact form to `logContact` as a sub-panel of the client dialog (`SubPanel` in `src/lib/activity/sub-panel.svelte.ts`), asking which open opportunity it's about (preselecting the only one, offering New opportunity and No opportunity) and showing that opportunity's and the client's key details beside it.
     - Done when: a contact logged against an opportunity lands on that opportunity and also appears, labeled, in the client's Activity.
     - _Requirements: ACT-4, ACT-5_
-- [ ] 4. Give opportunities the same Activity
-  - [ ] 4.1 Replace the opportunity's notes and history with Activity
+- [x] 4. Give opportunities the same Activity
+  - [x] 4.1 Replace the opportunity's notes and history with Activity
     - Swap `OpportunityNotes` and `OpportunityHistory` at `src/lib/pipeline/PipelineView.svelte:827` for `src/lib/activity/ActivitySection.svelte` from task 3, as the prototype's `src/routes/activity-preview/OpportunityPanel.svelte` shows, reading `getActivity({ opportunityId })`; remove `notes` from `src/lib/pipeline/opportunity-draft.ts` and `src/lib/pipeline/OpportunityEditor.svelte`, and delete the two replaced components.
     - Done when: an opportunity's detail view shows only its own Activity, with no notes field.
     - _Requirements: ACT-1, ACT-2, PIPE-8, REC-1_
-  - [ ] 4.2 Post notes and Log contact from the opportunity
+  - [x] 4.2 Post notes and Log contact from the opportunity
     - Reuse task 3's composer and Log contact sub-panel, passing the opportunity as `about` so the form asks nothing and shows its details and its clients' beside the form.
     - Done when: notes and contacts posted on an opportunity show there and in each linked client's Activity.
     - _Requirements: ACT-3, ACT-4, ACT-6_
-  - [ ] 4.3 Open a client's opportunity in the Registry drawer
+  - [x] 4.3 Open a client's opportunity in the Registry drawer
     - Replace the Opportunities rows' links to `/pipeline?opportunity=` in `src/routes/registry/+page.svelte` with ClientEditor's `opportunity` snippet, which opens the opportunity as a sub-panel. Back returns to the client, and the breadcrumb stays Registry / client / opportunity.
     - Add Open full view through `onpopout`: it opens the Pipeline's own opportunity dialog over the drawer, so closing it shows the client again. The preview's `OpportunityPanel` shows the intended behavior.
     - Done when: an opportunity opened from a client returns to that client with Back or Escape, and its full view closes back to the drawer.
     - _Requirements: ACT-1, PIPE-8_
-- [ ] 5. Show Last contacted
-  - [ ] 5.1 Derive Last contacted and the latest attempt on the server
+- [x] 5. Show Last contacted
+  - [x] 5.1 Derive Last contacted and the latest attempt on the server
     - Compute both in SQL from `activity` across the client and its opportunities, counting a call that talked, a meeting that happened, any incoming contact, or a sent text or email not marked Bounced; return them with the client in `src/lib/server/data.ts:474` (`clients`) and the client detail.
     - Done when: a fictional client's values match its newest reaching contact and newest attempt.
     - _Requirements: ACT-9_
-  - [ ] 5.2 Show Last contacted with the latest attempt in the client dialog
+  - [x] 5.2 Show Last contacted with the latest attempt in the client dialog
     - Place them as chosen in task 1.1, with the attempt beside Last contacted unless it is the same contact.
     - Done when: a client whose newest contact is an unanswered call shows both dates, and one whose newest attempt reached them shows one row.
     - _Requirements: ACT-9_
-  - [ ] 5.3 Add a Last contacted column, sort, and filter to the Registry
+  - [x] 5.3 Add a Last contacted column, sort, and filter to the Registry
     - Add the column to `src/routes/registry/+page.svelte` (hideable, as REG-6 describes), a `lastContacted` sort at `src/lib/server/data.ts:486` (`orderBy`) with never-contacted clients last, and a date filter modeled on `created` in `src/lib/registry/filters.ts` with matching validation and URL parsing.
     - Done when: the Registry sorts and filters by Last contacted, survives reload, and falls back on malformed values.
     - _Requirements: ACT-9, REG-3, REG-4, REG-6_
-- [ ] 6. Move existing notes text into Activity
-  - [ ] 6.1 Parse BoldTrail notes into a reviewed data migration
+- [x] 6. Move existing notes text into Activity
+  - [x] 6.1 Parse BoldTrail notes into a reviewed data migration
     - Write `scripts/client-activity-import.ts prepare <raw-export> <private-backup>`, modeled on `scripts/client-review-decisions.ts`: read production read-only, take a private local backup, parse each surviving `import-client-*` client's `Agent Notes` with the patterns in [the note](./notes/client-activity.md#imported-notes), and generate `migrations/<timestamp>_import_client_activity/migration.sql` with stable IDs.
     - Drop TCPA consent; mark repeated-template outbound texts `automated`; attribute client-written entries with `client_is_actor` and everything else to the support admin with `imported`; unrecognized text becomes an imported note. Print only counts, never client text.
     - Done when: the dry-run counts per kind add up to every parsed entry for the surviving clients, and the SQL inserts only rows for clients that still exist.
     - _Requirements: ACT-7, ACT-8_
-  - [ ] 6.2 Carry Meadow-era notes text into the same migration
+  - [x] 6.2 Carry Meadow-era notes text into the same migration
     - For client and opportunity `notes` text that differs from the imported original, add a note authored by the user who wrote it according to History, dated by that History row; fictional rows are excluded.
     - Done when: every non-empty notes field's content is accounted for by an imported entry or a Meadow-era note in the dry-run report.
     - _Requirements: ACT-8_
-  - [ ] 6.3 Apply the migration through deploy and verify it read-only
+  - [x] 6.3 Apply the migration through deploy and verify it read-only
     - Deploy with `vp run deploy -- --stage prod`; add a `verify <private-backup>` mode that checks every generated row and that no client or opportunity field changed. Keep the backup and raw export out of git and logs.
     - Done when: verification reports zero differences and production Activity shows the imported entries.
     - _Requirements: ACT-7, ACT-8_
-  - [ ] 6.4 Remove the notes columns and their remaining readers
+  - [x] 6.4 Remove the notes columns and their remaining readers
     - Drop `notes` from `clients` and `opportunities` in `src/lib/server/db/schema.ts`, from Registry search per REG-2, from `scripts/import-clients.ts` mapping, and from validation and fixtures; update tests that break.
     - Done when: no code reads or writes a notes field and `vp run check` passes.
     - _Requirements: ACT-8, REG-2, REG-13_
-- [ ] 7. Put notes and logged contact in Recent activity
-  - [ ] 7.1 Share one describer between Activity and Recent activity
+- [x] 7. Put notes and logged contact in Recent activity
+  - [x] 7.1 Share one describer between Activity and Recent activity
     - Extract `describe` from `src/lib/dashboard/ActivityList.svelte:16` and the Activity component into `src/lib/activity/describe.ts`, leading each row with the event and the record name and applying the same History grouping.
     - Done when: the same History row reads identically in Activity and Recent activity.
     - _Requirements: DASH-9_
-  - [ ] 7.2 Include notes and logged contact in `recentActivity`
+  - [x] 7.2 Include notes and logged contact in `recentActivity`
     - Union `activity` rows into `src/lib/server/data.ts:442` (`recentActivity`), excluding imported rows so years-old BoldTrail entries don't flood the widget.
     - Done when: a newly posted note or logged contact appears at the top of Recent activity.
     - _Requirements: DASH-9_

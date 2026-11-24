@@ -7,6 +7,7 @@
 	import { columnOrderingFeature, columnVisibilityFeature, createTable, rowSortingFeature, tableFeatures } from "@tanstack/svelte-table";
 	import { bulkUpdateClients, createClient, getClientFacets, getClientIds, getClients, getWorkspace } from "#lib/crm.remote.js";
 	import ClientEditor from "#lib/registry/ClientEditor.svelte";
+	import PipelineView from "#lib/pipeline/PipelineView.svelte";
 	import SectionCrumb, { type PanelSection } from "#lib/registry/SectionCrumb.svelte";
 	import ClientFlagHoverCard from "#lib/registry/ClientFlagHoverCard.svelte";
 	import { Flag } from "@lucide/svelte";
@@ -27,8 +28,8 @@
 	import { opportunityDraft, type OpportunityDraft } from "#lib/pipeline/opportunity-draft.js";
 
 	type ClientRow = Awaited<ReturnType<typeof getClients>>["clients"][number];
-	type SortId = "default" | "name" | "address" | "leadSource" | "tags" | "opportunities" | "referredBy" | "created";
-	type ColumnId = "name" | "contact" | "address" | "leadSource" | "tags" | "opportunities" | "consent" | "referredBy" | "created";
+	type SortId = "default" | "name" | "address" | "leadSource" | "tags" | "opportunities" | "lastContacted" | "referredBy" | "created";
+	type ColumnId = "name" | "contact" | "address" | "leadSource" | "tags" | "opportunities" | "lastContacted" | "consent" | "referredBy" | "created";
 
 	// --- Columns -------------------------------------------------------------
 	// Name is the row's anchor: it stays first and visible. The rest can be hidden or moved, per browser.
@@ -39,6 +40,7 @@
 		leadSource: { header: "Lead source", sort: ["Sort A to Z", "Sort Z to A"] },
 		tags: { header: "Tags", sort: ["Sort A to Z", "Sort Z to A"] },
 		opportunities: { header: "Opportunities", sort: ["Fewest first", "Most first"], end: true },
+		lastContacted: { header: "Last contacted", sort: ["Longest ago first", "Most recent first"] },
 		consent: { header: "Consent" },
 		referredBy: { header: "Referred by", sort: ["Sort A to Z", "Sort Z to A"] },
 		created: { header: "Created", sort: ["Oldest first", "Newest first"] },
@@ -102,7 +104,7 @@
 	// Filters and sorting are shallow navigations: the URL and history change without rerunning loads, resetting scroll, or animating the shell. The shallow URL is the current one until a full navigation clears it.
 	let url = $derived(page.shallow?.url ?? page.url);
 	// Normalize before sending to the server so malformed URL values fall back to defaults instead of reaching the validator.
-	const sortIds = ["name", "address", "leadSource", "tags", "opportunities", "referredBy", "created"] as const;
+	const sortIds = ["name", "address", "leadSource", "tags", "opportunities", "lastContacted", "referredBy", "created"] as const;
 	const idPattern = /^[a-zA-Z0-9_-]{1,120}$/;
 	function readParams() {
 		const sp = url.searchParams;
@@ -504,7 +506,8 @@
 			lastHandledClientId = null;
 			return;
 		}
-		if (clientIdFromUrl === lastHandledClientId || !ready) return;
+		// The dialog binds after onMount sets ready; opening before then would mark the client handled without showing it.
+		if (clientIdFromUrl === lastHandledClientId || !ready || !dialog) return;
 		const record = workspace.clients.find((client) => client.id === clientIdFromUrl);
 		if (!record) return;
 		lastHandledClientId = clientIdFromUrl;
@@ -514,7 +517,8 @@
 	});
 	let record = $derived(draft ? workspace.clients.find((client) => client.id === draft?.id) : undefined);
 	let linked = $derived(draft ? workspace.links.filter((link) => link.clientId === draft?.id) : []);
-	let changes = $derived(draft ? workspace.history.filter((change) => change.recordKind === "client" && change.recordId === draft?.id) : []);
+	/** The opportunity opened in full from the drawer, in the Pipeline's own dialog over it. */
+	let fullOpportunity = $state<string | null>(null);
 	async function openPanel() {
 		flagPreview?.close();
 		opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -640,19 +644,19 @@
 	</form>
 {/snippet}
 
-{#snippet createdEditor(filter: Extract<BuilderFilter, { field: "created" }>, close: () => void)}
+{#snippet dateEditor(filter: Extract<BuilderFilter, { field: "created" | "lastContacted" }>, close: () => void)}
 	<form
 		class="flex flex-wrap items-center gap-2"
 		onsubmit={(event) => {
 			event.preventDefault();
 			close();
 		}}>
-		<label class="sr-only" for="created-a">{filter.op === "between" ? "From" : "Date"}</label>
-		<input id="created-a" class="field min-h-9 w-auto" type="date" value={filter.a} onchange={(event) => setFilter({ ...filter, a: event.currentTarget.value })} />
+		<label class="sr-only" for={`${filter.field}-a`}>{filter.op === "between" ? "From" : "Date"}</label>
+		<input id={`${filter.field}-a`} class="field min-h-9 w-auto" type="date" value={filter.a} onchange={(event) => setFilter({ ...filter, a: event.currentTarget.value })} />
 		{#if filter.op === "between"}
 			<span class="text-muted">and</span>
-			<label class="sr-only" for="created-b">To</label>
-			<input id="created-b" class="field min-h-9 w-auto" type="date" value={filter.b} onchange={(event) => setFilter({ ...filter, b: event.currentTarget.value })} />
+			<label class="sr-only" for={`${filter.field}-b`}>To</label>
+			<input id={`${filter.field}-b`} class="field min-h-9 w-auto" type="date" value={filter.b} onchange={(event) => setFilter({ ...filter, b: event.currentTarget.value })} />
 		{/if}
 		<button class="control" data-size="sm" data-icon aria-label="Done"><Check size={16} aria-hidden="true" /></button>
 	</form>
@@ -736,7 +740,7 @@
 					{#if filter.field === "opportunities" || filter.field === "allOpportunities"}{@render countEditor(filter, close)}
 					{:else if filter.field === "consent"}{@render consentEditor(filter)}
 					{:else if filter.field === "referredBy"}{@render referredEditor(filter, close)}
-					{:else if filter.field === "created"}{@render createdEditor(filter, close)}{/if}
+					{:else if filter.field === "created" || filter.field === "lastContacted"}{@render dateEditor(filter, close)}{/if}
 				{/snippet}
 			{/each}
 			{#if availableFields.length}
@@ -955,6 +959,9 @@
 													{:else}{@render empty()}{/if}
 												{:else if column.id === "created"}
 													<time class="text-muted whitespace-nowrap tabular-nums" datetime={c.createdAt}>{dateFormat.format(new Date(c.createdAt))}</time>
+												{:else if column.id === "lastContacted"}
+													{#if c.lastContactedAt}<time class="whitespace-nowrap tabular-nums" datetime={c.lastContactedAt}>{dateFormat.format(new Date(c.lastContactedAt))}</time>
+													{:else}<span class="text-muted whitespace-nowrap">Never</span>{/if}
 												{/if}
 											</td>
 										{/each}
@@ -1155,8 +1162,8 @@
 			</form>
 		{:else if draft}
 			{#key draft.id}
-				<ClientEditor bind:draft bind:pending bind:section={clientSection} {workspace} {remote} history={changes} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")}>
-					{#snippet opportunities()}
+				<ClientEditor bind:draft bind:pending bind:section={clientSection} {workspace} {remote} updates={[...pageQueries, facetsQuery]} {fresh} saved={() => (saved = "Client saved.")} onpopout={(id) => (fullOpportunity = id)}>
+					{#snippet opportunities(open: (id: string) => void)}
 						<div class="mb-2 flex min-h-6 items-center justify-between gap-3">
 							<h3 class="font-display text-base">Opportunities</h3>
 							<button type="button" class="text-action" aria-label="New opportunity" disabled={pending} onclick={newOpportunity}><Plus size={14} aria-hidden="true" />New</button>
@@ -1166,10 +1173,10 @@
 								{@const opportunity = workspace.opportunities.find((row) => row.id === link.opportunityId)}
 								{#if opportunity}
 									<li>
-										<a class="work-row hover:bg-highlight flex min-h-10 items-center gap-3 px-3 py-1.5 transition-colors" href={`/pipeline?opportunity=${opportunity.id}`}>
+										<button type="button" class="work-row hover:bg-highlight flex min-h-10 w-full items-center gap-3 px-3 py-1.5 text-left transition-colors" onclick={() => open(opportunity.id)}>
 											<span class="item-title min-w-0 flex-1 truncate">{opportunity.title}</span>
 											<span class="chip shrink-0" data-tone={stageTones[opportunity.stage]}>{stageLabels[opportunity.stage]}</span>
-										</a>
+										</button>
 									</li>
 								{/if}
 							{:else}
@@ -1184,6 +1191,18 @@
 </dialog>
 
 <ClientFlagHoverCard bind:this={flagPreview} />
+
+{#if fullOpportunity}
+	{@const id = fullOpportunity}
+	{#key id}
+		<PipelineView
+			opportunity={id}
+			dialogOnly
+			onclose={() => {
+				if (fullOpportunity === id) fullOpportunity = null;
+			}} />
+	{/key}
+{/if}
 
 {#if creatingOpportunity}
 	<CreateOpportunityDialog

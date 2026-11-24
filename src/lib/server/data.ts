@@ -5,6 +5,7 @@ import * as v from "valibot";
 import type { BusinessIdentity } from "./identity.ts";
 import { businessDate } from "../data/attention.ts";
 import { leadSources, referralSource } from "../data/lead-sources.ts";
+import { lastContactedSql, readActivity, readLastContact, readRecentActivity } from "./activity.ts";
 import {
 	businessSettings,
 	clients,
@@ -28,6 +29,7 @@ import {
 import {
 	addChecklistItemInput,
 	archiveOpportunityInput,
+	activityOwnerInput,
 	bulkArchiveInput,
 	bulkUpdateClientsInput,
 	clientsQueryInput,
@@ -35,6 +37,10 @@ import {
 	createClientInput,
 	createOpportunityInput,
 	deleteOpportunityInput,
+	deleteActivityInput,
+	editActivityNoteInput,
+	logContactInput,
+	postNoteInput,
 	pinOpportunityInput,
 	removeChecklistItemInput,
 	renameChecklistItemInput,
@@ -49,6 +55,7 @@ import {
 	saveTaskInput,
 	completeTaskInput,
 	deleteTaskInput,
+	lastContactInput,
 } from "./validation.ts";
 
 export class DataConflict extends Error {
@@ -138,6 +145,7 @@ interface ClientRow {
 	leadSource: string | null;
 	archivedAt: string | null;
 	createdAt: string;
+	lastContactedAt: string | null;
 	opportunity_count: number;
 	all_opportunity_count: number;
 	consentCall: number;
@@ -293,6 +301,98 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		];
 	}
 
+	function writeOpportunity(
+		guard: string,
+		now: string,
+		value: Omit<v.InferOutput<typeof createOpportunityInput>, "requestId">,
+		linkedIds: string[],
+	) {
+		return [
+			stmt(
+				"INSERT INTO opportunities (id, title, type, stage, timeline, address, budget_cents, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE " +
+					guardExists,
+				value.id,
+				value.title,
+				value.type,
+				value.stage,
+				value.timeline ?? null,
+				value.address || null,
+				value.budgetCents ?? null,
+				now,
+				now,
+				guard,
+			),
+			...linkedIds.map((clientId) =>
+				stmt(
+					"INSERT INTO opportunity_clients (opportunity_id, client_id) SELECT ?, ? WHERE " + guardExists,
+					value.id,
+					clientId,
+					guard,
+				),
+			),
+			stmt(
+				"INSERT INTO stage_checklists (id, opportunity_id, stage, template_id, created_at, updated_at) SELECT ?, ?, stage, id, ?, ? FROM checklist_templates WHERE type = ? AND stage = ? AND " +
+					guardExists,
+				crypto.randomUUID(),
+				value.id,
+				now,
+				now,
+				value.type,
+				value.stage,
+				guard,
+			),
+		];
+	}
+
+	function writeActivityHistory(
+		guard: string,
+		now: string,
+		id: string,
+		action: "post-note" | "log-contact" | "edit-activity-note" | "delete-activity",
+		body?: string,
+	) {
+		const eventId = crypto.randomUUID();
+		// Each owner gets History. The shared event ID lets a client's Activity collapse copies from several opportunities.
+		return stmt(
+			`WITH owners AS (
+				SELECT 'client' AS kind, client_id AS id FROM activity WHERE id = ?1 AND client_id IS NOT NULL
+				UNION ALL SELECT 'opportunity', opportunity_id FROM activity WHERE id = ?1 AND opportunity_id IS NOT NULL
+				UNION ALL SELECT 'opportunity', opportunity_id FROM activity_opportunities WHERE activity_id = ?1
+			)
+			INSERT INTO history (id, record_kind, record_id, actor_user_id, effective_user_id, action, data, created_at)
+			SELECT ?2 || '-' || owners.id, owners.kind, owners.id, ?3, ?4, ?5,
+				CASE ?5
+					WHEN 'edit-activity-note' THEN json_object('eventId', ?2, 'activityId', a.id, 'kind', a.kind, 'before', a.body, 'after', ?6)
+					WHEN 'delete-activity' THEN json_object('eventId', ?2, 'activityId', a.id, 'kind', a.kind, 'before', json_object('body', a.body, 'channel', a.channel, 'channelLabel', a.channel_label, 'direction', a.direction, 'outcome', a.outcome, 'occurredAt', a.occurred_at))
+					ELSE json_object('eventId', ?2, 'activityId', a.id, 'kind', a.kind)
+				END, ?7
+			FROM owners JOIN activity a ON a.id = ?1
+			WHERE EXISTS (SELECT 1 FROM mutation_guards WHERE id = ?8)`,
+			id,
+			eventId,
+			user.actorUserId,
+			user.effectiveUserId,
+			action,
+			body ?? null,
+			now,
+			guard,
+		);
+	}
+
+	function activityRevisionGuard(
+		guard: string,
+		value: { id: string; revision: number },
+		allowNote: boolean,
+	) {
+		return stmt(
+			"INSERT INTO mutation_guards SELECT ?, EXISTS (SELECT 1 FROM activity WHERE id = ? AND revision = ? AND imported = 0 AND (? OR kind = 'contact'))",
+			guard,
+			value.id,
+			value.revision,
+			Number(allowNote),
+		);
+	}
+
 	// WHERE clause on alias `c` for the Registry client filters. Arrays bind as one JSON parameter read through json_each, so a statement never binds one parameter per array element. `omit` skips one filter so facet counts can ignore the dimension being faceted.
 	async function clientWhere(
 		filters: v.InferOutput<typeof clientFiltersInput>,
@@ -306,14 +406,14 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 		if (filters.q) {
 			const like = `%${filters.q.trim()}%`;
 			conditions.push(`(
-				c.name LIKE ? OR c.notes LIKE ?
+				c.name LIKE ?
 				OR EXISTS (SELECT 1 FROM client_people p WHERE p.client_id = c.id AND p.name LIKE ?)
 				OR EXISTS (SELECT 1 FROM client_people p JOIN person_phones ph ON ph.person_id = p.id WHERE p.client_id = c.id AND ph.value LIKE ?)
 				OR EXISTS (SELECT 1 FROM client_people p JOIN person_emails pe ON pe.person_id = p.id WHERE p.client_id = c.id AND pe.value LIKE ?)
 				OR EXISTS (SELECT 1 FROM client_addresses a WHERE a.client_id = c.id AND a.address LIKE ?)
 				OR EXISTS (SELECT 1 FROM client_tags ct JOIN tags tg ON tg.id = ct.tag_id WHERE ct.client_id = c.id AND tg.name LIKE ?)
 			)`);
-			args.push(like, like, like, like, like, like, like);
+			args.push(like, like, like, like, like, like);
 		}
 
 		if (omit !== "tags" && filters.tags.length) {
@@ -415,22 +515,26 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			}
 		}
 
-		if (filters.created) {
+		if (filters.created || filters.lastContacted) {
 			const settings = await orm.select().from(businessSettings).where(eq(businessSettings.id, 1));
 			const timeZone = settings[0]?.timezone ?? "America/Los_Angeles";
-			const range = filters.created;
-			if (range.op === "onOrAfter") {
-				conditions.push(`c.created_at >= ?`);
-				args.push(zonedDayStartIso(range.date, timeZone));
-			} else if (range.op === "onOrBefore") {
-				conditions.push(`c.created_at < ?`);
-				args.push(zonedDayStartIso(nextCalendarDay(range.date), timeZone));
-			} else if (range.op === "between") {
-				const start = range.from <= range.to ? range.from : range.to;
-				const end = range.from <= range.to ? range.to : range.from;
-				conditions.push(`c.created_at >= ? AND c.created_at < ?`);
-				args.push(zonedDayStartIso(start, timeZone), zonedDayStartIso(nextCalendarDay(end), timeZone));
-			}
+			// Inclusive calendar days in the business's timezone; a NULL value, such as a client never reached, matches none.
+			const dateRange = (column: string, range: NonNullable<typeof filters.created>) => {
+				if (range.op === "between") {
+					const start = range.from <= range.to ? range.from : range.to;
+					const end = range.from <= range.to ? range.to : range.from;
+					conditions.push(`${column} >= ? AND ${column} < ?`);
+					args.push(zonedDayStartIso(start, timeZone), zonedDayStartIso(nextCalendarDay(end), timeZone));
+				} else if (range.op === "onOrAfter") {
+					conditions.push(`${column} >= ?`);
+					args.push(zonedDayStartIso(range.date, timeZone));
+				} else {
+					conditions.push(`${column} < ?`);
+					args.push(zonedDayStartIso(nextCalendarDay(range.date), timeZone));
+				}
+			};
+			if (filters.created) dateRange("c.created_at", filters.created);
+			if (filters.lastContacted) dateRange(lastContactedSql("c.id"), filters.lastContacted);
 		}
 
 		// Each condition is parenthesized so an OR inside one cannot leak into its neighbours.
@@ -439,36 +543,18 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 
 	return {
 		identity: user,
+		activity(input: unknown) {
+			return readActivity(db, v.parse(activityOwnerInput, input));
+		},
 		async recentActivity() {
-			const [result, settings] = await Promise.all([
-				stmt(`SELECT h.id, h.record_kind AS recordKind, COALESCE(NULLIF(h.record_id, ''), sc.opportunity_id) AS recordId, h.action, h.data, h.created_at AS createdAt, h.actor_user_id AS actorUserId, h.effective_user_id AS effectiveUserId, COALESCE(c.name, o.title, t.title) AS title, COALESCE(c.archived_at, o.archived_at) AS archivedAt
-					FROM history h
-					LEFT JOIN stage_checklists sc ON h.record_kind = 'opportunity' AND h.record_id = '' AND sc.id = json_extract(h.data, '$.checklistId')
-					LEFT JOIN clients c ON h.record_kind = 'client' AND c.id = h.record_id
-					LEFT JOIN opportunities o ON h.record_kind = 'opportunity' AND o.id = COALESCE(NULLIF(h.record_id, ''), sc.opportunity_id)
-					LEFT JOIN tasks t ON h.record_kind = 'task' AND t.id = h.record_id
-					WHERE c.id IS NOT NULL OR o.id IS NOT NULL OR t.id IS NOT NULL
-					ORDER BY h.created_at DESC, h.id DESC LIMIT 20`).all<{
-					id: string;
-					recordKind: "client" | "opportunity" | "task";
-					recordId: string;
-					action: string;
-					data: string;
-					createdAt: string;
-					actorUserId: string;
-					effectiveUserId: string;
-					title: string;
-					archivedAt: string | null;
-				}>(),
+			const [rows, settings] = await Promise.all([
+				readRecentActivity(db, 40),
 				orm.select().from(businessSettings).where(eq(businessSettings.id, 1)),
 			]);
-			return {
-				changes: result.results.map((row) => ({
-					...row,
-					data: JSON.parse(row.data) as Record<string, unknown>,
-				})),
-				timezone: settings[0]?.timezone ?? "America/Los_Angeles",
-			};
+			return { rows, timezone: settings[0]?.timezone ?? "America/Los_Angeles" };
+		},
+		lastContact(input: unknown) {
+			return readLastContact(db, v.parse(lastContactInput, input).clientId);
 		},
 		// Server-side Registry list: filter, search, sort, count, and paginate clients in SQL so the table loads one page of the 800+ clients at a time. Returns the page plus the total count.
 		async clients(input: unknown) {
@@ -481,6 +567,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 
 			const currentCount = `(SELECT count(*) FROM opportunity_clients oc JOIN opportunities o ON o.id = oc.opportunity_id WHERE oc.client_id = c.id AND o.archived_at IS NULL)`;
 			const allCount = `(SELECT count(*) FROM opportunity_clients oc JOIN opportunities o ON o.id = oc.opportunity_id WHERE oc.client_id = c.id)`;
+			const lastContacted = lastContactedSql("c.id");
 			const referredName = `COALESCE((SELECT r.name FROM clients r WHERE r.id = c.referred_by_client_id), c.referred_by_name)`;
 
 			let orderBy: string;
@@ -503,6 +590,10 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				case "opportunities":
 					orderBy = `${currentCount} ${sortDir}`;
 					break;
+				case "lastContacted":
+					// Clients never reached come last in either direction. The alias reuses the selected value rather than computing it again.
+					orderBy = `(lastContactedAt IS NULL) ASC, lastContactedAt ${sortDir}`;
+					break;
 				case "referredBy":
 					orderBy = `(CASE WHEN c.referred_by_client_id IS NULL AND (c.referred_by_name IS NULL OR c.referred_by_name = '') THEN 1 ELSE 0 END) ${sortDir}, ${referredName} COLLATE NOCASE ${sortDir}`;
 					break;
@@ -515,6 +606,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			const [pageResult, countResult] = await Promise.all([
 				stmt(
 					`SELECT c.id, c.name, c.flagged, c.flag_note AS flagNote, c.lead_source AS leadSource, c.archived_at AS archivedAt, c.created_at AS createdAt,
+					${lastContacted} AS lastContactedAt,
 					${currentCount} AS opportunity_count,
 					${allCount} AS all_opportunity_count,
 					c.consent_call AS consentCall, c.consent_text AS consentText, c.consent_email AS consentEmail, c.consent_mail AS consentMail,
@@ -576,6 +668,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						? { name: row.referredByName, clientId: null }
 						: null,
 				createdAt: row.createdAt,
+				lastContactedAt: row.lastContactedAt,
 			}));
 
 			return { clients, total: countResult?.total ?? 0 };
@@ -924,6 +1017,160 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				],
 			);
 		},
+		async postNote(input: unknown) {
+			const value = v.parse(postNoteInput, input);
+			const owner = value.owner;
+			const [kind, ownerId] =
+				"clientId" in owner
+					? (["client", owner.clientId] as const)
+					: (["opportunity", owner.opportunityId] as const);
+			return mutation(
+				value.requestId,
+				{ operation: "post-note", ...value },
+				(now) => ({ id: value.id, revision: 1, occurredAt: now }),
+				(guard, now) => [
+					stmt(
+						`INSERT INTO mutation_guards SELECT ?, NOT EXISTS (SELECT 1 FROM activity WHERE id = ?)
+							AND EXISTS (SELECT 1 FROM ${kind === "client" ? "clients" : "opportunities"} WHERE id = ?)`,
+						guard,
+						value.id,
+						ownerId,
+					),
+					stmt(
+						"INSERT INTO activity (id, client_id, opportunity_id, kind, occurred_at, body, actor_user_id, effective_user_id, created_at, updated_at) SELECT ?, ?, ?, 'note', ?, ?, ?, ?, ?, ? WHERE " +
+							guardExists,
+						value.id,
+						kind === "client" ? ownerId : null,
+						kind === "opportunity" ? ownerId : null,
+						now,
+						value.body,
+						user.actorUserId,
+						user.effectiveUserId,
+						now,
+						now,
+						guard,
+					),
+					appendHistory(guard, now, kind, ownerId, "post-note", {
+						activityId: value.id,
+						kind: "note",
+					}),
+				],
+			);
+		},
+		async logContact(input: unknown) {
+			const value = v.parse(logContactInput, input);
+			const clientId = "clientId" in value.owner ? value.owner.clientId : null;
+			const directOpportunityId = "opportunityId" in value.owner ? value.owner.opportunityId : null;
+			const created = value.newOpportunity;
+			const about = directOpportunityId
+				? [directOpportunityId]
+				: [...value.opportunityIds, ...(created ? [created.id] : [])];
+			return mutation(
+				value.requestId,
+				{ operation: "log-contact", ...value },
+				{
+					id: value.id,
+					revision: 1,
+					occurredAt: value.occurredAt,
+					createdOpportunityId: created?.id ?? null,
+				},
+				(guard, now) => [
+					stmt(
+						`INSERT INTO mutation_guards
+						 SELECT ?1, NOT EXISTS (SELECT 1 FROM activity WHERE id = ?2)
+						 AND CASE WHEN ?3 IS NOT NULL THEN
+							EXISTS (SELECT 1 FROM clients WHERE id = ?3)
+							AND (SELECT count(*) FROM opportunity_clients oc JOIN opportunities o ON o.id = oc.opportunity_id
+								WHERE oc.client_id = ?3 AND o.id IN (SELECT value FROM json_each(?4))
+								AND o.stage <> 'closed' AND o.archived_at IS NULL) = json_array_length(?4)
+						 ELSE EXISTS (SELECT 1 FROM opportunities WHERE id = ?5) END
+						 AND (?6 IS NULL OR (NOT EXISTS (SELECT 1 FROM opportunities WHERE id = ?6)
+							AND EXISTS (SELECT 1 FROM checklist_templates WHERE type = ?7 AND stage = 'new-lead')))`,
+						guard,
+						value.id,
+						clientId,
+						JSON.stringify(value.opportunityIds),
+						directOpportunityId,
+						created?.id ?? null,
+						created?.type ?? null,
+					),
+					...(created && clientId
+						? [
+								...writeOpportunity(guard, now, { ...created, stage: "new-lead" }, [clientId]),
+								appendHistory(guard, now, "opportunity", created.id, "create", {
+									after: { ...created, stage: "new-lead", clientId },
+								}),
+							]
+						: []),
+					stmt(
+						`INSERT INTO activity (id, client_id, kind, channel, channel_label, direction, outcome, occurred_at, body, detail, actor_user_id, effective_user_id, client_is_actor, created_at, updated_at)
+						 SELECT ?1, ?2, 'contact', ?3, ?4, ?5, ?6, ?7, ?8,
+							CASE WHEN ?5 = 'incoming' AND ?2 IS NULL THEN json_object('actorClientId', coalesce(?9, (
+								SELECT min(client_id) FROM opportunity_clients WHERE opportunity_id = ?10 HAVING count(*) = 1
+							))) ELSE '{}' END,
+							?11, ?12, ?5 = 'incoming', ?13, ?13
+						 WHERE EXISTS (SELECT 1 FROM mutation_guards WHERE id = ?14)`,
+						value.id,
+						about.length ? null : clientId,
+						value.channel,
+						"channelLabel" in value ? value.channelLabel : null,
+						value.direction,
+						"outcome" in value ? (value.outcome ?? null) : null,
+						value.occurredAt,
+						value.body,
+						clientId,
+						directOpportunityId,
+						user.actorUserId,
+						user.effectiveUserId,
+						now,
+						guard,
+					),
+					...about.map((opportunityId) =>
+						stmt(
+							"INSERT INTO activity_opportunities (activity_id, opportunity_id) SELECT ?, ? WHERE " +
+								guardExists,
+							value.id,
+							opportunityId,
+							guard,
+						),
+					),
+					writeActivityHistory(guard, now, value.id, "log-contact"),
+				],
+			);
+		},
+		async editActivityNote(input: unknown) {
+			const value = v.parse(editActivityNoteInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "edit-activity-note", ...value },
+				(now) => ({ id: value.id, revision: value.revision + 1, updatedAt: now }),
+				(guard, now) => [
+					activityRevisionGuard(guard, value, Boolean(value.body)),
+					writeActivityHistory(guard, now, value.id, "edit-activity-note", value.body),
+					stmt(
+						"UPDATE activity SET body = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND " +
+							guardExists,
+						value.body,
+						now,
+						value.id,
+						guard,
+					),
+				],
+			);
+		},
+		async deleteActivity(input: unknown) {
+			const value = v.parse(deleteActivityInput, input);
+			return mutation(
+				value.requestId,
+				{ operation: "delete-activity", ...value },
+				{ id: value.id, revision: value.revision },
+				(guard, now) => [
+					activityRevisionGuard(guard, value, true),
+					writeActivityHistory(guard, now, value.id, "delete-activity"),
+					stmt("DELETE FROM activity WHERE id = ? AND " + guardExists, value.id, guard),
+				],
+			);
+		},
 		async createOpportunity(input: unknown) {
 			const value = v.parse(createOpportunityInput, input);
 			if (value.clientId && value.clientIds) throw new Error("Choose one client-link input.");
@@ -941,41 +1188,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						value.type,
 						value.stage,
 					),
-					stmt(
-						"INSERT INTO opportunities (id, title, type, stage, timeline, address, budget_cents, notes, created_at, updated_at) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE " +
-							guardExists,
-						value.id,
-						value.title,
-						value.type,
-						value.stage,
-						value.timeline ?? null,
-						value.address || null,
-						value.budgetCents ?? null,
-						value.notes ?? "",
-						now,
-						now,
-						guard,
-					),
-					...linkedIds.map((clientId) =>
-						stmt(
-							"INSERT INTO opportunity_clients (opportunity_id, client_id) SELECT ?, ? WHERE " +
-								guardExists,
-							value.id,
-							clientId,
-							guard,
-						),
-					),
-					stmt(
-						"INSERT INTO stage_checklists (id, opportunity_id, stage, template_id, created_at, updated_at) SELECT ?, ?, stage, id, ?, ? FROM checklist_templates WHERE type = ? AND stage = ? AND " +
-							guardExists,
-						crypto.randomUUID(),
-						value.id,
-						now,
-						now,
-						value.type,
-						value.stage,
-						guard,
-					),
+					...writeOpportunity(guard, now, value, linkedIds),
 					...writeReferences(guard, now, "opportunity_id", value.id, value.references),
 					appendHistory(guard, now, "opportunity", value.id, "create", { after: value }),
 				],
@@ -1319,14 +1532,13 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 				{ id: value.id, revision: value.revision + 1 },
 				(guard, now) => [
 					stmt(
-						`UPDATE opportunities SET title = ?, type = ?, stage = ?, timeline = ?, address = ?, budget_cents = ?, notes = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL AND ${clientCountSql}`,
+						`UPDATE opportunities SET title = ?, type = ?, stage = ?, timeline = ?, address = ?, budget_cents = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ? AND archived_at IS NULL AND ${clientCountSql}`,
 						value.title,
 						after.type,
 						after.stage,
 						after.timeline,
 						after.address || null,
 						after.budgetCents,
-						after.notes,
 						now,
 						value.id,
 						value.revision,
@@ -1493,6 +1705,14 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 						stmt("DELETE FROM tasks WHERE opportunity_id = ?", value.id),
 						// 7. history for this opportunity
 						stmt("DELETE FROM history WHERE record_kind = 'opportunity' AND record_id = ?", value.id),
+						// Shared logged contact remains with its other opportunities.
+						stmt(
+							`DELETE FROM activity WHERE id IN (
+								SELECT a.activity_id FROM activity_opportunities a WHERE a.opportunity_id = ?
+								AND NOT EXISTS (SELECT 1 FROM activity_opportunities other WHERE other.activity_id = a.activity_id AND other.opportunity_id <> a.opportunity_id)
+							)`,
+							value.id,
+						),
 						// 8. the opportunity itself (guarded by revision match)
 						stmt("DELETE FROM opportunities WHERE id = ? AND revision = ?", value.id, value.revision),
 						stmt("INSERT INTO mutation_guards VALUES (?, changes())", guard),
@@ -1750,7 +1970,6 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 			const consentText = value.consentText !== undefined ? value.consentText : before.consentText;
 			const consentEmail = value.consentEmail !== undefined ? value.consentEmail : before.consentEmail;
 			const consentMail = value.consentMail !== undefined ? value.consentMail : before.consentMail;
-			const notes = value.notes !== undefined ? value.notes : before.notes;
 			const flagged = value.flagged ?? before.flagged;
 			const flagNote = flagged ? (value.flagNote ?? before.flagNote).trim() : "";
 			if (typeof flagged !== "boolean" || flagNote.length > 2000)
@@ -1811,7 +2030,7 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 					const stmts: D1PreparedStatement[] = [];
 					stmts.push(
 						stmt(
-							"UPDATE clients SET name = ?, lead_source = ?, preferences = ?, preferred_contact_method = ?, referred_by_client_id = ?, referred_by_name = ?, consent_call = ?, consent_text = ?, consent_email = ?, consent_mail = ?, notes = ?, flagged = ?, flag_note = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?",
+							"UPDATE clients SET name = ?, lead_source = ?, preferences = ?, preferred_contact_method = ?, referred_by_client_id = ?, referred_by_name = ?, consent_call = ?, consent_text = ?, consent_email = ?, consent_mail = ?, flagged = ?, flag_note = ?, revision = revision + 1, updated_at = ? WHERE id = ? AND revision = ?",
 							value.name,
 							leadSource,
 							preferences,
@@ -1822,7 +2041,6 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 							consentText ? 1 : 0,
 							consentEmail ? 1 : 0,
 							consentMail ? 1 : 0,
-							notes,
 							flagged ? 1 : 0,
 							flagNote,
 							now,
@@ -1985,7 +2203,6 @@ export function createDataService(db: D1Database, identity: BusinessIdentity) {
 								consentText,
 								consentEmail,
 								consentMail,
-								notes,
 								flagged,
 								flagNote,
 								people: people ?? beforePeople,

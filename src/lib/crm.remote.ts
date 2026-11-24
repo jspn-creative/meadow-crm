@@ -3,11 +3,16 @@ import { error } from "@sveltejs/kit";
 import { DataConflict, DataInvalid } from "#lib/server/data.js";
 import {
 	addChecklistItemInput,
+	activityOwnerInput,
 	archiveOpportunityInput,
 	createClientInput,
 	createOpportunityInput,
 	createOpportunityFormInput,
 	deleteOpportunityInput,
+	deleteActivityInput,
+	editActivityNoteInput,
+	logContactInput,
+	postNoteInput,
 	pinOpportunityInput,
 	removeChecklistItemInput,
 	renameChecklistItemInput,
@@ -25,6 +30,7 @@ import {
 	clientsQueryInput,
 	clientFiltersInput,
 	bulkUpdateClientsInput,
+	lastContactInput,
 } from "#lib/server/validation.js";
 
 function services() {
@@ -39,6 +45,8 @@ function services() {
 export const getWorkspace = query(workspaceInput, (input) => services().workspace(input));
 export const getIdentity = query(() => services().identity);
 export const getRecentActivity = query(() => services().recentActivity());
+export const getActivity = query(activityOwnerInput, (input) => services().activity(input));
+export const getLastContact = query(lastContactInput, (input) => services().lastContact(input));
 export const getClients = query(clientsQueryInput, (input) => services().clients(input));
 export const getClientFacets = query(clientFiltersInput, (input) => services().clientFacets(input));
 export const getClientIds = query(clientFiltersInput, (input) => services().clientIds(input));
@@ -60,16 +68,33 @@ export const deleteTask = command(deleteTaskInput, (input) => {
 	return save(() => data.deleteTask(input));
 });
 
-async function save(action: () => Promise<Record<string, unknown>>, retainCommitted = false) {
+const refreshActivity = () => requested(getActivity, 40).refreshAll();
+const refreshActivitySave = () => Promise.all([refreshActivity(), getRecentActivity().refresh()]);
+// Logging or deleting contact moves Last contacted on the client and in the Registry.
+const refreshContactSave = () =>
+	Promise.all([
+		refreshActivitySave(),
+		requested(getLastContact, 10).refreshAll(),
+		requested(getClients, 40).refreshAll(),
+	]);
+const refreshWorkspaceSave = () =>
+	Promise.all([
+		requested(getWorkspace, 2).refreshAll(),
+		requested(getClients, 40).refreshAll(),
+		requested(getClientFacets, 2).refreshAll(),
+		requested(getLastContact, 10).refreshAll(),
+		refreshActivitySave(),
+	]);
+
+async function save(
+	action: () => Promise<Record<string, unknown>>,
+	retainCommitted = false,
+	refresh: () => Promise<unknown> = refreshWorkspaceSave,
+) {
 	try {
 		const result = await action();
 		try {
-			await Promise.all([
-				requested(getWorkspace, 2).refreshAll(),
-				requested(getClients, 40).refreshAll(),
-				requested(getClientFacets, 2).refreshAll(),
-				getRecentActivity().refresh(),
-			]);
+			await refresh();
 		} catch (cause) {
 			if (retainCommitted) return { ...result, refreshFailed: true };
 			throw cause;
@@ -81,6 +106,30 @@ async function save(action: () => Promise<Record<string, unknown>>, retainCommit
 		throw cause;
 	}
 }
+
+export const postNote = command(postNoteInput, (input) => {
+	const data = services();
+	return save(() => data.postNote(input), true, refreshActivitySave);
+});
+
+export const logContact = command(logContactInput, (input) => {
+	const data = services();
+	return save(
+		() => data.logContact(input),
+		true,
+		input.newOpportunity ? refreshWorkspaceSave : refreshContactSave,
+	);
+});
+
+export const editActivityNote = command(editActivityNoteInput, (input) => {
+	const data = services();
+	return save(() => data.editActivityNote(input), true, refreshActivitySave);
+});
+
+export const deleteActivity = command(deleteActivityInput, (input) => {
+	const data = services();
+	return save(() => data.deleteActivity(input), true, refreshContactSave);
+});
 
 export const createClient = form(createClientInput, (input) => {
 	const data = services();
@@ -137,7 +186,7 @@ export const pinOpportunity = command(pinOpportunityInput, async (input) => {
 	try {
 		// Pinning changes no Registry fields; return its confirmed patch instead of reloading the workspace.
 		const result = await data.pinOpportunity(input);
-		await getRecentActivity().refresh();
+		await refreshActivitySave();
 		return result;
 	} catch (cause) {
 		if (cause instanceof DataConflict) error(409, cause.message);

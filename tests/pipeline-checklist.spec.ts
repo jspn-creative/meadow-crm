@@ -15,9 +15,7 @@ async function createOpportunity(
 	return dialog;
 }
 
-test.skip("the checklist adds, renames and dates items in place, and notes save inline", async ({
-	page,
-}) => {
+test.skip("the checklist adds, renames and dates items in place", async ({ page }) => {
 	await page.goto("/pipeline");
 	const title = `QA checklist ${crypto.randomUUID()}`;
 	const dialog = await createOpportunity(page, title);
@@ -92,18 +90,6 @@ test.skip("the checklist adds, renames and dates items in place, and notes save 
 	await expect(items.nth(1)).toContainText("Renamed in place");
 	await expect(items.nth(1).getByRole("checkbox")).toBeChecked();
 	await expect(items.nth(1).getByLabel(/Due date/)).toHaveValue("2026-11-02");
-
-	// Notes show without an editor; typing reveals save controls.
-	const notes = dialog.getByLabel("Opportunity notes", { exact: true });
-	await expect(dialog.getByRole("button", { name: "Save notes" })).toHaveCount(0);
-	await notes.fill("Prefers morning calls.");
-	await dialog.getByRole("button", { name: "Save notes", exact: true }).click();
-	await expect(dialog.getByRole("status")).toHaveText("Notes saved.");
-	await page.reload();
-	await page.getByRole("button", { name: title, exact: true }).click();
-	await expect(dialog.getByLabel("Opportunity notes", { exact: true })).toHaveValue(
-		"Prefers morning calls.",
-	);
 	await expect(items.last()).toContainText("Send the buyer guide");
 });
 
