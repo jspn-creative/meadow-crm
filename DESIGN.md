@@ -43,8 +43,10 @@ A font pairs a display face with a sans, set as `--font-display` and `--font-san
 | Bricolage | Bricolage Grotesque | Bricolage Grotesque |
 | Fraunces | Fraunces | Figtree |
 | Young Serif | Young Serif | Work Sans |
+| Barlow | Barlow Semi Condensed | Barlow |
+| Instrument | Instrument Serif | Instrument Sans |
 
-One stylesheet declares every font's faces, so the browser downloads only the faces in use and switching is quick. The display face is for page titles, widget and section headings, opportunity titles, and prominent figures. The sans (weights 400, 500, and 600) is for everything else, including charts. There is no mono or label family.
+One stylesheet declares every font's faces, so the browser downloads only the faces in use and switching is quick. The display face is for page titles, widget and section headings, opportunity titles, and prominent figures. The sans (weights 400, 500, and 600) is for everything else, including charts. There is no mono or label family. A display face that reads small at the same size sets `--font-display-adjust`, a `font-size-adjust` value for display text only. Instrument Serif is narrow, so it sets its display text an eighth larger, and a `text-base` heading reads like `text-lg` in the other fonts.
 
 Body text is 14px; supporting details are 12px. Interactive labels use weight 500. Single-line item titles use `.item-title` so wrapping never costs more height than the row budgeted. `text-2xs` is for badges only; use tracked uppercase sparingly.
 

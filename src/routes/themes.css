@@ -277,7 +277,7 @@
 		--theme-tone-l: 0.4;
 		--theme-shade-k: 1;
 	}
-	/* A font pairs a display face with a body face and is chosen separately from the theme. */
+	/* A font pairs a display face with a body face and is chosen separately from the theme. A face that reads small at the same size sets --font-display-adjust, a font-size-adjust value for display text only. */
 	:root:not([data-font]),
 	[data-font="bricolage"] {
 		--font-display: "Bricolage Grotesque", system-ui, sans-serif;
@@ -307,6 +307,8 @@
 		--font-display: "Instrument Serif", Georgia, serif;
 		--font-sans: "Instrument Sans", system-ui, sans-serif;
 		--font-body-tracking: normal;
+		/* Instrument Serif is narrow, so its headings read a step smaller than the other faces at the same size. Its x-height is 0.51 of the font size; asking for 0.574 sets every display size an eighth larger, so text-base reads like text-lg. */
+		--font-display-adjust: ex-height 0.574;
 		letter-spacing: var(--font-body-tracking);
 	}
 }

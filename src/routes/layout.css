@@ -127,9 +127,11 @@
 	}
 	.font-sans {
 		letter-spacing: var(--font-body-tracking);
+		font-size-adjust: none;
 	}
 	.font-display {
 		letter-spacing: normal;
+		font-size-adjust: var(--font-display-adjust, none);
 	}
 	p {
 		@apply leading-[1.4];
@@ -434,19 +436,17 @@
 			linear-gradient(to bottom, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.1) 90%, rgb(0 0 0 / 0.8));
 		mask-composite: intersect;
 	}
-	/* The pattern covers the whole window: it glows from the top-left corner, fades out, and returns along the bottom edge. */
+	/* The pattern covers the whole window: it shows along the top, fades out down the middle, and returns along the bottom edge. */
 	&.motif-pattern {
-		@apply opacity-30;
+		@apply opacity-20;
 		background-image: radial-gradient(circle, currentColor 1.25px, transparent 1.25px);
 		background-size: 16px 16px;
-		mask-image:
-			radial-gradient(circle at 6rem 6rem, black, rgb(0 0 0 / 0.4) 14rem, transparent 30rem),
-			linear-gradient(to bottom, transparent 50%, rgb(0 0 0 / 0.8));
+		mask-image: linear-gradient(to bottom, black, transparent 40%, transparent 60%, rgb(0 0 0 / 0.7));
 		:root:is([data-theme="cream"], [data-theme="sage"]) & {
 			@apply hidden;
 		}
 		:root:is([data-theme="evening"], [data-theme="butter"]) & {
-			@apply opacity-15;
+			@apply opacity-10;
 			background-image:
 				linear-gradient(currentColor 0.5px, transparent 0.5px),
 				linear-gradient(90deg, currentColor 0.5px, transparent 0.5px);
